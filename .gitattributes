@@ -1,0 +1,5 @@
+# Paksa LF (bukan CRLF) buat shell script — CRLF di shebang line (`#!/usr/bin/env bash`) bikin
+# "bad interpreter" error kalau di-checkout di Linux/Mac, atau kadang di Git Bash sendiri. Repo
+# ini di-develop di Windows dengan `core.autocrlf=true`, jadi tanpa baris ini deploy/redeploy.sh
+# bakal ke-checkout CRLF begitu ada yang clone ulang.
+*.sh text eol=lf
