@@ -1,0 +1,57 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+/*
+ * Palette "harbor teal" — brand primer aplikasi ini, dipilih buat gantiin biru generik
+ * bawaan Tailwind supaya terasa lebih khas (tema gudang/logistik) tanpa perlu sentuh tiap
+ * halaman satu-satu. Override langsung skala `blue-*` bawaan Tailwind v4 lewat @theme di
+ * bawah — jadi SEMUA class `bg-blue-600`, `text-blue-700`, `ring-blue-500`, dst yang sudah
+ * dipakai di ~30 halaman otomatis pakai warna baru ini, tanpa perlu diedit satu-satu.
+ * `--color-primary-*` disediakan sebagai alias bernama lebih jujur buat kode baru ke depannya
+ * (nilainya identik dengan `blue-*`) — pilih salah satu, keduanya menghasilkan warna yang sama.
+ */
+@theme {
+  --color-blue-50: #eef6f7;
+  --color-blue-100: #d7ebee;
+  --color-blue-200: #b0d8de;
+  --color-blue-300: #7ebec7;
+  --color-blue-400: #4b9ca8;
+  --color-blue-500: #2d7e8c;
+  --color-blue-600: #1e6675;
+  --color-blue-700: #195361;
+  --color-blue-800: #16424d;
+  --color-blue-900: #14343c;
+  --color-blue-950: #0a1e23;
+
+  --color-primary-50: var(--color-blue-50);
+  --color-primary-100: var(--color-blue-100);
+  --color-primary-200: var(--color-blue-200);
+  --color-primary-300: var(--color-blue-300);
+  --color-primary-400: var(--color-blue-400);
+  --color-primary-500: var(--color-blue-500);
+  --color-primary-600: var(--color-blue-600);
+  --color-primary-700: var(--color-blue-700);
+  --color-primary-800: var(--color-blue-800);
+  --color-primary-900: var(--color-blue-900);
+  --color-primary-950: var(--color-blue-950);
+
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+body {
+  /* Angka (uang, qty, tanggal) rapi sejajar di kolom tabel — cocok buat data finansial. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cetak invoice (InvoicePrintPage.tsx) — margin wajar, dan pastikan warna watermark (text
+   color, bukan background) ikut tercetak walau setting "print backgrounds" browser dimatikan. */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  html, body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
