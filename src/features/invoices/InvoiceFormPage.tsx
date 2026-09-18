@@ -51,8 +51,9 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
   const [contactId, setContactId] = useState<number | null>(null)
   const [invoiceDate, setInvoiceDate] = useState(todayISO())
   const [dueDate, setDueDate] = useState('')
-  // PPN default 11% untuk Sales & Purchase (permintaan user).
-  const [taxRatePercent, setTaxRatePercent] = useState('11')
+  // PPN default 0% untuk Sales & Purchase (permintaan user, 2026-09-18 — sebelumnya 11%) —
+  // tetap bisa diisi manual per transaksi lewat field Tax Rate di bawah.
+  const [taxRatePercent, setTaxRatePercent] = useState('0')
   // Diskon level transaksi, nominal (bukan persen) — §21 frontend-integration-guide.md
   // (2026-09-13), diterapkan sebelum pajak: taxable_base = subtotal - discount.
   const [discountAmount, setDiscountAmount] = useState('0')

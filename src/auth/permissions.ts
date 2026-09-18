@@ -42,7 +42,12 @@ const WRITE_MATRIX: Record<Resource, Role[]> = {
   sales: ['super-admin', 'admin-bu', 'kasir-sales'],
   purchases: ['super-admin', 'admin-bu', 'purchasing'],
   returns: ['super-admin', 'admin-bu', 'staff-gudang', 'kasir-sales'],
-  payments: ['super-admin', 'admin-bu', 'finance'],
+  // Update 2026-09-13 (§17 frontend-integration-guide.md): kasir-sales sekarang boleh POST
+  // /api/payments juga (sebelumnya cuma admin-bu/finance) — biar kasir bisa nyelesain 1 transaksi
+  // penuh (bikin sale → complete → catat bayar) tanpa admin-bu turun tangan tiap kali. Ke-lewat
+  // waktu itu diimplementasikan di Fase 19 (diskon/kembalian/metode bayar) — matrix ini nggak
+  // ikut di-update walau kodenya sendiri (PaymentFormModal dkk) udah dibangun buat kasir.
+  payments: ['super-admin', 'admin-bu', 'finance', 'kasir-sales'],
 }
 
 const APPROVE_MATRIX: Partial<Record<Resource, Role[]>> = {
