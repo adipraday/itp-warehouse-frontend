@@ -13,11 +13,14 @@ import type { CashSessionExpense, CashSessionMethodBreakdown } from '../../types
 interface CashSessionDetailModalProps {
   sessionId: number | null
   onClose: () => void
+  // Resolusi nama kasir dari parent (CashSessionHistoryPage) — sengaja tidak query ulang di sini,
+  // parent sudah punya map-nya dari 1x fetch `GET /users`.
+  kasirLabel: (userId: number) => string
 }
 
 // Detail 1 sesi (dari Riwayat Sesi Kasir) — mirip tampilan "sesi lagi terbuka" di CashSessionPage,
 // tapi ini bisa OPEN (punya user lain, lagi jalan) atau CLOSED (sudah ada Z-report lengkap).
-export function CashSessionDetailModal({ sessionId, onClose }: CashSessionDetailModalProps) {
+export function CashSessionDetailModal({ sessionId, onClose, kasirLabel }: CashSessionDetailModalProps) {
   const { data, isLoading } = useQuery({
     queryKey: ['cash-sessions', sessionId],
     queryFn: () => getCashSession(sessionId as number),
@@ -45,7 +48,7 @@ export function CashSessionDetailModal({ sessionId, onClose }: CashSessionDetail
           <div className="flex items-center gap-3">
             <StatusBadge status={session.status} />
             <span className="text-sm text-slate-500">
-              User #{session.user_id} &middot; Warehouse #{session.warehouse_id}
+              {kasirLabel(session.user_id)} &middot; Warehouse #{session.warehouse_id}
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-500">

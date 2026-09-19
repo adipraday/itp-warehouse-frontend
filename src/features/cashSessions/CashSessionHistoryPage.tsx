@@ -11,6 +11,7 @@ import { StatusBadge } from '../../components/StatusBadge'
 import { formatRupiah, parseMoney } from '../../utils/money'
 import { formatTimestamp } from '../../utils/date'
 import { listCashSessions } from '../../api/cashSessions'
+import { listUsers } from '../../api/users'
 import { CashSessionDetailModal } from './CashSessionDetailModal'
 import type { CashSession, CashSessionStatus } from '../../types/cashSession'
 
@@ -35,6 +36,20 @@ export default function CashSessionHistoryPage() {
       }),
   })
 
+  // Nama kasir buat kolom "Kasir" (sebelumnya "User #{id}" — membingungkan end-user). Halaman ini
+  // sudah digating super-admin/admin-bu/owner (lihat App.tsx), jadi role-role itu dipastikan boleh
+  // panggil `GET /users` (dipakai juga di UserListPage) — TAPI tetap dibungkus `isError` di bawah
+  // (bukan blocking whole page) buat jaga-jaga kalau `owner` ternyata beda perlakuan dari
+  // super-admin/admin-bu di backend: gagal resolve nama cuma balik ke fallback "User #{id}",
+  // bukan bikin seluruh tabel riwayat sesi kasir ikut error.
+  const { data: usersData } = useQuery({
+    queryKey: ['users', 'all-for-cash-session-history'],
+    queryFn: () => listUsers({ page: 1, per_page: 100 }),
+    retry: false,
+  })
+  const usersById = new Map(usersData?.users.map((u) => [u.id, u.name]) ?? [])
+  const kasirLabel = (id: number) => usersById.get(id) ?? `User #${id}`
+
   function resetPage<T>(setter: (v: T) => void) {
     return (v: T) => {
       setter(v)
@@ -46,7 +61,7 @@ export default function CashSessionHistoryPage() {
     { key: 'id', header: 'ID', render: (row) => `#${row.id}` },
     { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
     { key: 'warehouse_id', header: 'Warehouse', render: (row) => `#${row.warehouse_id}` },
-    { key: 'user_id', header: 'Kasir', render: (row) => `User #${row.user_id}` },
+    { key: 'user_id', header: 'Kasir', render: (row) => kasirLabel(row.user_id) },
     { key: 'opened_at', header: 'Dibuka', render: (row) => formatTimestamp(row.opened_at) },
     { key: 'closed_at', header: 'Ditutup', render: (row) => (row.closed_at ? formatTimestamp(row.closed_at) : '—') },
     { key: 'opening_amount', header: 'Modal Awal', className: 'text-right', render: (row) => formatRupiah(row.opening_amount) },
@@ -107,7 +122,7 @@ export default function CashSessionHistoryPage() {
         )}
       </div>
 
-      <CashSessionDetailModal sessionId={detailId} onClose={() => setDetailId(null)} />
+      <CashSessionDetailModal sessionId={detailId} onClose={() => setDetailId(null)} kasirLabel={kasirLabel} />
     </div>
   )
 }
