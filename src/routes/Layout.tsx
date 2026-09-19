@@ -76,6 +76,8 @@ function buildNavGroups(
         // Sesi Kasir (§20 frontend-integration-guide.md) — tidak digating permission, sama
         // seperti route-nya di App.tsx: self-scoped ke sesi milik user yang login sendiri.
         { to: '/cash-session', label: 'Sesi Kasir' },
+        // Riwayat Sesi Kasir — browse lintas user, digating sama seperti Activity Logs.
+        ...(canViewActivityLogs ? [{ to: '/cash-sessions/history', label: 'Riwayat Sesi Kasir' }] : []),
         { to: '/sales', label: 'Sales' },
         { to: '/purchases', label: 'Purchases' },
         { to: '/invoices', label: 'Invoices' },

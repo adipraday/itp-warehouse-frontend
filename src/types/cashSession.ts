@@ -60,3 +60,11 @@ export interface CashSessionExpenseInput {
   amount: number
   description: string
 }
+
+export type CashSessionListParams = {
+  warehouse_id?: number
+  user_id?: number
+  status?: CashSessionStatus
+  page?: number
+  per_page?: number
+}

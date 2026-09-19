@@ -40,6 +40,7 @@ import ReturnDetailPage from './features/returns/ReturnDetailPage'
 import DashboardPage from './features/dashboard/DashboardPage'
 import ActivityLogListPage from './features/activityLogs/ActivityLogListPage'
 import CashSessionPage from './features/cashSessions/CashSessionPage'
+import CashSessionHistoryPage from './features/cashSessions/CashSessionHistoryPage'
 
 export default function App() {
   const { canManageUsers, canViewActivityLogs, canWrite } = usePermissions()
@@ -72,6 +73,12 @@ export default function App() {
                   kasir, dan endpoint `/cash-sessions/current` otomatis cuma balikin sesi milik
                   user yang login. */}
               <Route path="/cash-session" element={<CashSessionPage />} />
+              {/* Riwayat Sesi Kasir — browse lintas user (endpoint `GET /cash-sessions` list,
+                  ada dari Fase 22 tapi baru dipakai UI-nya sekarang), gating sama seperti
+                  Activity Logs karena sama-sama data audit lintas user (super-admin/admin-bu/owner). */}
+              <Route element={<RequirePermission allowed={canViewActivityLogs()} />}>
+                <Route path="/cash-sessions/history" element={<CashSessionHistoryPage />} />
+              </Route>
 
               <Route element={<RequirePermission allowed={canManageUsers()} />}>
                 <Route path="/users" element={<UserListPage />} />

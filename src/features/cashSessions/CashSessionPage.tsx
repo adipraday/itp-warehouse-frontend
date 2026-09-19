@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { usePermissions } from '../../auth/permissions'
 import { WarehouseSelect } from '../../components/WarehouseSelect'
 import { TextField, TextareaField } from '../../components/FormField'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -29,6 +31,7 @@ import type { CashSession, CashSessionExpense, CashSessionMethodBreakdown } from
 export default function CashSessionPage() {
   const queryClient = useQueryClient()
   const toast = useToast()
+  const { canViewActivityLogs } = usePermissions()
   const [expenseModalOpen, setExpenseModalOpen] = useState(false)
   const [closeModalOpen, setCloseModalOpen] = useState(false)
   // Laporan penutupan terakhir (Z-report) — ditampilkan abis sesi ditutup, sebelum kasir buka
@@ -89,7 +92,14 @@ export default function CashSessionPage() {
   if (!session) {
     return (
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Sesi Kasir</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-slate-900">Sesi Kasir</h1>
+          {canViewActivityLogs() && (
+            <Link to="/cash-sessions/history" className="text-sm font-medium text-blue-600 hover:underline">
+              Riwayat Sesi Kasir &rarr;
+            </Link>
+          )}
+        </div>
         <p className="mt-1 text-sm text-slate-500">
           Belum ada sesi kasir yang terbuka. Buka kasir dulu sebelum mulai catat transaksi.
         </p>
@@ -187,6 +197,11 @@ export default function CashSessionPage() {
             {warehouse?.data.code} — {warehouse?.data.name} &middot; Dibuka {formatTimestamp(session.opened_at)}
           </p>
           {session.notes && <p className="mt-1 text-sm text-slate-500">Catatan: {session.notes}</p>}
+          {canViewActivityLogs() && (
+            <Link to="/cash-sessions/history" className="mt-1 inline-block text-sm font-medium text-blue-600 hover:underline">
+              Riwayat Sesi Kasir &rarr;
+            </Link>
+          )}
         </div>
         <div className="flex gap-2">
           <button

@@ -10,6 +10,10 @@ const STATUS_STYLES: Record<string, string> = {
   PAID: 'bg-emerald-100 text-emerald-700',
   ACTIVE: 'bg-emerald-100 text-emerald-700',
   SUSPENDED: 'bg-red-100 text-red-700',
+  // Sesi kasir (§20 frontend-integration-guide.md) — OPEN = sesi lagi jalan (biru, beda dari
+  // hijau ACTIVE biar tidak ketuker "aktif = selesai/baik" di Riwayat Sesi Kasir).
+  OPEN: 'bg-blue-100 text-blue-700',
+  CLOSED: 'bg-slate-100 text-slate-700',
   USED: 'bg-slate-100 text-slate-700',
   REVOKED: 'bg-red-100 text-red-700',
   // Hold/resume Sales (§22 frontend-integration-guide.md) — bukan status dokumen sungguhan (sale

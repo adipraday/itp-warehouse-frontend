@@ -1,9 +1,10 @@
 import { apiGet, apiPost } from './client'
-import type { ApiDetailResponse } from '../types/common'
+import type { ApiDetailResponse, ApiListResponse } from '../types/common'
 import type {
   CashSession,
   CashSessionCloseInput,
   CashSessionExpenseInput,
+  CashSessionListParams,
   CashSessionOpenInput,
 } from '../types/cashSession'
 
@@ -14,6 +15,16 @@ import type {
 // `data: null` (bukan 404) kalau user yang login belum punya sesi OPEN.
 export function getCurrentCashSession() {
   return apiGet<ApiDetailResponse<CashSession | null>>('/cash-sessions/current')
+}
+
+// Endpoint audit/browse lintas user (§20) — sengaja tidak dipakai UI-nya di Fase 22, baru dipakai
+// sekarang di halaman Riwayat Sesi Kasir (lihat CashSessionHistoryPage).
+export function listCashSessions(params: CashSessionListParams) {
+  return apiGet<ApiListResponse<CashSession>>('/cash-sessions', params)
+}
+
+export function getCashSession(id: number) {
+  return apiGet<ApiDetailResponse<CashSession>>(`/cash-sessions/${id}`)
 }
 
 export function openCashSession(body: CashSessionOpenInput) {
