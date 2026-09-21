@@ -69,9 +69,9 @@ export default function WarehouseAssignmentsPage() {
     <div>
       <h1 className="text-xl font-semibold text-slate-900">Assign Staff ke Warehouse</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Batasi staff-gudang/kasir-sales/purchasing/finance ke warehouse tertentu — berguna kalau BU
-        Anda punya lebih dari satu warehouse (mis. Gudang Pusat + Cabang) dan tiap warehouse punya
-        staff sendiri.
+        Batasi admin-warehouse/staff-gudang/kasir-sales/purchasing/finance ke warehouse tertentu —
+        berguna kalau BU Anda punya lebih dari satu warehouse (mis. Gudang Pusat + Cabang) dan tiap
+        warehouse punya staff (atau kepala cabang) sendiri.
       </p>
 
       <div className="mt-6 max-w-sm">

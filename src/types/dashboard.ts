@@ -20,6 +20,16 @@ export interface DashboardSummary {
   purchases: DashboardInvoiceSummary
 }
 
+// Satu baris per tanggal — tanggal tanpa transaksi TIDAK muncul di array (bukan diisi 0).
+// Lihat docs/frontend-integration-guide.md §27 (warehouse-system-api) buat detailnya.
+export interface DashboardSalesTrendPoint {
+  date: string
+  count: number
+  subtotal: string
+  tax: string
+  total_amount: string
+}
+
 export interface DashboardProfit {
   revenue: string
   cogs: string

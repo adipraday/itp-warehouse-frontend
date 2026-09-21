@@ -43,6 +43,13 @@ export function formatIsoTimestamp(ts: string | null | undefined): string {
   return `${day} ${monthName} ${year} ${hours}:${minutes}`
 }
 
+/** Label pendek buat sumbu chart (mis. "21 Sep") — tanpa tahun, dari YYYY-MM-DD. */
+export function formatShortDate(dateStr: string): string {
+  const [, month, day] = dateStr.split('-')
+  const monthName = MONTHS_ID[Number(month) - 1] ?? month
+  return `${Number(day)} ${monthName}`
+}
+
 export function todayISO(): string {
   const now = new Date()
   const year = now.getFullYear()

@@ -1,10 +1,20 @@
 import { useAuth } from './useAuth'
 
-export type Role = 'super-admin' | 'owner' | 'admin-bu' | 'staff-gudang' | 'kasir-sales' | 'purchasing' | 'finance'
+export type Role =
+  | 'super-admin'
+  | 'owner'
+  | 'admin-bu'
+  | 'admin-warehouse'
+  | 'staff-gudang'
+  | 'kasir-sales'
+  | 'purchasing'
+  | 'finance'
 
 // Role level-staff yang kena fitur assign-per-warehouse (§17 frontend-integration-guide.md) —
 // admin-bu/owner/super-admin TIDAK pernah kena ini, scope mereka tetap BU-wide (atau global).
-export const STAFF_ROLES: Role[] = ['staff-gudang', 'kasir-sales', 'purchasing', 'finance']
+// `admin-warehouse` (§28, 2026-09-21) MASUK di sini meski namanya mirip admin-bu — beda dari
+// admin-bu, role ini justru DIRANCANG buat di-scope ke satu warehouse lewat mekanisme ini.
+export const STAFF_ROLES: Role[] = ['admin-warehouse', 'staff-gudang', 'kasir-sales', 'purchasing', 'finance']
 
 export type Resource =
   | 'warehouses'
@@ -31,23 +41,27 @@ export type Resource =
  * tidak pernah ditambahkan ke array Role[] manapun di sini; `canWrite`/`canApprove`/`canSubmit`
  * otomatis balikin false buat owner tanpa perlu baris pengecualian eksplisit.
  */
+// `admin-warehouse` (§28, 2026-09-21): full write access to every day-to-day operational
+// resource below EXCEPT `warehouses` — deliberately mirrors role-matrix.js's ALL_STAFF-based
+// entries plus its own additions to items/contacts/sales/cash-sessions/purchases/payments.
+// Never added to APPROVE_MATRIX (segregation of duty — same reasoning as staff-gudang today).
 const WRITE_MATRIX: Record<Resource, Role[]> = {
   warehouses: ['super-admin', 'admin-bu'],
-  items: ['super-admin', 'admin-bu', 'purchasing'],
-  contacts: ['super-admin', 'admin-bu', 'kasir-sales', 'purchasing'],
-  inbounds: ['super-admin', 'admin-bu', 'staff-gudang', 'purchasing'],
-  outbounds: ['super-admin', 'admin-bu', 'staff-gudang', 'kasir-sales'],
-  'stock-transfers': ['super-admin', 'admin-bu', 'staff-gudang'],
-  'stock-opnames': ['super-admin', 'admin-bu', 'staff-gudang'],
-  sales: ['super-admin', 'admin-bu', 'kasir-sales'],
-  purchases: ['super-admin', 'admin-bu', 'purchasing'],
-  returns: ['super-admin', 'admin-bu', 'staff-gudang', 'kasir-sales'],
+  items: ['super-admin', 'admin-bu', 'admin-warehouse', 'purchasing'],
+  contacts: ['super-admin', 'admin-bu', 'admin-warehouse', 'kasir-sales', 'purchasing'],
+  inbounds: ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang', 'purchasing'],
+  outbounds: ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang', 'kasir-sales'],
+  'stock-transfers': ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang'],
+  'stock-opnames': ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang'],
+  sales: ['super-admin', 'admin-bu', 'admin-warehouse', 'kasir-sales'],
+  purchases: ['super-admin', 'admin-bu', 'admin-warehouse', 'purchasing'],
+  returns: ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang', 'kasir-sales'],
   // Update 2026-09-13 (§17 frontend-integration-guide.md): kasir-sales sekarang boleh POST
   // /api/payments juga (sebelumnya cuma admin-bu/finance) — biar kasir bisa nyelesain 1 transaksi
   // penuh (bikin sale → complete → catat bayar) tanpa admin-bu turun tangan tiap kali. Ke-lewat
   // waktu itu diimplementasikan di Fase 19 (diskon/kembalian/metode bayar) — matrix ini nggak
   // ikut di-update walau kodenya sendiri (PaymentFormModal dkk) udah dibangun buat kasir.
-  payments: ['super-admin', 'admin-bu', 'finance', 'kasir-sales'],
+  payments: ['super-admin', 'admin-bu', 'admin-warehouse', 'finance', 'kasir-sales'],
 }
 
 const APPROVE_MATRIX: Partial<Record<Resource, Role[]>> = {
@@ -57,10 +71,10 @@ const APPROVE_MATRIX: Partial<Record<Resource, Role[]>> = {
 }
 
 const SUBMIT_MATRIX: Partial<Record<Resource, Role[]>> = {
-  'stock-opnames': ['super-admin', 'admin-bu', 'staff-gudang'],
+  'stock-opnames': ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang'],
 }
 
-const HPP_ROLES: Role[] = ['super-admin', 'owner', 'admin-bu', 'purchasing', 'finance']
+const HPP_ROLES: Role[] = ['super-admin', 'owner', 'admin-bu', 'admin-warehouse', 'purchasing', 'finance']
 
 export function usePermissions() {
   const { user } = useAuth()
@@ -91,8 +105,11 @@ export function usePermissions() {
   // Activity Logs — endpoint warehouse-backend sudah di-scope per BU (2026-09-09):
   // admin-bu lihat log BU-nya + grant, owner lihat log semua BU company-nya, super-admin semua.
   // Baris bu_id NULL cuma kelihatan super-admin. Akses log lintas-BU → 404 (bukan 403).
+  // admin-warehouse (§28, 2026-09-21) ditambahkan — backend sudah otomatis mempersempit hasilnya
+  // ke assignedWarehouseIds lewat mekanisme STAFF_ROLES yang sama, jadi aman ditampilkan: branch
+  // head wajar lihat log warehouse-nya sendiri.
   function canViewActivityLogs(): boolean {
-    return role === 'super-admin' || role === 'admin-bu' || role === 'owner'
+    return role === 'super-admin' || role === 'admin-bu' || role === 'owner' || role === 'admin-warehouse'
   }
 
   return { role, canWrite, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs }

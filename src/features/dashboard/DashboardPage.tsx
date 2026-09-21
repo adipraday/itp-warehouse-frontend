@@ -5,14 +5,16 @@ import { WarehouseSelect } from '../../components/WarehouseSelect'
 import { TextField } from '../../components/FormField'
 import { StatCard } from '../../components/StatCard'
 import { SimpleBarChart } from '../../components/SimpleBarChart'
+import { SimpleLineChart } from '../../components/SimpleLineChart'
 import { ErrorState } from '../../components/ErrorState'
 import { usePermissions } from '../../auth/permissions'
 import { formatNumber, formatRupiah, parseMoney } from '../../utils/money'
-import { firstDayOfMonthISO, todayISO } from '../../utils/date'
+import { firstDayOfMonthISO, formatShortDate, todayISO } from '../../utils/date'
 import {
   getDashboardProfit,
   getDashboardPurchases,
   getDashboardSales,
+  getDashboardSalesTrend,
   getDashboardStock,
   getDashboardSummary,
 } from '../../api/dashboard'
@@ -48,6 +50,11 @@ export default function DashboardPage() {
     queryFn: () => getDashboardPurchases({ warehouse_id: whParam, from: rangeFrom, to: rangeTo }),
   })
 
+  const salesTrendQuery = useQuery({
+    queryKey: ['dashboard-sales-trend', warehouseId, rangeFrom, rangeTo],
+    queryFn: () => getDashboardSalesTrend({ warehouse_id: whParam, from: rangeFrom, to: rangeTo }),
+  })
+
   const profitQuery = useQuery({
     queryKey: ['dashboard-profit', warehouseId, rangeFrom, rangeTo],
     queryFn: () => getDashboardProfit({ warehouse_id: whParam, from: rangeFrom, to: rangeTo }),
@@ -70,6 +77,7 @@ export default function DashboardPage() {
   const summary = summaryQuery.data?.data
   const sales = salesQuery.data?.data
   const purchases = purchasesQuery.data?.data
+  const salesTrend = salesTrendQuery.data?.data
   const profit = profitQuery.data?.data
 
   return (
@@ -177,6 +185,22 @@ export default function DashboardPage() {
                 </>
               )}
             </div>
+          )}
+        </div>
+
+        <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+          <p className="mb-3 text-xs text-slate-500">
+            Tren Penjualan Harian ({salesTrend ? formatNumber(salesTrend.length) : '...'} hari ada transaksi)
+          </p>
+          {salesTrendQuery.isError ? (
+            <ErrorState error={salesTrendQuery.error} />
+          ) : (
+            <SimpleLineChart
+              points={(salesTrend ?? []).map((p) => ({
+                label: formatShortDate(p.date),
+                value: parseMoney(p.total_amount),
+              }))}
+            />
           )}
         </div>
       </section>
