@@ -1400,3 +1400,80 @@ dites langsung — jalur kodenya identik karena `importItems()` cuma kirim `File
 backend tanpa peduli formatnya, backend yang deteksi ekstensi/mimetype); skenario `sku` yang
 sama tapi UPDATE data existing (item baru semua yang dites, belum dites baris yang nge-update
 item yang sudah ada).
+
+---
+
+## Fase 25 — Riwayat Sesi Kasir ✅ (2026-09-19, live di produksi)
+
+Setelah deploy produksi (lihat bagian Deploy di bawah), user nemuin sendiri lewat pemakaian
+langsung: halaman `/cash-session` cuma self-scoped ke sesi milik user login sendiri, dan laporan
+penutupan terakhir cuma hidup di state komponen (hilang begitu refresh) — nggak ada cara lihat
+riwayat semua sesi kasir (yang udah ditutup, atau sesi user lain yang lagi jalan). Endpoint list
+`GET /cash-sessions?warehouse_id=&user_id=&status=` udah ada dari Fase 22 tapi sengaja belum
+dipakai UI-nya (dianggap "kebutuhan reporting terpisah" waktu itu — lihat catatan Fase 22 di
+atas).
+
+**Dibangun:**
+- [`api/cashSessions.ts`](../src/api/cashSessions.ts) — tambah `listCashSessions()` +
+  `getCashSession(id)`.
+- [`features/cashSessions/CashSessionHistoryPage.tsx`](../src/features/cashSessions/CashSessionHistoryPage.tsx)
+  (baru) — list + filter (warehouse, user ID, status) + pagination, pola sama persis
+  `ActivityLogListPage`. Gating `canViewActivityLogs()` — sama-sama data audit lintas user.
+- [`features/cashSessions/CashSessionDetailModal.tsx`](../src/features/cashSessions/CashSessionDetailModal.tsx)
+  (baru) — detail 1 sesi (breakdown metode bayar + kas keluar), dibuka lewat klik baris.
+- `StatusBadge`: tambah warna `OPEN`/`CLOSED` biar beda dari `ACTIVE`.
+- `CashSessionPage`: link "Riwayat Sesi Kasir →" buat role yang berhak.
+- **Update susulan** (permintaan user, "id kasir membingungkan end-user"): kolom "Kasir" &
+  detail modal resolve nama lewat `GET /users` (auth-backend, 1x fetch di-cache jadi map
+  `id→name`, diteruskan ke modal lewat prop biar nggak query dobel) — fallback tetap
+  `User #{id}` kalau resolve gagal, nggak nge-block seluruh tabel. Ketemu pas verifikasi live:
+  `per_page` yang dipakai (200) kena `422` (`"per_page must be 1-100"`) — diturunin ke 100.
+
+**Diverifikasi via API langsung** (`curl`, token super-admin production) — bukan browser (dev
+server butuh backend lokal yang tidak jalan di sesi kerja ini): `GET /cash-sessions` &
+`GET /cash-sessions/:id` balikin bentuk persis sesuai tipe yang dipakai frontend (`data[]` +
+`meta{page,per_page,total}`, `summary.by_method`/`summary.expenses` di detail); `GET /users`
+resolve `user_id` ke nama asli (`7` → `"kasir"`, `3` → `"kaina"`). `npm run build` + `npm run
+lint` bersih di tiap iterasi.
+
+---
+
+## Fase 26 — Role `admin-warehouse` (kepala cabang) + Tren Penjualan Harian ✅ (2026-09-21, live di produksi)
+
+Backend nambah 2 hal sekaligus (§27-28 frontend-integration-guide.md, dikerjakan di sesi Claude
+Code lain yang paralel jalan di repo yang sama — commit lokal `80821f0` udah ada duluan waktu
+sesi ini ngecek dokumentasi, tinggal di-review lalu di-push+deploy dari sini):
+
+1. **Role ke-7, `admin-warehouse`** — "kepala cabang": akses penuh (write) ke semua fitur
+   operasional (items, contacts, inbound/outbound, transfer, opname, return, sales,
+   cash-session, purchase, payment) + lihat HPP/margin, tapi di-scope ke **satu warehouse**
+   (beda dari `admin-bu` yang BU-wide) lewat mekanisme assignment yang sama seperti 4 role staff
+   lain (§17). Sengaja TIDAK bisa approve/reject (tetap `admin-bu`-only, segregation of duty)
+   dan TIDAK bisa nulis `warehouses`/`user-warehouse-assignments`.
+2. **`GET /api/dashboard/sales-trend`** — breakdown penjualan per tanggal (beda dari
+   `/dashboard/sales` yang cuma 1 angka agregat), buat gambar grafik tren. Tanggal tanpa
+   transaksi **tidak muncul** di array (bukan diisi 0).
+
+**Dibangun** (`src/auth/permissions.ts`): `Role` union + `STAFF_ROLES` tambah `admin-warehouse`;
+ditambahin ke semua entri `WRITE_MATRIX` kecuali `warehouses` (persis mirror
+`role-matrix.js` backend); `SUBMIT_MATRIX['stock-opnames']` dan `HPP_ROLES` juga ditambah;
+`canViewActivityLogs()` juga di-include — backend otomatis mempersempit hasilnya ke
+`assignedWarehouseIds` lewat mekanisme `STAFF_ROLES` yang sama (dikonfirmasi dari
+`docs/user-warehouse-assignments.md` di backend: `activity-logs` termasuk salah satu modul yang
+di-narrow lewat `assignedWarehouseCondition()`), jadi kepala cabang wajar lihat log
+warehouse-nya sendiri. **Sengaja TIDAK** ditambah ke `APPROVE_MATRIX` (approve/reject tetap
+admin-bu-only, sesuai dokumentasi).
+
+`SimpleLineChart.tsx` (baru, tanpa dependency eksternal, pola sama `SimpleBarChart`) dipasang di
+`DashboardPage` nampilin Tren Penjualan Harian, label sumbu-X dibatasi max 6 titik biar kebaca.
+
+**Diverifikasi via API langsung** (`curl`, token super-admin production) sebelum di-push+deploy
+dari sesi ini: `GET /dashboard/sales-trend?from=&to=` balikin array per-tanggal sesuai
+dokumentasi; `GET /roles` (auth-backend) sudah menampilkan `admin-warehouse` di daftar
+(`scope_level: "bu"`, `requires_bu: true`) — konsisten sama `docs/auth-multitenant-
+coordination.md` §12 yang bilang role ini sudah live di auth-backend produksi. `npm run build` +
+`npm run lint` bersih.
+
+**Belum dites**: UI sungguhan pakai akun `admin-warehouse` beneran (belum ada user dengan role
+ini yang di-provision) — role gating baru diverifikasi lewat pembacaan kode + kontrak API, bukan
+klik langsung di browser.
