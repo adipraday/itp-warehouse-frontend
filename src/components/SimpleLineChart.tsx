@@ -8,15 +8,17 @@ interface Point {
 const WIDTH = 600
 const HEIGHT = 180
 const PAD_X = 8
-const PAD_TOP = 12
+// Lebih tinggi dari sebelumnya (12) — kasih ruang buat label nilai (Rp) di atas titik tertinggi,
+// biar nggak kepotong viewBox.
+const PAD_TOP = 24
 const PAD_BOTTOM = 24
 
 /**
  * Line chart tanpa dependency eksternal (project ini nggak punya charting lib) — dipakai
  * khusus buat data trend per-tanggal (mis. GET /api/dashboard/sales-trend). Sengaja minimal
  * sama seperti SimpleBarChart: SVG polyline + titik, tooltip native lewat <title> (bukan
- * custom hover state), label sumbu-X dibatasi max ~6 biar nggak numpuk kalau rentang tanggal
- * panjang (mis. 1 bulan = 30 titik).
+ * custom hover state), label sumbu-X & label nilai dibatasi max ~6 titik yang sama biar nggak
+ * numpuk kalau rentang tanggal panjang (mis. 1 bulan = 30 titik).
  */
 export function SimpleLineChart({ points, colorClass = 'stroke-blue-500' }: { points: Point[]; colorClass?: string }) {
   if (points.length === 0) {
@@ -73,7 +75,22 @@ export function SimpleLineChart({ points, colorClass = 'stroke-blue-500' }: { po
         (p, i) =>
           labeledIndexes.has(i) && (
             <text
-              key={`label-${p.label}`}
+              key={`value-label-${p.label}`}
+              x={x(i)}
+              y={y(p.value) - 8}
+              textAnchor={i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle'}
+              className="fill-slate-600 text-[9px] font-medium"
+            >
+              {formatRupiah(p.value)}
+            </text>
+          ),
+      )}
+
+      {points.map(
+        (p, i) =>
+          labeledIndexes.has(i) && (
+            <text
+              key={`date-label-${p.label}`}
               x={x(i)}
               y={HEIGHT - 6}
               textAnchor={i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle'}
