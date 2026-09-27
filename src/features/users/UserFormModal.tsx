@@ -25,9 +25,12 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
   const queryClient = useQueryClient()
   const toast = useToast()
 
+  // Session admin-bu selalu di-scope ke BU home-nya sendiri; kirim eksplisit biar konsisten
+  // dengan admin console (backend juga sudah fallback ke home BU tanpa ini).
+  const rolesBuId = sessionUser?.bu_id ?? null
   const { data: roles } = useQuery({
-    queryKey: ['roles'],
-    queryFn: listAssignableRoles,
+    queryKey: ['roles', rolesBuId],
+    queryFn: () => listAssignableRoles(rolesBuId),
     enabled: open,
   })
 
