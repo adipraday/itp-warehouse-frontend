@@ -2,6 +2,8 @@ import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import Layout from './routes/Layout'
 import HealthCheckPage from './routes/HealthCheckPage'
 import LoginPage from './routes/LoginPage'
+import ForgotPasswordPage from './routes/ForgotPasswordPage'
+import ResetPasswordPage from './routes/ResetPasswordPage'
 import AccessNoticePage from './routes/AccessNoticePage'
 import RequireAuth from './auth/RequireAuth'
 import RequirePermission from './auth/RequirePermission'
@@ -50,6 +52,12 @@ export default function App() {
       <Routes>
         <Route path="/health" element={<HealthCheckPage />} />
         <Route path="/login" element={<LoginPage />} />
+        {/* §7A auth-backend-requirements.md — belum ada sesi, sama seperti /login. Satu endpoint
+            POST /auth/reset-password dipakai buat 2 hal: link "lupa password" DAN link aktivasi
+            user baru (set_password_token dari POST /users), makanya cuma 1 halaman /reset-password
+            buat konsumsi token, bukan 2 halaman terpisah. */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route element={<RequireAuth />}>
           {/* Halaman notice buat staff yang belum di-assign ke warehouse mana pun (§17) — sengaja

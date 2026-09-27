@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { TextField } from '../components/FormField'
 import { useAuth } from '../auth/useAuth'
 import { AuthApiError } from '../auth/authApi'
@@ -71,6 +71,9 @@ export default function LoginPage() {
           >
             {submitting ? 'Masuk...' : 'Masuk'}
           </button>
+          <Link to="/forgot-password" className="block text-center text-sm text-blue-600 hover:underline">
+            Lupa password?
+          </Link>
         </form>
       </div>
     </div>
