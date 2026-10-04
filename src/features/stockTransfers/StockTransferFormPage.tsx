@@ -156,6 +156,7 @@ export default function StockTransferFormPage() {
             label="Ke Warehouse"
             required
             placeholder="-- pilih warehouse tujuan --"
+            scope="bu"
             value={destinationId}
             onChange={setDestinationId}
           />

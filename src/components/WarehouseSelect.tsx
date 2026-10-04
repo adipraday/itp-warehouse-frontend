@@ -8,6 +8,8 @@ interface WarehouseSelectProps {
   onChange: (warehouseId: number | null) => void
   required?: boolean
   placeholder?: string
+  // 'bu' = semua warehouse di BU caller (bukan cuma yang di-assign) — khusus tujuan stock transfer.
+  scope?: 'assigned' | 'bu'
 }
 
 export function WarehouseSelect({
@@ -16,10 +18,11 @@ export function WarehouseSelect({
   onChange,
   required,
   placeholder = 'Semua warehouse',
+  scope = 'assigned',
 }: WarehouseSelectProps) {
   const { data } = useQuery({
-    queryKey: ['warehouses', 'all'],
-    queryFn: () => listWarehouses({ page: 1, per_page: 100 }),
+    queryKey: ['warehouses', 'all', scope],
+    queryFn: () => listWarehouses({ page: 1, per_page: 100, scope }),
   })
 
   return (

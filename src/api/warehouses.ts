@@ -2,7 +2,10 @@ import { apiDelete, apiGet, apiPost, apiPut } from './client'
 import type { ApiDetailResponse, ApiListResponse } from '../types/common'
 import type { Warehouse, WarehouseInput, WarehouseStock, WarehouseStockSummary } from '../types/warehouse'
 
-export function listWarehouses(params: { page?: number; per_page?: number }) {
+// `scope=bu` (backend 2026-10-05): daftar SEMUA warehouse di BU caller, bukan cuma yang
+// di-assign — dipakai dropdown tujuan stock transfer (admin-warehouse yang di-assign ke 1
+// warehouse tetap harus bisa kirim ke warehouse lain di BU-nya). Default 'assigned'.
+export function listWarehouses(params: { page?: number; per_page?: number; scope?: 'assigned' | 'bu' }) {
   return apiGet<ApiListResponse<Warehouse>>('/warehouses', params)
 }
 
