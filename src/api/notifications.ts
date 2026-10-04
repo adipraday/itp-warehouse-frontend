@@ -3,9 +3,9 @@ import type { ApiDetailResponse, ApiListResponse } from '../types/common'
 import type { AppNotification } from '../types/notification'
 
 // Inbox in-app (backend 2026-10-02). Semua endpoint self-scoped ke user yang login — tidak ada
-// gating role. Catatan: baris inbox cuma dibuat backend untuk user yang punya device token FCM
-// terdaftar (penerima ditentukan dari tabel `device_tokens`), jadi akun yang tidak pernah login
-// di aplikasi mobile akan melihat inbox kosong.
+// gating role. Penerima baris inbox = pemilik device token FCM DAN user di `user_directory` yang
+// cocok role/BU/warehouse-nya (sejak 2026-10-05, tanpa perlu device token) — user baru jadi
+// penerima setelah request pertamanya ke API; event sebelum itu tidak di-backfill.
 export function listNotifications(params: { page?: number; per_page?: number }) {
   return apiGet<ApiListResponse<AppNotification>>('/notifications', params)
 }

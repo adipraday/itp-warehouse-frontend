@@ -1510,10 +1510,14 @@ live ke production, bukan asumsi):
    `kasir` (1 notifikasi "Penjualan Selesai — SAL-000024"): badge, dropdown, klik → `/sales/24`
    + badge hilang, halaman penuh, 0 error console.
 
-**Keterbatasan yang perlu diketahui**: backend cuma bikin baris inbox untuk user yang punya
-**device token FCM terdaftar** (penerima dihitung dari tabel `device_tokens`), jadi akun yang
-tidak pernah login di aplikasi mobile melihat inbox kosong. Web push (notifikasi browser)
-BELUM dibangun — butuh konfigurasi Firebase web (apiKey/projectId/messagingSenderId/appId +
+**Keterbatasan awal → sudah diperbaiki di backend (2026-10-05, `c39aea1` repo backend)**: waktu
+fitur ini selesai, backend cuma bikin baris inbox untuk user yang punya **device token FCM
+terdaftar**, jadi akun web-only melihat inbox kosong. Backend lalu menambah tabel
+`user_directory` (diisi dari claim JWT terverifikasi tiap request) sehingga penerima inbox =
+pemilik token + user yang cocok role/BU/warehouse-nya. Diverifikasi live: `hivia` (0 device
+token) menerima baris inbox lewat `notifyWarehouseRoles` dan membacanya via API; tidak ada
+perubahan di frontend yang dibutuhkan. User baru jadi penerima setelah request pertamanya.
+Web push (notifikasi browser) masih BELUM dibangun — butuh konfigurasi Firebase web (apiKey/projectId/messagingSenderId/appId +
 VAPID key) + service worker + registrasi token dari web, dan semua itu belum ada.
 
 **Temuan sampingan**: `systact.teamlangit@gmail.com` (dulu admin-bu "kaina", id 3) kini
