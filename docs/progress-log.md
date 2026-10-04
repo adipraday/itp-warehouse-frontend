@@ -1477,3 +1477,46 @@ coordination.md` §12 yang bilang role ini sudah live di auth-backend produksi. 
 **Belum dites**: UI sungguhan pakai akun `admin-warehouse` beneran (belum ada user dengan role
 ini yang di-provision) — role gating baru diverifikasi lewat pembacaan kode + kontrak API, bukan
 klik langsung di browser.
+
+---
+
+## Fase 27 — Lupa/Reset Password, Tujuan Transfer Lintas Warehouse, Inbox Notifikasi ✅ (2026-09-27 s/d 2026-10-05, live di produksi)
+
+Tiga pembaruan kecil-menengah yang datang dari sisi backend / sesi backend-auth, tanpa
+dokumentasi di `frontend-integration-guide.md` (kontraknya diambil dari kode backend + probe
+live ke production, bukan asumsi):
+
+1. **Lupa & atur ulang password** (2026-09-27) — sesi backend-auth nanya route reset-password
+   frontend ini; ternyata belum ada (makanya `FRONTEND_URL` auth-backend sengaja masih ke
+   `admin.itpintar.co.id`). Probe live: `POST /auth/forgot-password` selalu 200 generik
+   (anti account-enumeration), `POST /auth/reset-password` 400 buat token invalid, dan
+   endpoint "set password user baru" alternatif (`/auth/set-password`, `/auth/activate`, dst)
+   semua 404 → **satu endpoint dipakai dua kasus** (lupa password & aktivasi user baru).
+   Dibangun `ForgotPasswordPage` (`/forgot-password`), `ResetPasswordPage`
+   (`/reset-password?token=`), link "Lupa password?" di login; sukses reset TIDAK auto-login
+   (backend me-revoke semua refresh token). Tindak lanjut di luar frontend: `FRONTEND_URL`
+   auth-backend perlu diarahkan ke `wms.itpintar.co.id` biar link email nyampe ke sini.
+2. **Tujuan stock transfer = semua warehouse di BU** (backend `30b9ee7`, 2026-10-05) —
+   `admin-warehouse` yang di-assign ke 1 warehouse sebelumnya cuma lihat warehouse-nya sendiri
+   di dropdown "Ke Warehouse". `GET /warehouses?scope=bu` baru; `WarehouseSelect` dapat prop
+   `scope`, dipakai HANYA di dropdown tujuan form transfer (sisi asal tetap assigned-only,
+   sesuai aturan backend). Diverifikasi live sebagai `hivia`: asal 1 pilihan, tujuan 5.
+3. **Inbox notifikasi in-app** (backend `e51bbdc..8676d88`, 2026-10-01/02) — lonceng + badge
+   unread di header (polling 60 dtk), dropdown 8 terbaru, halaman `/notifications`, tandai
+   dibaca satu/semua (`apiPatch` baru), klik = deep-link sesuai `data.type`
+   (inbound/outbound/sale/return/stock_opname/stock_transfer → `/…/:id`, `purchase_payment` →
+   `/purchases/:invoice_id`, `low_stock`/`out_of_stock` → `/items/:item_id`,
+   `cash_session_discrepancy` → riwayat sesi kasir bila berhak). Diverifikasi live sebagai
+   `kasir` (1 notifikasi "Penjualan Selesai — SAL-000024"): badge, dropdown, klik → `/sales/24`
+   + badge hilang, halaman penuh, 0 error console.
+
+**Keterbatasan yang perlu diketahui**: backend cuma bikin baris inbox untuk user yang punya
+**device token FCM terdaftar** (penerima dihitung dari tabel `device_tokens`), jadi akun yang
+tidak pernah login di aplikasi mobile melihat inbox kosong. Web push (notifikasi browser)
+BELUM dibangun — butuh konfigurasi Firebase web (apiKey/projectId/messagingSenderId/appId +
+VAPID key) + service worker + registrasi token dari web, dan semua itu belum ada.
+
+**Temuan sampingan**: `systact.teamlangit@gmail.com` (dulu admin-bu "kaina", id 3) kini
+terbit sebagai user id 14 "admin iwarga tester" (BU "RW 01 Tester", audience `iwarga-api`) di
+auth-backend bersama, jadi tokennya ditolak warehouse-backend — akun test admin-bu untuk
+warehouse perlu diganti/dikonfirmasi.
