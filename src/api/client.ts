@@ -32,7 +32,7 @@ function buildUrl(path: string, params?: RequestOptions['params']): string {
 
 async function request<T>(
   path: string,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   body?: unknown,
   options?: RequestOptions,
   isRetryAfterRefresh = false,
@@ -108,6 +108,10 @@ export function apiPost<T>(path: string, body?: unknown, options?: { idempotency
 
 export function apiPut<T>(path: string, body?: unknown) {
   return request<T>(path, 'PUT', body)
+}
+
+export function apiPatch<T>(path: string, body?: unknown) {
+  return request<T>(path, 'PATCH', body)
 }
 
 export function apiDelete<T>(path: string) {

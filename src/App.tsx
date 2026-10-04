@@ -43,6 +43,7 @@ import DashboardPage from './features/dashboard/DashboardPage'
 import ActivityLogListPage from './features/activityLogs/ActivityLogListPage'
 import CashSessionPage from './features/cashSessions/CashSessionPage'
 import CashSessionHistoryPage from './features/cashSessions/CashSessionHistoryPage'
+import NotificationListPage from './features/notifications/NotificationListPage'
 
 export default function App() {
   const { canManageUsers, canViewActivityLogs, canWrite } = usePermissions()
@@ -76,6 +77,8 @@ export default function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              {/* Inbox notifikasi — self-scoped ke user login, tidak digating role (sama seperti Profile). */}
+              <Route path="/notifications" element={<NotificationListPage />} />
               {/* Self-scoped (§20, 2026-09-13) — tidak ada gating permission, sama seperti
                   Profile: backend sendiri tidak mendokumentasikan pembatasan role buat buka sesi
                   kasir, dan endpoint `/cash-sessions/current` otomatis cuma balikin sesi milik

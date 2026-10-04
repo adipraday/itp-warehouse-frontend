@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../auth/useAuth'
 import { usePermissions } from '../auth/permissions'
 import { getHealth } from '../api/client'
+import { NotificationBell } from '../components/NotificationBell'
 import logoFull from '../assets/logo-full.png'
 import { COMPANY_NAME, SUPPORT_EMAIL, SUPPORT_PHONE } from '../config/company'
 
@@ -153,6 +154,7 @@ export default function Layout() {
 
           {user && (
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <Link to="/profile" className="hidden text-right sm:block">
                 <p className="text-sm font-medium text-slate-900 hover:underline">{user.name}</p>
                 <p className="text-xs text-slate-400">
