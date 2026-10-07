@@ -8,6 +8,11 @@ export interface Warehouse {
   // §14 frontend-integration-guide.md), `parent_warehouse_id` buat hierarki gudang utama/cabang.
   bu_id?: number | null
   parent_warehouse_id?: number | null
+  // Cuma ada di `GET /warehouses/:id` (bukan list/create): nama BU pemilik warehouse, di-resolve
+  // backend lewat service key karena auth-backend menolak 403 `GET /business-units/:id` buat
+  // semua role selain owner/super-admin. `null` = tidak bisa di-resolve (BU kosong / auth-backend
+  // lagi bermasalah) — pemanggil wajib punya fallback, jangan diasumsikan selalu ada.
+  business_unit?: { id: number; name: string } | null
   created_at: string
   updated_at: string
 }

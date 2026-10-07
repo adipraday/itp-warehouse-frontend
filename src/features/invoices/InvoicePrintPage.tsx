@@ -9,7 +9,7 @@ import { getContact } from '../../api/contacts'
 import { getInvoiceByKind } from '../../api/invoices'
 import type { InvoiceKind } from '../../api/invoices'
 import type { PaymentStatus } from '../../types/invoice'
-import { COMPANY_NAME } from '../../config/company'
+import { PrintLetterhead } from '../../components/PrintLetterhead'
 
 interface InvoicePrintPageProps {
   kind: InvoiceKind
@@ -40,13 +40,13 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
     queryFn: () => getInvoiceByKind(kind, invoiceId),
   })
 
-  const { data: warehouse } = useQuery({
+  const warehouseQuery = useQuery({
     queryKey: ['warehouses', doc?.data.warehouse_id],
     queryFn: () => getWarehouse(doc?.data.warehouse_id as number),
     enabled: !!doc?.data.warehouse_id,
   })
 
-  const { data: contact } = useQuery({
+  const contactQuery = useQuery({
     queryKey: ['contacts', doc?.data.contact_id],
     queryFn: () => getContact(doc?.data.contact_id as number),
     enabled: !!doc?.data.contact_id,
@@ -54,11 +54,18 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
 
   // Buka dialog cetak (Save as PDF) otomatis begitu data siap — jeda dikit biar layout kelar
   // ke-render dulu (kalau browser blokir auto-print, tombol "Cetak" manual tetap tersedia).
+  const warehouse = warehouseQuery.data
+  const contact = contactQuery.data
+
+  // Tunggu warehouse (nama BU + warehouse di kop) & kontak ikut termuat — kalau tidak, dialog
+  // cetak bisa kebuka duluan dan kop/penerima kecetak kosong.
+  const ready =
+    !!doc && warehouseQuery.isFetched && (!doc.data.contact_id || contactQuery.isFetched)
   useEffect(() => {
-    if (!doc) return
+    if (!ready) return
     const timer = setTimeout(() => window.print(), 400)
     return () => clearTimeout(timer)
-  }, [doc])
+  }, [ready])
 
   if (isLoading) {
     return <p className="p-8 text-sm text-slate-400">Memuat invoice...</p>
@@ -110,11 +117,7 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
 
         <div className="relative">
           <div className="flex items-start justify-between border-b border-slate-300 pb-4">
-            <div>
-              <h1 className="text-lg font-bold text-slate-900">{COMPANY_NAME}</h1>
-              <p className="text-sm text-slate-500">{warehouse?.data.name ?? '-'}</p>
-              <p className="text-sm text-slate-500">{warehouse?.data.address ?? ''}</p>
-            </div>
+            <PrintLetterhead warehouse={warehouse?.data} />
             <div className="text-right">
               <h2 className="text-base font-semibold uppercase tracking-wide text-slate-700">{docLabel}</h2>
               <p className="mt-1 font-mono text-sm text-slate-900">{d.invoice_number}</p>
