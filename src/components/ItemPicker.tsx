@@ -9,7 +9,10 @@ import type { Item } from '../types/item'
 interface ItemPickerProps {
   label?: string
   value: number | null
-  onChange: (itemId: number | null) => void
+  // Argumen ke-2 (objek item) cuma terisi saat user MEMILIH/MEMBUAT item, bukan saat dikosongkan —
+  // dipakai form yang butuh data item pas dipilih (mis. harga jual default di form Sales). Pemanggil
+  // lain cukup abaikan.
+  onChange: (itemId: number | null, item?: Item) => void
   // Munculin shortcut "+ Tambah item baru" di bawah hasil pencarian — dibuat opt-in (bukan
   // otomatis dari canWrite('items')) karena `ItemPicker` juga dipakai di filter report read-only
   // (CostLayerListPage/StockMutationListPage/StockListPage) yang bukan konteks transaksi, jadi
@@ -59,7 +62,7 @@ export function ItemPicker({ label = 'Item', value, onChange, allowCreate = fals
   }, [])
 
   function selectItem(item: Item) {
-    onChange(item.id)
+    onChange(item.id, item)
     setQuery('')
     setOpen(false)
   }
@@ -74,7 +77,7 @@ export function ItemPicker({ label = 'Item', value, onChange, allowCreate = fals
     // nunggu round-trip `GET /items/:id` lagi (query key sama persis yang dipakai `selectedItem`
     // di bawah).
     queryClient.setQueryData(['items', item.id], { data: item })
-    onChange(item.id)
+    onChange(item.id, item)
     setQuery('')
     setOpen(false)
     setCreateOpen(false)

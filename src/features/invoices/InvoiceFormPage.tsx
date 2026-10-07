@@ -379,7 +379,15 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
                 <div className="col-span-5">
                   <ItemPicker
                     value={row.item_id}
-                    onChange={(itemId) => updateRow(row.key, { item_id: itemId })}
+                    onChange={(itemId, item) =>
+                      updateRow(row.key, {
+                        item_id: itemId,
+                        // Sales: memilih item mengisi Unit Price dengan harga jual item (default, tetap bisa
+                        // diedit; edit manual sesudahnya bertahan sampai item diganti). Purchase tidak —
+                        // harga beli beda dari harga jual. Mengosongkan item membiarkan harga apa adanya.
+                        ...(item && kind === 'sales' ? { unit_price: item.selling_price } : {}),
+                      })
+                    }
                     allowCreate
                   />
                 </div>
