@@ -9,6 +9,8 @@ import { useToast } from '../../hooks/useToast'
 import { useIdempotencyKey } from '../../hooks/useIdempotencyKey'
 import { useDocumentActions, STOCK_TRANSFER_LIFECYCLE } from '../../hooks/useDocumentActions'
 import { usePermissions } from '../../auth/permissions'
+import { useAuth } from '../../auth/useAuth'
+import { useAssignedWarehouseIds } from '../../hooks/useAssignedWarehouseIds'
 import { getErrorMessage } from '../../api/errors'
 import { formatDate, formatTimestamp } from '../../utils/date'
 import { getWarehouse } from '../../api/warehouses'
@@ -40,6 +42,8 @@ export default function StockTransferDetailPage() {
   const { canWrite, canApprove } = usePermissions()
   const canWriteResource = canWrite('stock-transfers')
   const canApproveResource = canApprove('stock-transfers')
+  const { user } = useAuth()
+  const assignedWarehouseIds = useAssignedWarehouseIds()
 
   const { data: doc, isLoading } = useQuery({
     queryKey: ['stock-transfers', transferId],
@@ -128,6 +132,19 @@ export default function StockTransferDetailPage() {
 
   const d = doc.data
 
+  // Aturan sisi penerima (backend 2026-10-07). Role yang di-scope per warehouse (assignedWarehouseIds
+  // bukan null) cuma boleh MENGUBAH transfer lewat warehouse ASAL; di sisi TUJUAN mereka cuma bisa
+  // baca + (khusus admin-warehouse) approve transfer MASUK — tujuan = warehouse yang dipegang, asal
+  // BUKAN warehouse yang dipegang, dan bukan pembuatnya. admin-bu/owner/super-admin (null) tidak dibatasi.
+  // Backend tetap validator akhir; ini cuma biar tombol yang pasti ditolak 403 tidak ditampilkan.
+  const atSource = assignedWarehouseIds?.includes(d.source_warehouse_id) ?? true
+  const atDestination = assignedWarehouseIds?.includes(d.destination_warehouse_id) ?? false
+  const receivingSideOnly = assignedWarehouseIds !== null && !atSource
+  const canWriteThis = canWriteResource && !receivingSideOnly
+  const canApproveThis =
+    canApproveResource ||
+    (user?.role === 'admin-warehouse' && atDestination && !atSource && d.created_by !== user.id)
+
   return (
     <div>
       <Link to="/stock-transfers" className="text-sm text-blue-600 hover:underline">
@@ -147,7 +164,7 @@ export default function StockTransferDetailPage() {
         </div>
 
         <div className="flex gap-2">
-          {can('edit') && canWriteResource && (
+          {can('edit') && canWriteThis && (
             <Link
               to={`/stock-transfers/${d.id}/edit`}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -155,7 +172,7 @@ export default function StockTransferDetailPage() {
               Edit
             </Link>
           )}
-          {can('delete') && canWriteResource && (
+          {can('delete') && canWriteThis && (
             <button
               type="button"
               onClick={() => setActiveDialog('delete')}
@@ -164,7 +181,7 @@ export default function StockTransferDetailPage() {
               Hapus
             </button>
           )}
-          {can('cancel') && canWriteResource && (
+          {can('cancel') && canWriteThis && (
             <button
               type="button"
               onClick={() => setActiveDialog('cancel')}
@@ -173,7 +190,7 @@ export default function StockTransferDetailPage() {
               Batalkan
             </button>
           )}
-          {can('approve') && canApproveResource && (
+          {can('approve') && canApproveThis && (
             <button
               type="button"
               onClick={() => setActiveDialog('approve')}
@@ -182,7 +199,7 @@ export default function StockTransferDetailPage() {
               Approve
             </button>
           )}
-          {can('complete') && canWriteResource && (
+          {can('complete') && canWriteThis && (
             <button
               type="button"
               onClick={() => setActiveDialog('complete')}

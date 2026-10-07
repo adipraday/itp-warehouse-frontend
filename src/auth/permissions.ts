@@ -44,7 +44,10 @@ export type Resource =
 // `admin-warehouse` (§28, 2026-09-21): full write access to every day-to-day operational
 // resource below EXCEPT `warehouses` — deliberately mirrors role-matrix.js's ALL_STAFF-based
 // entries plus its own additions to items/contacts/sales/cash-sessions/purchases/payments.
-// Never added to APPROVE_MATRIX (segregation of duty — same reasoning as staff-gudang today).
+// Not added to APPROVE_MATRIX (segregation of duty — same reasoning as staff-gudang today). The one
+// exception — approving an INCOMING stock-transfer at a warehouse they hold (backend 2026-10-07) —
+// depends on the specific transfer (destination/source/creator), so it is decided per document in
+// StockTransferDetailPage, not by this role-only matrix.
 const WRITE_MATRIX: Record<Resource, Role[]> = {
   warehouses: ['super-admin', 'admin-bu'],
   items: ['super-admin', 'admin-bu', 'admin-warehouse', 'purchasing'],
