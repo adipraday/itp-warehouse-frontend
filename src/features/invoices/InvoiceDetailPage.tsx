@@ -13,6 +13,7 @@ import { getErrorMessage } from '../../api/errors'
 import { formatDate, formatTimestamp } from '../../utils/date'
 import { formatRupiah, parseMoney } from '../../utils/money'
 import { paymentMethodLabel } from '../../types/payment'
+import type { Payment } from '../../types/payment'
 import { getWarehouse } from '../../api/warehouses'
 import { getContact } from '../../api/contacts'
 import { listPayments } from '../../api/payments'
@@ -344,14 +345,25 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
             columns={[
               { key: 'payment_number', header: 'No. Pembayaran', render: (row) => row.payment_number },
               { key: 'payment_date', header: 'Tanggal', render: (row) => formatDate(row.payment_date) },
-              { key: 'amount', header: 'Jumlah', className: 'text-right', render: (row) => formatRupiah(row.amount) },
-              { key: 'payment_method', header: 'Metode', render: (row) => paymentMethodLabel(row.payment_method) },
               {
-                key: 'change_amount',
-                header: 'Kembalian',
+                key: 'amount',
+                header: kind === 'purchase' ? 'Uang Dikeluarkan' : 'Jumlah',
                 className: 'text-right',
-                render: (row) => (parseMoney(row.change_amount) > 0 ? formatRupiah(row.change_amount) : '-'),
+                render: (row) => formatRupiah(row.amount),
               },
+              { key: 'payment_method', header: 'Metode', render: (row) => paymentMethodLabel(row.payment_method) },
+              // Kembalian cuma ada di penjualan tunai — bayar ke supplier tidak pernah ada kembalian.
+              ...(kind === 'sales'
+                ? [
+                    {
+                      key: 'change_amount',
+                      header: 'Kembalian',
+                      className: 'text-right',
+                      render: (row: Payment) =>
+                        parseMoney(row.change_amount) > 0 ? formatRupiah(row.change_amount) : '-',
+                    },
+                  ]
+                : []),
               { key: 'notes', header: 'Catatan', render: (row) => row.notes ?? '-' },
             ]}
             data={payments?.data ?? []}
@@ -412,6 +424,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
         onClose={() => setPaymentModalOpen(false)}
         invoiceId={invoiceId}
         remainingBalance={remainingBalance}
+        kind={kind}
       />
 
       {kind === 'sales' && (

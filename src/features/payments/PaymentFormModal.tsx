@@ -10,15 +10,20 @@ import { formatRupiah, parseMoney } from '../../utils/money'
 import { createPayment } from '../../api/payments'
 import { PAYMENT_METHODS } from '../../types/payment'
 import type { PaymentMethod } from '../../types/payment'
+import type { InvoiceKind } from '../../api/invoices'
 
 interface PaymentFormModalProps {
   open: boolean
   onClose: () => void
   invoiceId: number
   remainingBalance: number
+  // 'purchase' = bayar ke supplier (uang KELUAR): tidak ada "uang diterima"/"kembalian" — itu
+  // istilah kasir yang menerima uang dari pelanggan. Default 'sales' (perilaku lama).
+  kind?: InvoiceKind
 }
 
-export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance }: PaymentFormModalProps) {
+export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance, kind = 'sales' }: PaymentFormModalProps) {
+  const isPurchase = kind === 'purchase'
   const [amount, setAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('')
   // Uang tunai diterima — cuma relevan buat CASH (§21 frontend-integration-guide.md, 2026-09-13).
@@ -42,11 +47,13 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance }:
   }, [open, remainingBalance])
 
   const isCash = paymentMethod === 'CASH'
+  // Field uang diterima + kembalian cuma buat tunai di penjualan; di pembelian selalu dilewati.
+  const showTendered = isCash && !isPurchase
   const amountNum = Number(amount) || 0
   const amountTenderedNum = Number(amountTendered) || 0
   // Preview kembalian di frontend cuma buat UX (kasir bisa konfirmasi dulu sebelum submit) — server
   // tetap sumber kebenaran akhir lewat `change_amount` di response (dipakai buat pesan sukses di bawah).
-  const changePreview = isCash ? Math.max(amountTenderedNum - amountNum, 0) : 0
+  const changePreview = showTendered ? Math.max(amountTenderedNum - amountNum, 0) : 0
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -56,7 +63,7 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance }:
         payment_method: paymentMethod as PaymentMethod,
         // Metode selain CASH: samain dengan `amount` (tidak ada konsep "kembalian" di luar tunai
         // fisik — QRIS/transfer/dst selalu pas per definisi).
-        amount_tendered: isCash ? amountTenderedNum : amountNum,
+        amount_tendered: showTendered ? amountTenderedNum : amountNum,
         payment_date: paymentDate,
         notes: notes.trim() || null,
       }),
@@ -92,7 +99,7 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance }:
       toast.show('Metode pembayaran wajib dipilih.', 'error')
       return
     }
-    if (isCash && amountTenderedNum < amountNum) {
+    if (showTendered && amountTenderedNum < amountNum) {
       toast.show('Uang diterima tidak boleh kurang dari jumlah pembayaran.', 'error')
       return
     }
@@ -106,7 +113,7 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance }:
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label="Jumlah"
+          label={isPurchase ? 'Uang Dikeluarkan' : 'Jumlah'}
           type="number"
           min={0}
           max={remainingBalance}
@@ -134,7 +141,7 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance }:
             </option>
           ))}
         </SelectField>
-        {isCash && (
+        {showTendered && (
           <>
             <TextField
               label="Uang Diterima"
