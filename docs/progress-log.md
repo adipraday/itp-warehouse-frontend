@@ -1555,4 +1555,5 @@ warehouse perlu diganti/dikonfirmasi.
    keluar dari laci dicatat sebagai Kas Keluar). **Data lama sengaja tidak diubah**: payment #11
    (PURCHASE tunai Rp 965.000) masih menempel ke sesi #6 yang sudah CLOSED (Z-report final:
    seharusnya Rp 1.263.600, selisih 0 — sudah memuat angka itu); membetulkannya berarti menulis
-   ulang laporan tutup kasir yang sudah final, jadi menunggu keputusan bisnis.
+   ulang laporan tutup kasir yang sudah final. **Diputuskan (2026-10-07): dibiarkan sebagai
+   catatan sejarah**, tidak dikoreksi.
