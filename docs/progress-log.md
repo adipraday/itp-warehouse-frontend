@@ -1557,3 +1557,31 @@ warehouse perlu diganti/dikonfirmasi.
    seharusnya Rp 1.263.600, selisih 0 — sudah memuat angka itu); membetulkannya berarti menulis
    ulang laporan tutup kasir yang sudah final. **Diputuskan (2026-10-07): dibiarkan sebagai
    catatan sejarah**, tidak dikoreksi.
+
+---
+
+## Fase 29 — Approve Transfer oleh Admin-Warehouse Sisi Penerima ✅ (2026-10-07, live di produksi)
+
+Permintaan: `admin-warehouse` boleh meng-approve transfer barang dari gudang lain yang ditujukan ke
+gudang yang dia pegang (sebelumnya approve transfer cuma `admin-bu`, padahal notifikasi "menunggu
+persetujuan Anda" sudah dikirim ke admin-warehouse sisi tujuan).
+
+**Backend** (`a2985a2`): `role-matrix` stock-transfers approve = admin-bu + admin-warehouse
+(opname/return tetap admin-bu saja); `buScope(resource, { allowDestinationWrite })` meloloskan sisi
+TUJUAN khusus rute approve (edit/hapus/batal/complete tetap butuh sisi asal; tujuan lintas BU tetap
+ditolak); `assertMayApproveTransfer` per transfer, hanya untuk admin-warehouse: tujuan = warehouse
+yang dipegang, asal BUKAN warehouse yang dipegang (antar dua warehouse miliknya tetap admin-bu),
+dan bukan pembuat transfer (segregation of duty). admin-bu/super-admin tidak berubah.
+
+**Frontend**: `hooks/useAssignedWarehouseIds` (dari `/me/access-status`, cache sama dengan
+`RequireWarehouseAccess`); `StockTransferDetailPage`: Approve muncul untuk admin-warehouse sisi
+penerima bila aturan terpenuhi; role yang di-scope per warehouse dan tidak memegang warehouse ASAL
+tidak lagi melihat Edit/Hapus/Batalkan/Complete (pasti 403 di backend).
+
+**Diverifikasi live** lewat respons API tanpa mengubah data: approve id fiktif oleh admin-warehouse
+-> 404 (lolos role+scope; sebelumnya 403), kasir-sales -> 403, approve opname oleh admin-warehouse
+-> 403, approve transfer BU lain -> 403 "outside your business unit" (TRF-000004 tetap DRAFT);
+super-admin masih melihat Edit/Hapus/Batalkan/Approve pada DRAFT. **Belum diperagakan end-to-end**:
+approve sungguhan oleh sisi penerima (butuh transfer DRAFT lintas warehouse di BU yang punya
+admin-warehouse; membuatnya di produksi mengirim push ke perangkat asli) — jalur itu hanya
+terbukti lewat 11 tes otomatis backend baru (422 total).
