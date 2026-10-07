@@ -1585,3 +1585,12 @@ super-admin masih melihat Edit/Hapus/Batalkan/Approve pada DRAFT. **Belum dipera
 approve sungguhan oleh sisi penerima (butuh transfer DRAFT lintas warehouse di BU yang punya
 admin-warehouse; membuatnya di produksi mengirim push ke perangkat asli) — jalur itu hanya
 terbukti lewat 11 tes otomatis backend baru (422 total).
+
+**Tambahan Fase 29 — notifikasi ke sisi pengirim** (backend `e9cbf5a`, live 2026-10-07): begitu transfer
+di-approve (oleh admin-bu atau admin-warehouse penerima), backend mengirim "Transfer Stok Disetujui —
+TRF-xxxxxx sudah disetujui dan siap diselesaikan" ke admin-warehouse + staff-gudang yang di-assign
+di warehouse ASAL (merekalah yang harus meng-complete). `data = { type: 'stock_transfer', id }`, jadi
+di inbox web otomatis deep-link ke `/stock-transfers/:id` (tanpa perubahan frontend). Best-effort,
+tidak menggagalkan approve; tidak dikirim bila approve ditolak. Terbukti lewat 4 tes otomatis baru
+(426 total) + container sehat setelah deploy; **tidak dites end-to-end di produksi** (butuh membuat
+transfer sungguhan: menghabiskan nomor TRF dan mengirim push ke perangkat asli).
