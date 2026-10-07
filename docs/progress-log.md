@@ -1524,3 +1524,35 @@ VAPID key) + service worker + registrasi token dari web, dan semua itu belum ada
 terbit sebagai user id 14 "admin iwarga tester" (BU "RW 01 Tester", audience `iwarga-api`) di
 auth-backend bersama, jadi tokennya ditolak warehouse-backend — akun test admin-bu untuk
 warehouse perlu diganti/dikonfirmasi.
+
+---
+
+## Fase 28 — Kop Surat Cetak per BU/Warehouse & Pembayaran Purchase ✅ (2026-10-07, live di produksi)
+
+1. **Kop surat dokumen cetak.** Invoice (`/sales|purchases/:id/print`) dan surat jalan
+   (`/inbounds|outbounds/:id/print`) memakai `COMPANY_NAME` hardcode ("PT. Inovasi Teknologi
+   Pintar") sebagai judul — salah buat dokumen milik tenant lain. Sekarang: **judul = nama BU,
+   subjudul = nama warehouse (pusat/cabang), lalu alamat** (`components/PrintLetterhead.tsx`).
+   Struk thermal ternyata SUDAH begitu dari backend (`sales.receipt.js`), tidak diubah.
+   Frontend tidak bisa ambil nama BU sendiri (auth-backend `GET /business-units/:id` 403 untuk
+   semua role kecuali owner/super-admin, dites live), jadi backend `GET /warehouses/:id` kini
+   menyertakan `business_unit {id,name}|null` (resolver ber-cache lewat service key, tidak
+   pernah melempar error). Fallback kalau nama BU tak ter-resolve: `user.bu_name` bila warehouse
+   milik BU user, selain itu judul = nama warehouse (bukan nama platform). Auto-print sekarang
+   menunggu warehouse + kontak termuat dulu. Diverifikasi live: invoice sales 24, surat jalan
+   IN-22/OUT-32 (kop "Sawah Dangka Mart / Sawah Dangka Mart Cabang 1 / alamat"); endpoint
+   dites sebagai kasir, admin-warehouse, admin-bu, owner.
+2. **Form & tabel pembayaran Purchase.** `PaymentFormModal` dipakai bersama Sales/Purchase,
+   jadi Purchase menampilkan "Uang Diterima"/"Kembalian". Prop `kind`: Purchase → "Uang
+   Dikeluarkan", tanpa field uang diterima/kembalian (`amount_tendered = amount`); tabel
+   pembayaran di detail: kolom "Uang Dikeluarkan", tanpa "Kembalian". Sales tidak berubah.
+   **Belum dites di UI**: modal-nya (semua Purchase di produksi sudah lunas, jadi "+ Catat
+   Pembayaran" tidak muncul; tidak bikin data pembelian palsu) — hanya tabel yang dicek live.
+3. **Bug backend dari temuan #2** (`a72917d`): `createPayment` menempelkan sesi kasir terbuka ke
+   SEMUA pembayaran tanpa lihat jenis invoice, dan rekonsiliasi kas menjumlah semua pembayaran
+   CASH sesi sebagai uang MASUK → bayar tunai ke supplier membengkakkan "uang seharusnya".
+   Sekarang pembayaran `PURCHASE` tidak pernah ditempel ke sesi kasir (uang yang benar-benar
+   keluar dari laci dicatat sebagai Kas Keluar). **Data lama sengaja tidak diubah**: payment #11
+   (PURCHASE tunai Rp 965.000) masih menempel ke sesi #6 yang sudah CLOSED (Z-report final:
+   seharusnya Rp 1.263.600, selisih 0 — sudah memuat angka itu); membetulkannya berarti menulis
+   ulang laporan tutup kasir yang sudah final, jadi menunggu keputusan bisnis.
