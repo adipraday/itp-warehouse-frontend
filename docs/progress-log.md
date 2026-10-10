@@ -1594,3 +1594,12 @@ di inbox web otomatis deep-link ke `/stock-transfers/:id` (tanpa perubahan front
 tidak menggagalkan approve; tidak dikirim bila approve ditolak. Terbukti lewat 4 tes otomatis baru
 (426 total) + container sehat setelah deploy; **tidak dites end-to-end di produksi** (butuh membuat
 transfer sungguhan: menghabiskan nomor TRF dan mengirim push ke perangkat asli).
+
+**Uji end-to-end Fase 29 + hotfix (2026-10-10/11)**: TRF-000004 di-approve sungguhan lewat UI produksi oleh
+user 20 (admin-warehouse penerima): DRAFT -> APPROVED, "Disetujui oleh User #20", tombol Edit/Hapus/Batalkan/
+Complete tidak muncul, transfer TIDAK di-complete (stok tidak bergerak). Notifikasi "Transfer Stok Disetujui"
+tercatat untuk user 23 (pembuat) dan user 19 (staf gudang asal). Uji ini menemukan **bug loop** di
+`useAssignedWarehouseIds`: staleTime 0 membuat tiap mount halaman detail me-refetch `['access-status']`,
+`RequireWarehouseAccess` (isFetching -> "Memeriksa akses...") meng-unmount halaman, mount ulang, refetch lagi,
+tanpa henti (ratusan request/menit; halaman tidak pernah tampil untuk role staff/admin-warehouse). Fix:
+`refetchOnMount: false` di hook (guard yang bertugas refetch sekali per mount). Frontend `bc41c1d`, live.
