@@ -18,6 +18,11 @@ export function useAssignedWarehouseIds(): number[] | null {
     queryKey: ['access-status'],
     queryFn: getAccessStatus,
     enabled: isStaff,
+    // WAJIB false: staleTime default 0 bikin tiap mount halaman ini refetch ['access-status'],
+    // lalu `RequireWarehouseAccess` (isFetching → "Memeriksa akses...") meng-unmount halaman,
+    // mount lagi, refetch lagi — loop tanpa henti (ratusan request/menit). Guard itu yang
+    // bertugas fetch ulang sekali per mount-nya; hook ini cuma membaca cache-nya.
+    refetchOnMount: false,
   })
 
   if (!isStaff) return null
