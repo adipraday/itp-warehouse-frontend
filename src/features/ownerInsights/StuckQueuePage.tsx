@@ -12,7 +12,7 @@ import { getStuckQueue } from '../../api/dashboard'
 import { listWarehouses } from '../../api/warehouses'
 import { listUsers } from '../../api/users'
 import { formatNumber } from '../../utils/money'
-import { formatTimestamp } from '../../utils/date'
+import { formatUtcAsWib } from '../../utils/date'
 import type { StuckQueueGroup, StuckQueueItem, StuckQueueKind } from '../../types/dashboard'
 
 interface KindInfo {
@@ -179,7 +179,7 @@ export default function StuckQueuePage() {
           : `${warehouseName(row.warehouse_id)} → ${warehouseName(row.to_warehouse_id)}`,
     },
     { key: 'waitingOn', header: 'Menunggu tindakan', render: (row) => KIND_INFO[row.kind].waitingOn },
-    { key: 'since', header: 'Sejak', render: (row) => formatTimestamp(row.waiting_since) },
+    { key: 'since', header: 'Sejak', render: (row) => formatUtcAsWib(row.waiting_since) },
     { key: 'creator', header: 'Dibuat oleh', render: (row) => userName(row.created_by) },
   ]
 

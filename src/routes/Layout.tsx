@@ -39,6 +39,7 @@ function buildNavGroups(
               { to: '/cash-variance', label: 'Selisih Kas' },
               { to: '/stuck-queue', label: 'Antrean Macet' },
               { to: '/receivables', label: 'Piutang & Hutang' },
+              { to: '/unusual-activity', label: 'Aktivitas Tidak Biasa' },
             ],
           },
         ]

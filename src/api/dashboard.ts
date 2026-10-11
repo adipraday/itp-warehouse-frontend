@@ -11,6 +11,7 @@ import type {
   DashboardStockSummary,
   DashboardSummary,
   StuckQueue,
+  UnusualActivity,
 } from '../types/dashboard'
 
 export function getDashboardSummary(params: { warehouse_id?: number; date?: string }) {
@@ -57,4 +58,8 @@ export function getStuckQueue(params: { min_age_days?: number; warehouse_id?: nu
 
 export function getAging(params: { side: AgingSide; warehouse_id?: number; limit?: number }) {
   return apiGet<ApiDetailResponse<Aging>>('/dashboard/aging', params)
+}
+
+export function getUnusualActivity(params: { from?: string; to?: string }) {
+  return apiGet<ApiDetailResponse<UnusualActivity>>('/dashboard/unusual-activity', params)
 }

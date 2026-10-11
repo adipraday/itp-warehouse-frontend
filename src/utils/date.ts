@@ -72,3 +72,19 @@ export function daysAgoISO(days: number): string {
   const day = String(date.getDate()).padStart(2, '0')
   return `${date.getFullYear()}-${month}-${day}`
 }
+
+/**
+ * Timestamp warehouse-backend (`YYYY-MM-DD HH:mm:ss.SSS`, kolom DATETIME) disimpan dalam **UTC**
+ * (server dan MariaDB berjalan di UTC), tapi string-nya tidak membawa zona waktu. Fungsi ini
+ * menampilkannya sebagai WIB (UTC+7). Dipakai di halaman Pemantauan; `formatTimestamp` di atas
+ * masih menampilkan angka UTC apa adanya (selisih 7 jam dari jam dinding WIB).
+ */
+export function formatUtcAsWib(ts: string | null | undefined): string {
+  if (!ts) return '-'
+  const parsed = new Date(`${ts.replace(' ', 'T').slice(0, 19)}Z`)
+  if (Number.isNaN(parsed.getTime())) return '-'
+  const wib = new Date(parsed.getTime() + 7 * 60 * 60 * 1000)
+  const hours = String(wib.getUTCHours()).padStart(2, '0')
+  const minutes = String(wib.getUTCMinutes()).padStart(2, '0')
+  return `${wib.getUTCDate()} ${MONTHS_ID[wib.getUTCMonth()]} ${wib.getUTCFullYear()} ${hours}:${minutes} WIB`
+}

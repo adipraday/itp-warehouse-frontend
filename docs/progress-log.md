@@ -1663,3 +1663,19 @@ jatuh tempo (semua saat ini, form belum menanyakannya) dihitung jatuh tempo di t
 menua alih-alih tampak "belum jatuh tempo" selamanya. 5 tes unit baru (861 total); SQL diverifikasi ke DB produksi: piutang 5 invoice /
 Rp 11.200 (semua tanpa nama pelanggan, umur 26 hari — penjualan POS yang di-Complete tapi belum dibayar), hutang Rp 0; scope BU benar
 (owner BU 1/6/9: Rp 8.000, owner BU 2/3: Rp 3.200). Dihot-patch ke container, log boot bersih.
+
+## Fase 34 — Aktivitas Tidak Biasa untuk owner/admin-bu (2026-10-12)
+
+Halaman baru **Aktivitas Tidak Biasa** (`/unusual-activity`, menu Pemantauan; super-admin/owner/admin-bu): temuan per orang dari log
+aktivitas — pembatalan berulang (disertai % dari dokumen yang dibuat orang itu), penghapusan berulang, aksi transaksi di malam hari
+(22:00–05:00 WIB), dan banyak perubahan item. Tiap temuan menulis aturan yang dipakai, 5 contoh terbaru dengan tautan ke dokumen, dan
+label "Perlu dicek" / "Perlu perhatian" (≥2× ambang). Bahasa sengaja netral ("tidak biasa belum tentu salah"). **Batasan jujur**: log
+tidak menyimpan nilai sebelum/sesudah, jadi "harga diubah" tidak bisa dideteksi — hanya jumlah perubahan item. Backend `ebf0c4c`
+(`GET /api/dashboard/unusual-activity`), 8 tes unit baru (869 total); SQL diverifikasi ke DB produksi (super-admin: 3 temuan — user 3 dan
+user 7 beraktivitas malam hari di September, user 10 mengubah 10 item dalam 17 menit pada 9 Okt, kemungkinan penyiapan data). Ringkasan harian
+owner/admin-bu kini juga menyebut jumlah temuan 7 hari terakhir.
+
+**Temuan di luar fitur — jam di seluruh aplikasi bergeser 7 jam**: kolom DATETIME warehouse-backend disimpan dalam UTC (server dan MariaDB
+berjalan di UTC), tetapi `formatTimestamp` (`utils/date.ts`) menampilkannya apa adanya seolah waktu lokal, sehingga jam di halaman detail,
+Riwayat Sesi Kasir, Activity Logs, notifikasi, dst. tampak 7 jam lebih awal dari jam dinding WIB. Halaman Pemantauan memakai helper baru
+`formatUtcAsWib` (benar); halaman lama BELUM diubah — menunggu keputusan apakah `formatTimestamp` langsung dikonversi ke WIB untuk semua.

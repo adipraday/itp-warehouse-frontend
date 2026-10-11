@@ -214,3 +214,42 @@ export interface Aging {
   items: AgingInvoice[]
   truncated: boolean
 }
+
+// ---- Aktivitas tidak biasa (GET /dashboard/unusual-activity) ----------------------------------
+// Pola di log aktivitas yang layak dicek — bukan bukti pelanggaran. Log hanya mencatat siapa,
+// melakukan apa, pada dokumen mana, kapan; nilai sebelum/sesudah tidak tercatat.
+export type UnusualFindingType = 'cancellations' | 'deletions' | 'night_activity' | 'item_edits'
+
+export interface UnusualExample {
+  action: string
+  entity_type: string
+  entity_id: number | null
+  warehouse_id: number | null
+  at: string
+}
+
+export interface UnusualFinding {
+  type: UnusualFindingType
+  user_id: number
+  count: number
+  severity: 'medium' | 'high'
+  warehouse_id: number | null
+  first_at: string
+  last_at: string
+  documents_created: number | null
+  cancel_rate_pct: number | null
+  examples: UnusualExample[]
+}
+
+export interface UnusualActivity {
+  period: { from: string; to: string }
+  thresholds: Record<string, number>
+  summary: {
+    findings: number
+    flagged_users: number
+    high_severity: number
+    by_type: Record<UnusualFindingType, number>
+    row_limit_reached: boolean
+  }
+  findings: UnusualFinding[]
+}

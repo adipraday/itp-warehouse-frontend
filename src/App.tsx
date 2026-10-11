@@ -47,6 +47,7 @@ import BranchComparisonPage from './features/ownerInsights/BranchComparisonPage'
 import CashVariancePage from './features/ownerInsights/CashVariancePage'
 import StuckQueuePage from './features/ownerInsights/StuckQueuePage'
 import ReceivablesPage from './features/ownerInsights/ReceivablesPage'
+import UnusualActivityPage from './features/ownerInsights/UnusualActivityPage'
 import NotificationListPage from './features/notifications/NotificationListPage'
 
 export default function App() {
@@ -102,6 +103,7 @@ export default function App() {
                 <Route path="/cash-variance" element={<CashVariancePage />} />
                 <Route path="/stuck-queue" element={<StuckQueuePage />} />
                 <Route path="/receivables" element={<ReceivablesPage />} />
+                <Route path="/unusual-activity" element={<UnusualActivityPage />} />
               </Route>
 
               <Route element={<RequirePermission allowed={canManageUsers()} />}>
