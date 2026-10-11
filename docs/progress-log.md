@@ -1622,3 +1622,19 @@ scope BU lewat helper yang sama dengan dashboard lain. 9 tes unit baru (836 tota
 produksi lewat service di dalam container (super-admin 14 warehouse, owner BU 1,6 = 2 warehouse, BU 4 = 5 warehouse;
 2 sesi OPEN > 24 jam ditemukan). Frontend `db3df23`, live. Diuji sebagai admin-warehouse: menu "Pemantauan" tidak
 tampil dan `/branch-comparison` -> "Akses Ditolak". **Belum diperagakan secara visual sebagai owner/admin-bu.**
+
+## Fase 31 — Ringkasan harian otomatis untuk owner (2026-10-12)
+
+Tiap pagi (default 07:00 WIB, `OWNER_DIGEST_HOUR`) tiap owner menerima 1 notifikasi (inbox + push) ringkasan **kemarin**:
+penjualan + jumlah transaksi + naik/turun vs hari sebelumnya, margin, cabang terbaik, selisih kas, sesi kasir belum
+ditutup >24 jam, stok habis/menipis — hanya bagian yang bermakna, dan hanya untuk BU milik owner itu. Klik di inbox web
+membuka `/branch-comparison` (`notificationLink.ts`, tipe `owner_digest`). Detail desain: `backend/docs/owner-daily-digest.md`.
+Idempotent lewat tabel `owner_digest_log`; saklar `OWNER_DIGEST_ENABLED=false`. Backend `3b90af0`/`a85e8a0`, frontend `c6e4c7e`.
+
+**Insiden saat deploy (~2 menit)**: container backend crash-loop setelah rebuild karena `startOwnerDigestScheduler` dipanggil
+SETELAH `app.listen()` (`addHook` ditolak Fastify: FST_ERR_INSTANCE_ALREADY_LISTENING). Tes unit tidak menangkapnya karena
+tidak pernah menjalankan `server.js`. Diperbaiki (scheduler dipindah ke sebelum `listen`), ditambah tes regresi
+`tests/shared/owner-digest-scheduler.test.js`. Pelajaran: setelah deploy backend, selalu cek log boot container, bukan hanya
+status "Started". Zona waktu: tanggal bisnis kini WIB (server & DB berjalan UTC); Pantauan Selisih Kas ikut dikelompokkan
+per hari WIB. Pratinjau isi ringkasan sudah dicoba ke DB produksi tanpa mengirim; **pengiriman sungguhan pertama baru terjadi
+pukul 07:00 WIB** dan belum teramati.
