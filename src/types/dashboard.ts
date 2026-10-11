@@ -36,3 +36,89 @@ export interface DashboardProfit {
   gross_profit: string
   gross_margin_pct: number
 }
+
+// ---- Pemantauan lintas cabang (owner / admin-bu / super-admin) --------------------------------
+// GET /dashboard/branches dan /dashboard/cash-variance (warehouse-backend, 2026-10-12). Semua
+// field uang berupa string desimal; persentase berupa number (growth `null` = periode lalu tanpa
+// penjualan, jadi tidak ada pembanding).
+
+export interface BranchPerformance {
+  warehouse_id: number
+  code: string
+  name: string
+  bu_id: number | null
+  sales_count: number
+  sales_total: string
+  previous_sales_total: string
+  sales_growth_pct: number | null
+  revenue: string
+  cogs: string
+  gross_profit: string
+  gross_margin_pct: number
+  stock_value: string
+  low_stock_count: number
+  out_of_stock_count: number
+}
+
+export interface BranchComparison {
+  period: { from: string; to: string; previous_from: string; previous_to: string }
+  totals: {
+    sales_count: number
+    sales_total: string
+    previous_sales_total: string
+    sales_growth_pct: number | null
+    revenue: string
+    gross_profit: string
+    gross_margin_pct: number
+    stock_value: string
+    low_stock_count: number
+    out_of_stock_count: number
+  }
+  branches: BranchPerformance[]
+}
+
+export interface CashVarianceSession {
+  id: number
+  warehouse_id: number
+  user_id: number
+  opened_at: string
+  closed_at: string
+  opening_amount: string
+  expected_cash_amount: string
+  closing_amount: string
+  cash_difference: string
+  notes: string | null
+}
+
+export interface CashVarianceWarehouse {
+  warehouse_id: number
+  sessions_closed: number
+  sessions_with_variance: number
+  shortage: string
+  overage: string
+  net: string
+}
+
+export interface OverdueOpenSession {
+  id: number
+  warehouse_id: number
+  user_id: number
+  opened_at: string
+  opening_amount: string
+}
+
+export interface CashVariance {
+  period: { from: string; to: string }
+  min_abs_difference: string
+  summary: {
+    sessions_closed: number
+    sessions_with_variance: number
+    total_shortage: string
+    total_overage: string
+    net_difference: string
+    overdue_open_count: number
+  }
+  by_warehouse: CashVarianceWarehouse[]
+  sessions: CashVarianceSession[]
+  overdue_open_sessions: OverdueOpenSession[]
+}

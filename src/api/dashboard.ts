@@ -1,6 +1,8 @@
 import { apiGet } from './client'
 import type { ApiDetailResponse } from '../types/common'
 import type {
+  BranchComparison,
+  CashVariance,
   DashboardInvoiceSummary,
   DashboardProfit,
   DashboardSalesTrendPoint,
@@ -30,4 +32,18 @@ export function getDashboardPurchases(params: { warehouse_id?: number; from?: st
 
 export function getDashboardProfit(params: { warehouse_id?: number; from?: string; to?: string }) {
   return apiGet<ApiDetailResponse<DashboardProfit>>('/dashboard/profit', params)
+}
+
+// Pemantauan lintas cabang — hanya super-admin/owner/admin-bu (403 untuk role lain).
+export function getBranchComparison(params: { from?: string; to?: string }) {
+  return apiGet<ApiDetailResponse<BranchComparison>>('/dashboard/branches', params)
+}
+
+export function getCashVariance(params: {
+  from?: string
+  to?: string
+  warehouse_id?: number
+  min_abs_difference?: number
+}) {
+  return apiGet<ApiDetailResponse<CashVariance>>('/dashboard/cash-variance', params)
 }

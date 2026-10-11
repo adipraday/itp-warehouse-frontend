@@ -63,3 +63,12 @@ export function firstDayOfMonthISO(): string {
   const month = String(now.getMonth() + 1).padStart(2, '0')
   return `${now.getFullYear()}-${month}-01`
 }
+
+/** Tanggal `days` hari sebelum hari ini (lokal), format YYYY-MM-DD. `daysAgoISO(0)` = hari ini. */
+export function daysAgoISO(days: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}

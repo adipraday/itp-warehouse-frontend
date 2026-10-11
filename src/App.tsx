@@ -43,10 +43,12 @@ import DashboardPage from './features/dashboard/DashboardPage'
 import ActivityLogListPage from './features/activityLogs/ActivityLogListPage'
 import CashSessionPage from './features/cashSessions/CashSessionPage'
 import CashSessionHistoryPage from './features/cashSessions/CashSessionHistoryPage'
+import BranchComparisonPage from './features/ownerInsights/BranchComparisonPage'
+import CashVariancePage from './features/ownerInsights/CashVariancePage'
 import NotificationListPage from './features/notifications/NotificationListPage'
 
 export default function App() {
-  const { canManageUsers, canViewActivityLogs, canWrite } = usePermissions()
+  const { canManageUsers, canViewActivityLogs, canViewOwnerInsights, canWrite } = usePermissions()
 
   return (
     <BrowserRouter>
@@ -89,6 +91,13 @@ export default function App() {
                   Activity Logs karena sama-sama data audit lintas user (super-admin/admin-bu/owner). */}
               <Route element={<RequirePermission allowed={canViewActivityLogs()} />}>
                 <Route path="/cash-sessions/history" element={<CashSessionHistoryPage />} />
+              </Route>
+
+              {/* Pemantauan lintas cabang (2026-10-12) — backend /dashboard/branches &
+                  /dashboard/cash-variance hanya untuk super-admin/owner/admin-bu. */}
+              <Route element={<RequirePermission allowed={canViewOwnerInsights()} />}>
+                <Route path="/branch-comparison" element={<BranchComparisonPage />} />
+                <Route path="/cash-variance" element={<CashVariancePage />} />
               </Route>
 
               <Route element={<RequirePermission allowed={canManageUsers()} />}>

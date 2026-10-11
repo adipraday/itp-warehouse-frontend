@@ -22,12 +22,25 @@ function buildNavGroups(
   canViewHpp: boolean,
   canManageUsers: boolean,
   canViewActivityLogs: boolean,
+  canViewOwnerInsights: boolean,
 ): NavGroup[] {
   return [
     {
       label: '',
       items: [{ to: '/dashboard', label: 'Dashboard' }],
     },
+    // Pemantauan lintas cabang — hanya super-admin/owner/admin-bu (sama dengan gating backend).
+    ...(canViewOwnerInsights
+      ? [
+          {
+            label: 'Pemantauan',
+            items: [
+              { to: '/branch-comparison', label: 'Perbandingan Cabang' },
+              { to: '/cash-variance', label: 'Selisih Kas' },
+            ],
+          },
+        ]
+      : []),
     // Nav "Users"/"Assign Staff" disembunyikan total (bukan disable) untuk role selain
     // super-admin/admin-bu — pola sama seperti Cost/HPP di Fase 12 (§13.2 frontend-roadmap.md).
     ...(canManageUsers
@@ -93,8 +106,8 @@ export default function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
-  const { canViewHpp, canManageUsers, canViewActivityLogs } = usePermissions()
-  const navGroups = buildNavGroups(canViewHpp(), canManageUsers(), canViewActivityLogs())
+  const { canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights } = usePermissions()
+  const navGroups = buildNavGroups(canViewHpp(), canManageUsers(), canViewActivityLogs(), canViewOwnerInsights())
 
   // Status koneksi backend di footer — polling ringan tiap 30 detik, tidak retry (kalau
   // gagal sekali langsung dianggap terputus, dot merah muncul cepat bukan nunggu retry).

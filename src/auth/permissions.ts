@@ -115,5 +115,12 @@ export function usePermissions() {
     return role === 'super-admin' || role === 'admin-bu' || role === 'owner' || role === 'admin-warehouse'
   }
 
-  return { role, canWrite, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs }
+  // Pemantauan lintas cabang (Perbandingan Cabang, Pantauan Selisih Kas) — backend
+  // `/dashboard/branches` & `/dashboard/cash-variance` menolak 403 selain tiga role ini. Admin
+  // cabang tunggal sengaja tidak masuk: dashboard biasa sudah cukup untuk satu gudang.
+  function canViewOwnerInsights(): boolean {
+    return role === 'super-admin' || role === 'owner' || role === 'admin-bu'
+  }
+
+  return { role, canWrite, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights }
 }
