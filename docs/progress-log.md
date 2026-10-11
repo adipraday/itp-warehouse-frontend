@@ -1603,3 +1603,22 @@ tercatat untuk user 23 (pembuat) dan user 19 (staf gudang asal). Uji ini menemuk
 `RequireWarehouseAccess` (isFetching -> "Memeriksa akses...") meng-unmount halaman, mount ulang, refetch lagi,
 tanpa henti (ratusan request/menit; halaman tidak pernah tampil untuk role staff/admin-warehouse). Fix:
 `refetchOnMount: false` di hook (guard yang bertugas refetch sekali per mount). Frontend `bc41c1d`, live.
+
+## Fase 30 — Pemantauan lintas cabang untuk owner (2026-10-12)
+
+Owner sebelumnya hanya punya dashboard agregasi total. Menu baru **Pemantauan** (super-admin/owner/admin-bu;
+backend 403 untuk role lain, route front `RequirePermission` via `canViewOwnerInsights()`):
+
+- **Perbandingan Cabang** (`/branch-comparison`, `features/ownerInsights/BranchComparisonPage`): satu tabel semua
+  warehouse yang boleh dilihat (owner = seluruh BU company-nya) — penjualan + jumlah transaksi, pertumbuhan vs
+  periode sebelumnya (teks naik/turun + panah, bukan warna saja; "Belum ada pembanding" bila periode lalu kosong),
+  margin (hanya role HPP), nilai stok, stok kritis; urut bisa diganti; preset 7/30/90 hari; grafik batang 8 teratas.
+- **Selisih Kas** (`/cash-variance`, `CashVariancePage`): ringkasan sesi ditutup/berselisih/total kurang/lebih/bersih,
+  daftar sesi OPEN > 24 jam (lupa tutup kasir), tabel per cabang, 50 sesi dengan selisih terbesar; filter tanggal,
+  cabang, selisih minimal; klik baris membuka `CashSessionDetailModal` yang sama dengan Riwayat Sesi Kasir.
+
+Backend (`011a9bf`, `GET /api/dashboard/branches` & `/cash-variance`, doc di api-documentation.md): murni baca,
+scope BU lewat helper yang sama dengan dashboard lain. 9 tes unit baru (836 total); SQL diverifikasi langsung ke DB
+produksi lewat service di dalam container (super-admin 14 warehouse, owner BU 1,6 = 2 warehouse, BU 4 = 5 warehouse;
+2 sesi OPEN > 24 jam ditemukan). Frontend `db3df23`, live. Diuji sebagai admin-warehouse: menu "Pemantauan" tidak
+tampil dan `/branch-comparison` -> "Akses Ditolak". **Belum diperagakan secara visual sebagai owner/admin-bu.**
