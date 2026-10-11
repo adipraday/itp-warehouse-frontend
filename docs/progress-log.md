@@ -1638,3 +1638,16 @@ tidak pernah menjalankan `server.js`. Diperbaiki (scheduler dipindah ke sebelum 
 status "Started". Zona waktu: tanggal bisnis kini WIB (server & DB berjalan UTC); Pantauan Selisih Kas ikut dikelompokkan
 per hari WIB. Pratinjau isi ringkasan sudah dicoba ke DB produksi tanpa mengirim; **pengiriman sungguhan pertama baru terjadi
 pukul 07:00 WIB** dan belum teramati.
+
+## Fase 32 — Antrean Macet untuk owner/admin-bu (2026-10-12)
+
+Halaman baru **Antrean Macet** (`/stuck-queue`, menu Pemantauan; super-admin/owner/admin-bu): dokumen yang diam di status
+"ada yang harus bertindak", terlama dulu, dengan kolom *Menunggu tindakan* (siapa yang harus bergerak) dan tautan ke dokumennya.
+11 jenis dalam 4 kelompok — menunggu persetujuan (transfer DRAFT, opname SUBMITTED, retur DRAFT), menunggu diselesaikan
+(transfer/retur APPROVED), draft menggantung (opname/penjualan/pembelian/inbound/outbound DRAFT), transaksi tertahan.
+Filter umur minimal (default 2 hari; "Semua yang sedang menunggu" = 0) dan cabang; ≥7 hari ditandai teks "(lama)" + merah.
+Owner hanya memantau, tanpa tombol aksi. Backend `d7d4889` (`GET /api/dashboard/stuck-queue`): satu UNION ALL ter-scope BU,
+umur dalam hari bisnis WIB; 3 tes unit baru (856 total) + SQL diverifikasi ke DB produksi (super-admin 9 dokumen: 7 draft,
+1 transfer APPROVED — TRF-000004 dari uji approve —, 1 penjualan tertahan; owner BU 1/6/9 melihat 7, owner BU 2/3 melihat 2,
+BU 4 nol). Jumlah dokumen menunggu ≥2 hari juga masuk ke **ringkasan harian** owner/admin-bu. Disebar via hot-patch ke
+container (file di host ikut diperbarui, jadi rebuild berikutnya konsisten).

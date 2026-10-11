@@ -37,6 +37,7 @@ function buildNavGroups(
             items: [
               { to: '/branch-comparison', label: 'Perbandingan Cabang' },
               { to: '/cash-variance', label: 'Selisih Kas' },
+              { to: '/stuck-queue', label: 'Antrean Macet' },
             ],
           },
         ]

@@ -122,3 +122,47 @@ export interface CashVariance {
   sessions: CashVarianceSession[]
   overdue_open_sessions: OverdueOpenSession[]
 }
+
+// ---- Antrean macet (GET /dashboard/stuck-queue) -----------------------------------------------
+// Dokumen yang berada di status "ada yang harus bertindak". `age_days` = hari bisnis (WIB) sejak
+// `waiting_since`. `group` mengelompokkan jenisnya untuk ringkasan.
+export type StuckQueueGroup = 'approval' | 'completion' | 'draft' | 'held'
+
+export type StuckQueueKind =
+  | 'transfer_pending_approval'
+  | 'transfer_pending_completion'
+  | 'opname_pending_submission'
+  | 'opname_pending_approval'
+  | 'return_pending_approval'
+  | 'return_pending_completion'
+  | 'sale_held'
+  | 'sale_draft'
+  | 'purchase_draft'
+  | 'inbound_draft'
+  | 'outbound_draft'
+
+export interface StuckQueueItem {
+  kind: StuckQueueKind
+  group: StuckQueueGroup
+  document_id: number
+  document_number: string
+  warehouse_id: number
+  to_warehouse_id: number | null
+  status: string
+  waiting_since: string
+  age_days: number
+  created_by: number | null
+}
+
+export interface StuckQueue {
+  min_age_days: number
+  as_of: string
+  summary: {
+    total: number
+    by_group: Record<StuckQueueGroup, number>
+    by_kind: Record<StuckQueueKind, number>
+    // true = daftar `items` dipotong limit; angka di summary tetap lengkap.
+    truncated: boolean
+  }
+  items: StuckQueueItem[]
+}

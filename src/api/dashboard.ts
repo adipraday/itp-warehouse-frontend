@@ -8,6 +8,7 @@ import type {
   DashboardSalesTrendPoint,
   DashboardStockSummary,
   DashboardSummary,
+  StuckQueue,
 } from '../types/dashboard'
 
 export function getDashboardSummary(params: { warehouse_id?: number; date?: string }) {
@@ -46,4 +47,8 @@ export function getCashVariance(params: {
   min_abs_difference?: number
 }) {
   return apiGet<ApiDetailResponse<CashVariance>>('/dashboard/cash-variance', params)
+}
+
+export function getStuckQueue(params: { min_age_days?: number; warehouse_id?: number; limit?: number }) {
+  return apiGet<ApiDetailResponse<StuckQueue>>('/dashboard/stuck-queue', params)
 }
