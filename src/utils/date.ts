@@ -1,3 +1,5 @@
+const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
+
 const MONTHS_ID = [
   'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
   'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
@@ -15,15 +17,22 @@ export function formatDate(dateStr: string | null | undefined): string {
 }
 
 /**
- * Format timestamp (`YYYY-MM-DD HH:mm:ss.SSS`) apa adanya dari database.
- * String ini tidak punya info timezone — treat sebagai waktu lokal, jangan konversi UTC.
+ * Format timestamp warehouse-backend (`YYYY-MM-DD HH:mm:ss.SSS`, kolom DATETIME) ke **WIB** (UTC+7).
+ * Nilainya disimpan dalam UTC (server dan MariaDB berjalan di UTC) tapi string-nya tidak membawa
+ * zona waktu, jadi di sini diperlakukan sebagai UTC lalu digeser +7 jam. Dulu ditampilkan apa
+ * adanya, sehingga semua jam di aplikasi tampak 7 jam lebih awal dari jam dinding (diperbaiki
+ * 2026-10-12). String tanpa bagian jam (`YYYY-MM-DD`) tidak dikonversi.
  */
 export function formatTimestamp(ts: string | null | undefined): string {
   if (!ts) return '-'
   const [datePart, timePart] = ts.split(' ')
-  const dateLabel = formatDate(datePart)
-  const timeLabel = timePart ? timePart.slice(0, 5) : ''
-  return timeLabel ? `${dateLabel} ${timeLabel}` : dateLabel
+  if (!timePart) return formatDate(datePart)
+  const parsed = new Date(`${datePart}T${timePart.slice(0, 8)}Z`)
+  if (Number.isNaN(parsed.getTime())) return formatDate(datePart)
+  const wib = new Date(parsed.getTime() + WIB_OFFSET_MS)
+  const hours = String(wib.getUTCHours()).padStart(2, '0')
+  const minutes = String(wib.getUTCMinutes()).padStart(2, '0')
+  return `${wib.getUTCDate()} ${MONTHS_ID[wib.getUTCMonth()]} ${wib.getUTCFullYear()} ${hours}:${minutes}`
 }
 
 /**
@@ -71,20 +80,4 @@ export function daysAgoISO(days: number): string {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${date.getFullYear()}-${month}-${day}`
-}
-
-/**
- * Timestamp warehouse-backend (`YYYY-MM-DD HH:mm:ss.SSS`, kolom DATETIME) disimpan dalam **UTC**
- * (server dan MariaDB berjalan di UTC), tapi string-nya tidak membawa zona waktu. Fungsi ini
- * menampilkannya sebagai WIB (UTC+7). Dipakai di halaman Pemantauan; `formatTimestamp` di atas
- * masih menampilkan angka UTC apa adanya (selisih 7 jam dari jam dinding WIB).
- */
-export function formatUtcAsWib(ts: string | null | undefined): string {
-  if (!ts) return '-'
-  const parsed = new Date(`${ts.replace(' ', 'T').slice(0, 19)}Z`)
-  if (Number.isNaN(parsed.getTime())) return '-'
-  const wib = new Date(parsed.getTime() + 7 * 60 * 60 * 1000)
-  const hours = String(wib.getUTCHours()).padStart(2, '0')
-  const minutes = String(wib.getUTCMinutes()).padStart(2, '0')
-  return `${wib.getUTCDate()} ${MONTHS_ID[wib.getUTCMonth()]} ${wib.getUTCFullYear()} ${hours}:${minutes} WIB`
 }

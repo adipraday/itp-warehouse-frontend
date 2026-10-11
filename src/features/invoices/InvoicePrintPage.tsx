@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getErrorMessage } from '../../api/errors'
-import { formatDate } from '../../utils/date'
+import { formatDate, todayISO } from '../../utils/date'
 import { formatRupiah, parseMoney } from '../../utils/money'
 import { getWarehouse } from '../../api/warehouses'
 import { getContact } from '../../api/contacts'
@@ -202,7 +202,7 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
           )}
 
           <p className="mt-10 text-xs text-slate-400">
-            Dicetak {formatDate(new Date().toISOString().slice(0, 10))} &middot; Dokumen ini dihasilkan
+            Dicetak {formatDate(todayISO())} &middot; Dokumen ini dihasilkan
             otomatis oleh Warehouse System.
           </p>
         </div>

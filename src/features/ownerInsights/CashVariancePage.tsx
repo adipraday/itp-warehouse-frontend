@@ -12,7 +12,7 @@ import { getCashVariance } from '../../api/dashboard'
 import { listWarehouses } from '../../api/warehouses'
 import { listUsers } from '../../api/users'
 import { formatNumber, formatRupiah, parseMoney } from '../../utils/money'
-import { daysAgoISO, formatDate, formatUtcAsWib, todayISO } from '../../utils/date'
+import { daysAgoISO, formatDate, formatTimestamp, todayISO } from '../../utils/date'
 import type { CashVarianceSession, CashVarianceWarehouse, OverdueOpenSession } from '../../types/dashboard'
 
 // Teks "Kurang"/"Lebih" selalu ikut tampil di samping warna, supaya tidak bergantung pada warna.
@@ -96,7 +96,7 @@ export default function CashVariancePage() {
     { key: 'id', header: 'Sesi', render: (row) => `#${row.id}` },
     { key: 'warehouse', header: 'Cabang', render: (row) => warehouseLabel(row.warehouse_id) },
     { key: 'kasir', header: 'Kasir', render: (row) => kasirLabel(row.user_id) },
-    { key: 'closed_at', header: 'Ditutup', render: (row) => formatUtcAsWib(row.closed_at) },
+    { key: 'closed_at', header: 'Ditutup', render: (row) => formatTimestamp(row.closed_at) },
     { key: 'expected', header: 'Seharusnya', className: 'text-right', render: (row) => formatRupiah(row.expected_cash_amount) },
     { key: 'counted', header: 'Hasil Hitung', className: 'text-right', render: (row) => formatRupiah(row.closing_amount) },
     { key: 'difference', header: 'Selisih', className: 'text-right', render: (row) => <DifferenceLabel value={row.cash_difference} /> },
@@ -107,7 +107,7 @@ export default function CashVariancePage() {
     { key: 'id', header: 'Sesi', render: (row) => `#${row.id}` },
     { key: 'warehouse', header: 'Cabang', render: (row) => warehouseLabel(row.warehouse_id) },
     { key: 'kasir', header: 'Kasir', render: (row) => kasirLabel(row.user_id) },
-    { key: 'opened_at', header: 'Dibuka', render: (row) => formatUtcAsWib(row.opened_at) },
+    { key: 'opened_at', header: 'Dibuka', render: (row) => formatTimestamp(row.opened_at) },
     { key: 'opening', header: 'Modal Awal', className: 'text-right', render: (row) => formatRupiah(row.opening_amount) },
   ]
 

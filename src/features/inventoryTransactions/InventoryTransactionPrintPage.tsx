@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getErrorMessage } from '../../api/errors'
-import { formatDate } from '../../utils/date'
+import { formatDate, todayISO } from '../../utils/date'
 import { getWarehouse } from '../../api/warehouses'
 import { getContact } from '../../api/contacts'
 import { getInventoryTransaction } from '../../api/inventoryTransactions'
@@ -179,7 +179,7 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
           </div>
 
           <p className="mt-10 text-xs text-slate-400">
-            Dicetak {formatDate(new Date().toISOString().slice(0, 10))} &middot; Dokumen ini dihasilkan
+            Dicetak {formatDate(todayISO())} &middot; Dokumen ini dihasilkan
             otomatis oleh Warehouse System.
           </p>
         </div>

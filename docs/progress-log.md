@@ -1679,3 +1679,13 @@ owner/admin-bu kini juga menyebut jumlah temuan 7 hari terakhir.
 berjalan di UTC), tetapi `formatTimestamp` (`utils/date.ts`) menampilkannya apa adanya seolah waktu lokal, sehingga jam di halaman detail,
 Riwayat Sesi Kasir, Activity Logs, notifikasi, dst. tampak 7 jam lebih awal dari jam dinding WIB. Halaman Pemantauan memakai helper baru
 `formatUtcAsWib` (benar); halaman lama BELUM diubah — menunggu keputusan apakah `formatTimestamp` langsung dikonversi ke WIB untuk semua.
+
+## Fase 35 — Jam di seluruh aplikasi dikonversi ke WIB (2026-10-12)
+
+Perbaikan atas temuan Fase 34: `formatTimestamp` (`utils/date.ts`) kini memperlakukan timestamp warehouse-backend sebagai **UTC** dan menampilkannya
+dalam **WIB (+7 jam)**, jadi semua halaman yang memakainya (detail dokumen, Riwayat Sesi Kasir, Activity Logs, notifikasi, mutasi/stok/Cost,
+dst. — 17 pemanggil) ikut benar sekaligus. String tanpa jam (`YYYY-MM-DD`) tidak berubah. Helper sementara `formatUtcAsWib` dihapus (halaman
+Pemantauan kembali memakai `formatTimestamp`). Tanggal "Dicetak" di halaman cetak invoice/inbound/outbound kini memakai tanggal lokal browser
+(`todayISO`), bukan tanggal UTC yang mundur sehari pada 00:00–07:00 WIB. `formatIsoTimestamp` (auth-backend, ISO `Z`) memang sudah benar dan tidak diubah.
+**Belum dikerjakan**: aplikasi Android (Flutter) `parseBackendTimestamp` memperlakukan string yang sama sebagai waktu lokal, jadi masalah 7 jam yang sama kemungkinan
+ada di sana; butuh perubahan + rilis APK terpisah. Struk thermal dari backend tidak menampilkan jam.

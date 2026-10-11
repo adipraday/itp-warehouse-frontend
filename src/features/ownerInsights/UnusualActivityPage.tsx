@@ -11,7 +11,7 @@ import { getUnusualActivity } from '../../api/dashboard'
 import { listWarehouses } from '../../api/warehouses'
 import { listUsers } from '../../api/users'
 import { formatNumber } from '../../utils/money'
-import { daysAgoISO, formatDate, formatUtcAsWib, todayISO } from '../../utils/date'
+import { daysAgoISO, formatDate, formatTimestamp, todayISO } from '../../utils/date'
 import type { UnusualExample, UnusualFinding, UnusualFindingType } from '../../types/dashboard'
 
 const FINDING_INFO: Record<UnusualFindingType, { title: string; rule: (t: Record<string, number>) => string }> = {
@@ -105,7 +105,7 @@ export default function UnusualActivityPage() {
   const userName = (id: number) => usersData?.users.find((u) => u.id === id)?.name ?? `User #${id}`
 
   const exampleColumns: DataTableColumn<UnusualExample>[] = [
-    { key: 'at', header: 'Waktu', render: (row) => formatUtcAsWib(row.at) },
+    { key: 'at', header: 'Waktu', render: (row) => formatTimestamp(row.at) },
     { key: 'action', header: 'Aksi', render: (row) => ACTION_LABEL[row.action] ?? row.action },
     {
       key: 'entity',
@@ -138,8 +138,8 @@ export default function UnusualActivityPage() {
               {userName(finding.user_id)} — {info.title}
             </h3>
             <p className="mt-0.5 text-xs text-slate-500">
-              {formatNumber(finding.count)} kali · {warehouseName(finding.warehouse_id)} · {formatUtcAsWib(finding.first_at)}
-              {finding.first_at !== finding.last_at && ` sampai ${formatUtcAsWib(finding.last_at)}`}
+              {formatNumber(finding.count)} kali · {warehouseName(finding.warehouse_id)} · {formatTimestamp(finding.first_at)}
+              {finding.first_at !== finding.last_at && ` sampai ${formatTimestamp(finding.last_at)}`}
             </p>
           </div>
           <span
