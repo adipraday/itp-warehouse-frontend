@@ -1651,3 +1651,15 @@ umur dalam hari bisnis WIB; 3 tes unit baru (856 total) + SQL diverifikasi ke DB
 1 transfer APPROVED — TRF-000004 dari uji approve —, 1 penjualan tertahan; owner BU 1/6/9 melihat 7, owner BU 2/3 melihat 2,
 BU 4 nol). Jumlah dokumen menunggu ≥2 hari juga masuk ke **ringkasan harian** owner/admin-bu. Disebar via hot-patch ke
 container (file di host ikut diperbarui, jadi rebuild berikutnya konsisten).
+
+## Fase 33 — Piutang & Hutang untuk owner/admin-bu (2026-10-12)
+
+Halaman baru **Piutang & Hutang** (`/receivables`, menu Pemantauan; super-admin/owner/admin-bu): tab Piutang (invoice SALES
+belum lunas) dan Hutang (PURCHASE), kartu total / sudah lewat jatuh tempo / belum jatuh tempo / terlama, grafik umur saldo
+(belum jatuh tempo, 1–30, 31–60, 61–90, >90 hari — label teks di tiap batang, bukan warna saja), 10 pelanggan/pemasok dengan saldo
+terbesar, split per cabang, dan daftar invoice tertua dengan tautan ke detailnya. Filter cabang. Owner hanya memantau.
+Backend `b367e76` (`GET /api/dashboard/aging`): saldo = total − SUM(payments.amount) hanya untuk invoice COMPLETED; **invoice tanpa
+jatuh tempo (semua saat ini, form belum menanyakannya) dihitung jatuh tempo di tanggal invoice**, jadi piutang POS yang belum dibayar tetap
+menua alih-alih tampak "belum jatuh tempo" selamanya. 5 tes unit baru (861 total); SQL diverifikasi ke DB produksi: piutang 5 invoice /
+Rp 11.200 (semua tanpa nama pelanggan, umur 26 hari — penjualan POS yang di-Complete tapi belum dibayar), hutang Rp 0; scope BU benar
+(owner BU 1/6/9: Rp 8.000, owner BU 2/3: Rp 3.200). Dihot-patch ke container, log boot bersih.

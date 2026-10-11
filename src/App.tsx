@@ -46,6 +46,7 @@ import CashSessionHistoryPage from './features/cashSessions/CashSessionHistoryPa
 import BranchComparisonPage from './features/ownerInsights/BranchComparisonPage'
 import CashVariancePage from './features/ownerInsights/CashVariancePage'
 import StuckQueuePage from './features/ownerInsights/StuckQueuePage'
+import ReceivablesPage from './features/ownerInsights/ReceivablesPage'
 import NotificationListPage from './features/notifications/NotificationListPage'
 
 export default function App() {
@@ -100,6 +101,7 @@ export default function App() {
                 <Route path="/branch-comparison" element={<BranchComparisonPage />} />
                 <Route path="/cash-variance" element={<CashVariancePage />} />
                 <Route path="/stuck-queue" element={<StuckQueuePage />} />
+                <Route path="/receivables" element={<ReceivablesPage />} />
               </Route>
 
               <Route element={<RequirePermission allowed={canManageUsers()} />}>

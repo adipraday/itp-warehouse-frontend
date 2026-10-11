@@ -166,3 +166,51 @@ export interface StuckQueue {
   }
   items: StuckQueueItem[]
 }
+
+// ---- Piutang & Hutang (GET /dashboard/aging) --------------------------------------------------
+// `side`: receivable = invoice SALES yang belum lunas (piutang), payable = invoice PURCHASE (hutang).
+// Umur dihitung dari jatuh tempo; invoice tanpa jatuh tempo dihitung dari tanggal invoice.
+export type AgingSide = 'receivable' | 'payable'
+
+export interface AgingBucket {
+  key: 'current' | 'd1_30' | 'd31_60' | 'd61_90' | 'd90_plus'
+  label: string
+  count: number
+  amount: string
+}
+
+export interface AgingContact {
+  contact_id: number | null
+  contact_name: string | null
+  count: number
+  amount: string
+  oldest_days_overdue: number
+}
+
+export interface AgingInvoice {
+  invoice_id: number
+  invoice_number: string
+  warehouse_id: number
+  contact_id: number | null
+  contact_name: string | null
+  invoice_date: string
+  due_date: string | null
+  total_amount: string
+  paid_amount: string
+  outstanding: string
+  days_overdue: number
+}
+
+export interface Aging {
+  side: AgingSide
+  as_of: string
+  total_outstanding: string
+  invoice_count: number
+  overdue_total: string
+  overdue_count: number
+  buckets: AgingBucket[]
+  by_contact: AgingContact[]
+  by_warehouse: { warehouse_id: number; count: number; amount: string }[]
+  items: AgingInvoice[]
+  truncated: boolean
+}

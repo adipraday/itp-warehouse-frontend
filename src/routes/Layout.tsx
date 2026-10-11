@@ -38,6 +38,7 @@ function buildNavGroups(
               { to: '/branch-comparison', label: 'Perbandingan Cabang' },
               { to: '/cash-variance', label: 'Selisih Kas' },
               { to: '/stuck-queue', label: 'Antrean Macet' },
+              { to: '/receivables', label: 'Piutang & Hutang' },
             ],
           },
         ]

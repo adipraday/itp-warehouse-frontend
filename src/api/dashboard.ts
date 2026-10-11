@@ -1,6 +1,8 @@
 import { apiGet } from './client'
 import type { ApiDetailResponse } from '../types/common'
 import type {
+  Aging,
+  AgingSide,
   BranchComparison,
   CashVariance,
   DashboardInvoiceSummary,
@@ -51,4 +53,8 @@ export function getCashVariance(params: {
 
 export function getStuckQueue(params: { min_age_days?: number; warehouse_id?: number; limit?: number }) {
   return apiGet<ApiDetailResponse<StuckQueue>>('/dashboard/stuck-queue', params)
+}
+
+export function getAging(params: { side: AgingSide; warehouse_id?: number; limit?: number }) {
+  return apiGet<ApiDetailResponse<Aging>>('/dashboard/aging', params)
 }
