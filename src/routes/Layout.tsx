@@ -147,7 +147,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-white print:hidden">
         <div className="flex items-center justify-between gap-3 px-6 py-3">
           <div className="flex items-center gap-3">
             <button
@@ -195,12 +195,12 @@ export default function Layout() {
           type="button"
           aria-label="Tutup menu"
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 cursor-default bg-slate-900/40"
+          className="fixed inset-0 z-40 cursor-default bg-slate-900/40 print:hidden"
         />
       )}
 
       <aside
-        className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white shadow-xl transition-transform duration-200 ease-out"
+        className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white shadow-xl transition-transform duration-200 ease-out print:hidden"
         style={{ transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
@@ -252,11 +252,11 @@ export default function Layout() {
         </nav>
       </aside>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8 print:max-w-none print:p-0">
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 bg-white print:hidden">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-4 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <span>
             © {new Date().getFullYear()} {COMPANY_NAME} — Warehouse System{' '}

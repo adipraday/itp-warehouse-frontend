@@ -8,10 +8,13 @@ import { FilterBar } from '../../components/FilterBar'
 import { SimpleBarChart } from '../../components/SimpleBarChart'
 import { StatCard } from '../../components/StatCard'
 import { WarehouseSelect } from '../../components/WarehouseSelect'
+import { ReportActions, ReportPrintHeader } from '../../components/ReportActions'
 import { getAging } from '../../api/dashboard'
 import { listWarehouses } from '../../api/warehouses'
 import { formatNumber, formatRupiah, parseMoney } from '../../utils/money'
-import { formatDate } from '../../utils/date'
+import { formatDate, todayISO } from '../../utils/date'
+import { downloadXlsx, reportFileName } from '../../utils/exportXlsx'
+import { agingSheets } from './exportSheets'
 import type { AgingBucket, AgingContact, AgingInvoice, AgingSide } from '../../types/dashboard'
 
 interface SideInfo {
@@ -141,12 +144,30 @@ export default function ReceivablesPage() {
       ? Math.round((parseMoney(aging.overdue_total) / parseMoney(aging.total_outstanding)) * 100)
       : 0
 
+  async function exportExcel() {
+    const full = await getAging({ side, warehouse_id: warehouseId ?? undefined, limit: 1000 })
+    await downloadXlsx(
+      reportFileName(side === 'receivable' ? 'piutang' : 'hutang', todayISO()),
+      agingSheets(
+        full.data,
+        { warehouseName, userName: (id) => `User #${id}` },
+        { title: info.title, counterparty: info.counterparty },
+      ),
+    )
+  }
+
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-slate-900">Piutang &amp; Hutang</h1>
-      <p className="mb-6 text-sm text-slate-500">
-        Saldo invoice yang belum lunas, dikelompokkan menurut umurnya.
-      </p>
+      <ReportPrintHeader title="Piutang & Hutang" subtitle={`${info.title} per ${formatDate(aging?.as_of ?? todayISO())}`} />
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
+        <div>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">Piutang &amp; Hutang</h1>
+          <p className="text-sm text-slate-500">
+            Saldo invoice yang belum lunas, dikelompokkan menurut umurnya.
+          </p>
+        </div>
+        <ReportActions onExcel={exportExcel} disabled={!aging} />
+      </div>
 
       <FilterBar>
         <div role="tablist" aria-label="Piutang atau hutang" className="flex gap-2 pb-0.5">

@@ -1689,3 +1689,13 @@ Pemantauan kembali memakai `formatTimestamp`). Tanggal "Dicetak" di halaman ceta
 (`todayISO`), bukan tanggal UTC yang mundur sehari pada 00:00–07:00 WIB. `formatIsoTimestamp` (auth-backend, ISO `Z`) memang sudah benar dan tidak diubah.
 **Belum dikerjakan**: aplikasi Android (Flutter) `parseBackendTimestamp` memperlakukan string yang sama sebagai waktu lokal, jadi masalah 7 jam yang sama kemungkinan
 ada di sana; butuh perubahan + rilis APK terpisah. Struk thermal dari backend tidak menampilkan jam.
+
+## Fase 36 — Ekspor Excel dan PDF untuk halaman Pemantauan (2026-10-12)
+
+Kelima halaman Pemantauan (Perbandingan Cabang, Selisih Kas, Antrean Macet, Piutang & Hutang, Aktivitas Tidak Biasa) kini punya dua tombol di pojok judul:
+- **Unduh Excel**: file `.xlsx` dibuat di browser dengan `write-excel-file` (dependency baru, dimuat dinamis → chunk terpisah ±70 KB, hanya diunduh saat tombol ditekan).
+  Angka ditulis sebagai angka sungguhan (bisa dijumlah/diurutkan), jam dalam WIB, banyak sheet per laporan (mis. Selisih Kas: Ringkasan / Per Cabang / Sesi Berselisih / Belum Ditutup).
+  Laporan berdaftar (Selisih Kas, Antrean Macet, Piutang & Hutang) mengambil ulang data dengan `limit=1000` (backend dinaikkan dari 200), bukan 50–100 baris yang tampil di layar; bila lebih dari itu, sheet mencatatnya.
+- **Cetak / Simpan PDF**: dialog cetak browser; menu, filter, tombol, dan footer disembunyikan (`print:hidden` di Layout/FilterBar), kepala cetak berisi perusahaan, judul, periode, dan "Dicetak … oleh …".
+Isi file diverifikasi dengan membangun kelima file dari data contoh lalu membacanya kembali dengan exceljs (angka bertipe number, WIB benar). Label bersama ada di `reportLabels.ts`, bentuk sheet di `exportSheets.ts`.
+Backend `67cc76a`: batas `limit` 1000 untuk `/stuck-queue`, `/aging`, `/cash-variance`.

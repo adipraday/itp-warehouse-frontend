@@ -7,71 +7,25 @@ import { ErrorState } from '../../components/ErrorState'
 import { FilterBar } from '../../components/FilterBar'
 import { TextField } from '../../components/FormField'
 import { StatCard } from '../../components/StatCard'
+import { ReportActions, ReportPrintHeader } from '../../components/ReportActions'
 import { getUnusualActivity } from '../../api/dashboard'
 import { listWarehouses } from '../../api/warehouses'
 import { listUsers } from '../../api/users'
 import { formatNumber } from '../../utils/money'
+import { downloadXlsx, reportFileName } from '../../utils/exportXlsx'
+import { unusualActivitySheets } from './exportSheets'
 import { daysAgoISO, formatDate, formatTimestamp, todayISO } from '../../utils/date'
+import { ACTION_LABEL, ENTITY_LABEL, ENTITY_PATH, FINDING_TITLE } from './reportLabels'
 import type { UnusualExample, UnusualFinding, UnusualFindingType } from '../../types/dashboard'
 
-const FINDING_INFO: Record<UnusualFindingType, { title: string; rule: (t: Record<string, number>) => string }> = {
-  cancellations: {
-    title: 'Pembatalan dokumen berulang',
-    rule: (t) => `${t.cancellations} dokumen transaksi dibatalkan atau lebih oleh satu orang`,
-  },
-  deletions: {
-    title: 'Penghapusan data berulang',
-    rule: (t) => `${t.deletions} data dihapus atau lebih oleh satu orang`,
-  },
-  night_activity: {
-    title: 'Aktivitas transaksi di malam hari',
-    rule: (t) =>
-      `${t.night_activity} aksi transaksi atau lebih antara ${String(t.night_start_hour).padStart(2, '0')}:00 dan ${String(t.night_end_hour).padStart(2, '0')}:00 WIB`,
-  },
-  item_edits: {
-    title: 'Banyak perubahan data item',
-    rule: (t) => `${t.item_edits} perubahan item atau lebih oleh satu orang (log tidak mencatat bagian yang diubah, mis. harga)`,
-  },
-}
-
-const ACTION_LABEL: Record<string, string> = {
-  CREATE: 'Dibuat',
-  UPDATE: 'Diubah',
-  DELETE: 'Dihapus',
-  CANCEL: 'Dibatalkan',
-  COMPLETE: 'Diselesaikan',
-  APPROVE: 'Disetujui',
-  SUBMIT: 'Diajukan',
-  REJECT: 'Ditolak',
-  HOLD: 'Ditahan',
-  RESUME: 'Dilanjutkan',
-}
-
-const ENTITY_LABEL: Record<string, string> = {
-  SALE: 'Penjualan',
-  PURCHASE: 'Pembelian',
-  INBOUND: 'Barang masuk',
-  OUTBOUND: 'Barang keluar',
-  STOCK_TRANSFER: 'Transfer',
-  STOCK_OPNAME: 'Stok opname',
-  RETURN: 'Retur',
-  PAYMENT: 'Pembayaran',
-  ITEM: 'Item',
-  CONTACT: 'Kontak',
-  WAREHOUSE: 'Warehouse',
-}
-
-// Halaman detail per jenis dokumen; jenis tanpa halaman detail (pembayaran, kontak) tidak ditautkan.
-const ENTITY_PATH: Record<string, (id: number) => string> = {
-  SALE: (id) => `/sales/${id}`,
-  PURCHASE: (id) => `/purchases/${id}`,
-  INBOUND: (id) => `/inbounds/${id}`,
-  OUTBOUND: (id) => `/outbounds/${id}`,
-  STOCK_TRANSFER: (id) => `/stock-transfers/${id}`,
-  STOCK_OPNAME: (id) => `/stock-opnames/${id}`,
-  RETURN: (id) => `/returns/${id}`,
-  ITEM: (id) => `/items/${id}`,
-  WAREHOUSE: (id) => `/warehouses/${id}`,
+// Aturan tiap jenis temuan, ditulis di kartu supaya jelas apa yang dihitung.
+const FINDING_RULE: Record<UnusualFindingType, (t: Record<string, number>) => string> = {
+  cancellations: (t) => `${t.cancellations} dokumen transaksi dibatalkan atau lebih oleh satu orang`,
+  deletions: (t) => `${t.deletions} data dihapus atau lebih oleh satu orang`,
+  night_activity: (t) =>
+    `${t.night_activity} aksi transaksi atau lebih antara ${String(t.night_start_hour).padStart(2, '0')}:00 dan ${String(t.night_end_hour).padStart(2, '0')}:00 WIB`,
+  item_edits: (t) =>
+    `${t.item_edits} perubahan item atau lebih oleh satu orang (log tidak mencatat bagian yang diubah, mis. harga)`,
 }
 
 // Aktivitas Tidak Biasa — pola di log aktivitas yang layak dicek (pembatalan/penghapusan berulang,
@@ -128,14 +82,13 @@ export default function UnusualActivityPage() {
   ]
 
   function FindingCard({ finding }: { finding: UnusualFinding }) {
-    const info = FINDING_INFO[finding.type]
-    const high = finding.severity === 'high'
+        const high = finding.severity === 'high'
     return (
       <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-slate-900">
-              {userName(finding.user_id)} — {info.title}
+              {userName(finding.user_id)} — {FINDING_TITLE[finding.type]}
             </h3>
             <p className="mt-0.5 text-xs text-slate-500">
               {formatNumber(finding.count)} kali · {warehouseName(finding.warehouse_id)} · {formatTimestamp(finding.first_at)}
@@ -157,7 +110,7 @@ export default function UnusualActivityPage() {
           </p>
         )}
         <p className="mt-2 text-xs text-slate-400">
-          Aturan: {info.rule(report?.thresholds ?? {})}.
+          Aturan: {FINDING_RULE[finding.type](report?.thresholds ?? {})}.
           {finding.examples.length < finding.count && ` Contoh ${finding.examples.length} terbaru:`}
         </p>
         <div className="mt-2">
@@ -167,12 +120,26 @@ export default function UnusualActivityPage() {
     )
   }
 
+  async function exportExcel() {
+    if (!report) return
+    await downloadXlsx(
+      reportFileName('aktivitas-tidak-biasa', todayISO()),
+      unusualActivitySheets(report, { warehouseName, userName }),
+    )
+  }
+
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-slate-900">Aktivitas Tidak Biasa</h1>
-      <p className="mb-6 text-sm text-slate-500">
-        Pola di log aktivitas yang layak ditanyakan. Tidak biasa belum tentu salah: bisa saja ada alasan yang wajar.
-      </p>
+      <ReportPrintHeader title="Aktivitas Tidak Biasa" subtitle={`Periode ${formatDate(from)} – ${formatDate(to)}`} />
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
+        <div>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">Aktivitas Tidak Biasa</h1>
+          <p className="text-sm text-slate-500">
+            Pola di log aktivitas yang layak ditanyakan. Tidak biasa belum tentu salah: bisa saja ada alasan yang wajar.
+          </p>
+        </div>
+        <ReportActions onExcel={exportExcel} disabled={!report} />
+      </div>
 
       <FilterBar>
         <div className="w-40">

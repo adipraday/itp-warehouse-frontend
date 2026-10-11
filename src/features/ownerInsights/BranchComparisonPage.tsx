@@ -8,11 +8,14 @@ import { SelectField, TextField } from '../../components/FormField'
 import { SimpleBarChart } from '../../components/SimpleBarChart'
 import { StatCard } from '../../components/StatCard'
 import { BuLabel } from '../../components/BuLabel'
+import { ReportActions, ReportPrintHeader } from '../../components/ReportActions'
 import { getBranchComparison } from '../../api/dashboard'
 import { usePermissions } from '../../auth/permissions'
 import { formatNumber, formatRupiah, parseMoney } from '../../utils/money'
 import { daysAgoISO, formatDate, todayISO } from '../../utils/date'
 import { hasMultipleBuIds } from '../../utils/bu'
+import { downloadXlsx, reportFileName } from '../../utils/exportXlsx'
+import { branchComparisonSheets } from './exportSheets'
 import type { BranchPerformance } from '../../types/dashboard'
 
 type SortKey = 'sales_total' | 'gross_margin_pct' | 'sales_growth_pct' | 'stock_alerts'
@@ -136,12 +139,26 @@ export default function BranchComparisonPage() {
     },
   ]
 
+  async function exportExcel() {
+    if (!comparison) return
+    await downloadXlsx(
+      reportFileName('perbandingan-cabang', todayISO()),
+      branchComparisonSheets(comparison, { showHpp: canViewHpp() }),
+    )
+  }
+
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-slate-900">Perbandingan Cabang</h1>
-      <p className="mb-6 text-sm text-slate-500">
-        Penjualan, margin, dan kondisi stok semua cabang dalam satu tampilan.
-      </p>
+      <ReportPrintHeader title="Perbandingan Cabang" subtitle={`Periode ${formatDate(from)} – ${formatDate(to)}`} />
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
+        <div>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">Perbandingan Cabang</h1>
+          <p className="text-sm text-slate-500">
+            Penjualan, margin, dan kondisi stok semua cabang dalam satu tampilan.
+          </p>
+        </div>
+        <ReportActions onExcel={exportExcel} disabled={!comparison} />
+      </div>
 
       <FilterBar>
         <div className="w-40">

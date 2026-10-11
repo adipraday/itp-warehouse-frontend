@@ -48,6 +48,7 @@ export function getCashVariance(params: {
   to?: string
   warehouse_id?: number
   min_abs_difference?: number
+  limit?: number
 }) {
   return apiGet<ApiDetailResponse<CashVariance>>('/dashboard/cash-variance', params)
 }

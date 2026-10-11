@@ -8,10 +8,13 @@ import { TextField } from '../../components/FormField'
 import { StatCard } from '../../components/StatCard'
 import { WarehouseSelect } from '../../components/WarehouseSelect'
 import { CashSessionDetailModal } from '../cashSessions/CashSessionDetailModal'
+import { ReportActions, ReportPrintHeader } from '../../components/ReportActions'
 import { getCashVariance } from '../../api/dashboard'
 import { listWarehouses } from '../../api/warehouses'
 import { listUsers } from '../../api/users'
 import { formatNumber, formatRupiah, parseMoney } from '../../utils/money'
+import { downloadXlsx, reportFileName } from '../../utils/exportXlsx'
+import { cashVarianceSheets } from './exportSheets'
 import { daysAgoISO, formatDate, formatTimestamp, todayISO } from '../../utils/date'
 import type { CashVarianceSession, CashVarianceWarehouse, OverdueOpenSession } from '../../types/dashboard'
 
@@ -111,12 +114,33 @@ export default function CashVariancePage() {
     { key: 'opening', header: 'Modal Awal', className: 'text-right', render: (row) => formatRupiah(row.opening_amount) },
   ]
 
+  // Ekspor mengambil ulang dengan batas baris tertinggi, bukan memakai 50 baris yang tampil di layar.
+  async function exportExcel() {
+    const full = await getCashVariance({
+      from,
+      to,
+      warehouse_id: warehouseId ?? undefined,
+      min_abs_difference: minAbs,
+      limit: 1000,
+    })
+    await downloadXlsx(
+      reportFileName('selisih-kas', todayISO()),
+      cashVarianceSheets(full.data, { warehouseName: warehouseLabel, userName: kasirLabel }),
+    )
+  }
+
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-slate-900">Pantauan Selisih Kas</h1>
-      <p className="mb-6 text-sm text-slate-500">
-        Selisih uang laci saat tutup kasir di semua cabang, dan kasir yang belum menutup sesinya.
-      </p>
+      <ReportPrintHeader title="Pantauan Selisih Kas" subtitle={`Sesi yang ditutup ${formatDate(from)} – ${formatDate(to)}`} />
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
+        <div>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">Pantauan Selisih Kas</h1>
+          <p className="text-sm text-slate-500">
+            Selisih uang laci saat tutup kasir di semua cabang, dan kasir yang belum menutup sesinya.
+          </p>
+        </div>
+        <ReportActions onExcel={exportExcel} disabled={!report} />
+      </div>
 
       <FilterBar>
         <div className="w-40">
