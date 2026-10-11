@@ -32,6 +32,9 @@ export function getNotificationPath(n: AppNotification, opts: { canViewCashHisto
     case 'low_stock':
     case 'out_of_stock':
       return n.data?.item_id ? `/items/${n.data.item_id}` : null
+    // Ringkasan harian owner (backend 2026-10-12) — kartu utamanya Perbandingan Cabang.
+    case 'owner_digest':
+      return '/branch-comparison'
     case 'cash_session_discrepancy':
       return opts.canViewCashHistory ? '/cash-sessions/history' : '/cash-session'
     default:
