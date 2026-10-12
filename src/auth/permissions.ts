@@ -50,7 +50,9 @@ export type Resource =
 // StockTransferDetailPage, not by this role-only matrix.
 const WRITE_MATRIX: Record<Resource, Role[]> = {
   warehouses: ['super-admin', 'admin-bu'],
-  items: ['super-admin', 'admin-bu', 'admin-warehouse', 'purchasing'],
+  // Data master item (2026-10-12): hanya admin-bu dan purchasing yang boleh menambah, import, dan
+  // mengubah item, supaya datanya konsisten. admin-warehouse dan staf lain hanya memakai/melihatnya.
+  items: ['super-admin', 'admin-bu', 'purchasing'],
   contacts: ['super-admin', 'admin-bu', 'admin-warehouse', 'kasir-sales', 'purchasing'],
   inbounds: ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang', 'purchasing'],
   outbounds: ['super-admin', 'admin-bu', 'admin-warehouse', 'staff-gudang', 'kasir-sales'],
@@ -65,13 +67,6 @@ const WRITE_MATRIX: Record<Resource, Role[]> = {
   // waktu itu diimplementasikan di Fase 19 (diskon/kembalian/metode bayar) — matrix ini nggak
   // ikut di-update walau kodenya sendiri (PaymentFormModal dkk) udah dibangun buat kasir.
   payments: ['super-admin', 'admin-bu', 'admin-warehouse', 'finance', 'kasir-sales'],
-}
-
-// Menambah data BARU (beda dari mengubah yang sudah ada). Sumber: `create` di role-matrix.js backend.
-// `items` (2026-10-12): hanya admin-bu dan purchasing yang boleh menambah item baru (termasuk import
-// massal), supaya data item konsisten; admin-warehouse tetap boleh MENGUBAH item (WRITE_MATRIX).
-const CREATE_MATRIX: Partial<Record<Resource, Role[]>> = {
-  items: ['super-admin', 'admin-bu', 'purchasing'],
 }
 
 const APPROVE_MATRIX: Partial<Record<Resource, Role[]>> = {
@@ -94,19 +89,18 @@ export function usePermissions() {
     return !!role && WRITE_MATRIX[resource].includes(role)
   }
 
-  // Resource tanpa aturan `create` khusus mengikuti `canWrite`.
-  function canCreate(resource: Resource): boolean {
-    if (!role) return false
-    const createRoles = CREATE_MATRIX[resource]
-    return createRoles ? createRoles.includes(role) : canWrite(resource)
-  }
-
   function canApprove(resource: Resource): boolean {
     return !!role && (APPROVE_MATRIX[resource]?.includes(role) ?? false)
   }
 
   function canSubmit(resource: Resource): boolean {
     return !!role && (SUBMIT_MATRIX[resource]?.includes(role) ?? false)
+  }
+
+  // Halaman Import/Export Item: Export hanya membaca (backend membukanya untuk semua), jadi tetap
+  // tersedia untuk peran yang dulu bisa membukanya; bagian Import-nya sendiri mengikuti canWrite('items').
+  function canExportItems(): boolean {
+    return !!role && ['super-admin', 'admin-bu', 'admin-warehouse', 'purchasing'].includes(role)
   }
 
   function canViewHpp(): boolean {
@@ -136,5 +130,5 @@ export function usePermissions() {
     return role === 'super-admin' || role === 'owner' || role === 'admin-bu'
   }
 
-  return { role, canWrite, canCreate, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights }
+  return { role, canWrite, canExportItems, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights }
 }

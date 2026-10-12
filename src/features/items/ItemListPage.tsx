@@ -16,10 +16,9 @@ import { BuLabel } from '../../components/BuLabel'
 import { hasMultipleBuIds } from '../../utils/bu'
 
 export default function ItemListPage() {
-  const { canWrite, canCreate } = usePermissions()
+  const { canWrite, canExportItems } = usePermissions()
+  // Menambah dan mengubah item: hanya admin-bu dan purchasing (backend 2026-10-12).
   const canManage = canWrite('items')
-  // Menambah item baru lebih sempit dari mengubah: hanya admin-bu dan purchasing (backend 2026-10-12).
-  const canAdd = canCreate('items')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 300)
@@ -92,15 +91,17 @@ export default function ItemListPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-slate-900">Items</h1>
-        {canManage && (
+        {(canExportItems() || canManage) && (
           <div className="flex gap-2">
-            <Link
-              to="/items/import"
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Import / Export
-            </Link>
-            {canAdd && (
+            {canExportItems() && (
+              <Link
+                to="/items/import"
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                {canManage ? 'Import / Export' : 'Export'}
+              </Link>
+            )}
+            {canManage && (
               <button
                 type="button"
                 onClick={() => {

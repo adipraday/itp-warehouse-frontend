@@ -1700,13 +1700,12 @@ Kelima halaman Pemantauan (Perbandingan Cabang, Selisih Kas, Antrean Macet, Piut
 Isi file diverifikasi dengan membangun kelima file dari data contoh lalu membacanya kembali dengan exceljs (angka bertipe number, WIB benar). Label bersama ada di `reportLabels.ts`, bentuk sheet di `exportSheets.ts`.
 Backend `67cc76a`: batas `limit` 1000 untuk `/stuck-queue`, `/aging`, `/cash-variance`.
 
-## Fase 37 — Hanya admin-bu dan purchasing yang boleh menambah item baru (2026-10-12)
+## Fase 37 — Data master item hanya untuk admin-bu dan purchasing (2026-10-12)
 
-Permintaan: agar data item konsisten, **menambah item baru** dibatasi ke admin-bu dan purchasing (super-admin tetap lewat bypass platform).
-Backend `308b970`: aksi `create` baru untuk `items` di `role-matrix.js`; `POST /api/items` dan `POST /api/items/import` memakai `guard('items','create')`
-(403 untuk admin-warehouse, staff-gudang, kasir-sales, finance, owner). **Mengubah** item yang sudah ada (`PUT /api/items/:id`) tidak berubah:
-admin-bu, admin-warehouse, purchasing. Frontend: `canCreate()` + `CREATE_MATRIX` di `auth/permissions.ts`; tombol "+ Tambah Item" (ItemListPage),
-pembuatan item cepat di ItemPicker / form Sales / form Inbound-Outbound (scan barcode yang belum terdaftar, "buat item baru"), dan bagian Import di
-halaman Import/Export kini mengikuti `canCreate('items')`; Edit dan Export tetap mengikuti aturan lama. Android: `Permissions.canCreate` +
-FAB item, form item baru, dan import. Tes: 4 tes backend baru (873 total) + 3 tes Flutter; matriks diperiksa langsung di container produksi.
-Catatan: admin-warehouse yang memindai barcode belum terdaftar di form penjualan tidak lagi ditawari membuat item (harus minta admin-bu/purchasing).
+Permintaan: agar data item konsisten, **menambah, import, dan mengubah item** hanya boleh oleh admin-bu dan purchasing (super-admin lewat bypass platform).
+Sempat dipecah menjadi aksi `create` vs `write` (backend `308b970`) saat hanya "menambah" yang dibatasi, lalu disederhanakan kembali jadi satu aturan
+`items: { write: ['admin-bu', 'purchasing'] }` (backend `20d6875`): `POST /api/items`, `POST /api/items/import`, `PUT /api/items/:id` → 403 untuk admin-warehouse,
+staff-gudang, kasir-sales, finance, owner. Frontend: `WRITE_MATRIX.items` dipersempit; tombol "+ Tambah Item", kolom Edit, pembuatan item cepat di
+ItemPicker/form Sales/form Inbound-Outbound (scan barcode belum terdaftar), dan bagian Import mengikuti `canWrite('items')`. **Export tetap tersedia**
+untuk admin-warehouse lewat `canExportItems()` (baca-saja; link di daftar item jadi "Export"). Android: `_writeMatrix['items']` dipersempit.
+Tes: 2 tes backend role-matrix baru (871 total); matriks diperiksa di container produksi (items write: super-admin, admin-bu, purchasing).

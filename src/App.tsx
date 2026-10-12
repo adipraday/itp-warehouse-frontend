@@ -51,7 +51,7 @@ import UnusualActivityPage from './features/ownerInsights/UnusualActivityPage'
 import NotificationListPage from './features/notifications/NotificationListPage'
 
 export default function App() {
-  const { canManageUsers, canViewActivityLogs, canViewOwnerInsights, canWrite } = usePermissions()
+  const { canManageUsers, canViewActivityLogs, canViewOwnerInsights, canExportItems } = usePermissions()
 
   return (
     <BrowserRouter>
@@ -114,10 +114,10 @@ export default function App() {
               <Route path="/warehouses" element={<WarehouseListPage />} />
               <Route path="/warehouses/:id" element={<WarehouseDetailPage />} />
               <Route path="/items" element={<ItemListPage />} />
-              {/* Import/export (§25-26) — sama gating dengan tombol "+ Tambah Item" di
-                  ItemListPage (canWrite('items')); pembatasan super-admin buat Import spesifik
-                  ditangani di dalam ItemImportPage sendiri (Export tetap boleh). */}
-              <Route element={<RequirePermission allowed={canWrite('items')} />}>
+              {/* Import/export (§25-26) — halaman ini tetap bisa dibuka peran yang dulu bisa (Export itu
+                  baca-saja); bagian Import-nya digating canWrite('items') (hanya admin-bu/purchasing)
+                  dan pembatasan super-admin ditangani di dalam ItemImportPage sendiri. */}
+              <Route element={<RequirePermission allowed={canExportItems()} />}>
                 <Route path="/items/import" element={<ItemImportPage />} />
               </Route>
               <Route path="/items/:id" element={<ItemDetailPage />} />

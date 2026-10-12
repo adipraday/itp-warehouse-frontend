@@ -48,8 +48,8 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
   const toast = useToast()
   const basePath = kind === 'inbound' ? '/inbounds' : '/outbounds'
   const listQueryKey = kind === 'inbound' ? 'inbounds' : 'outbounds'
-  const { canCreate } = usePermissions()
-  const canCreateItem = canCreate('items')
+  const { canWrite } = usePermissions()
+  const canCreateItem = canWrite('items')
 
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
   const [contactId, setContactId] = useState<number | null>(null)

@@ -21,13 +21,13 @@ import type { ImportValidationDetail, ItemImportResult } from '../../types/item'
 export default function ItemImportPage() {
   const toast = useToast()
   const queryClient = useQueryClient()
-  const { role, canCreate } = usePermissions()
+  const { role, canWrite } = usePermissions()
   // Import (§25) eksplisit nolak super-admin — `400 BU_REQUIRED`, karena tidak ada satu BU
   // tunggal yang jelas jadi tujuan import (super-admin lintas semua BU/company). Export TIDAK
   // punya pembatasan yang sama (tidak didokumentasikan), jadi section itu tetap tampil normal.
-  // Import juga MENAMBAH item baru, jadi ikut aturan create item (backend 2026-10-12): hanya
-  // admin-bu dan purchasing — admin-warehouse tidak lagi boleh import, tapi Export tetap boleh.
-  const canImport = role !== 'super-admin' && canCreate('items')
+  // Import juga MENAMBAH/mengubah item, jadi ikut aturan data master item (backend 2026-10-12): hanya
+  // admin-bu dan purchasing. Export tetap boleh untuk yang bisa membuka halaman ini.
+  const canImport = role !== 'super-admin' && canWrite('items')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [importResult, setImportResult] = useState<ItemImportResult | null>(null)
@@ -102,7 +102,7 @@ export default function ItemImportPage() {
         <div className="mb-6 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
           {role === 'super-admin'
             ? 'Import butuh akun dengan BU tunggal (admin-bu/purchasing) — super-admin lintas semua BU jadi tidak ada tujuan import yang jelas.'
-            : 'Hanya admin-bu dan purchasing yang boleh menambah item baru, termasuk lewat import.'}{' '}
+            : 'Hanya admin-bu dan purchasing yang boleh menambah atau mengubah item, termasuk lewat import.'}{' '}
           Bagian Export di bawah tetap bisa dipakai.
         </div>
       )}
