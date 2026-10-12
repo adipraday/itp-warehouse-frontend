@@ -14,6 +14,9 @@ export interface Item {
   bu_id?: number | null
   created_at: string
   updated_at: string
+  // Terisi hanya untuk item yang sudah dihapus (diarsipkan) — masih bisa dibuka lewat id supaya
+  // tautan dari dokumen lama tidak putus, tapi tidak muncul di daftar mana pun.
+  deleted_at?: string | null
 }
 
 export interface ItemInput {

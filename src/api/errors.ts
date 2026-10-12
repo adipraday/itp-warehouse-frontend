@@ -48,6 +48,10 @@ export const ERROR_MESSAGES: Record<string, string> = {
   AMOUNT_TENDERED_TOO_LOW: 'Uang diterima tidak boleh kurang dari jumlah pembayaran.',
   // §18 frontend-integration-guide.md (2026-09-13) — barcode scanner.
   ITEM_BARCODE_EXISTS: 'Barcode ini sudah dipakai item lain.',
+  // Hapus item (2026-10-12).
+  ITEM_HAS_STOCK: 'Item masih punya stok. Stok harus 0 di semua gudang sebelum item bisa dihapus.',
+  ITEM_IN_OPEN_DOCUMENTS: 'Item masih dipakai dokumen yang belum selesai.',
+  ITEM_DELETED: 'Item ini sudah dihapus dan tidak bisa dipakai lagi.',
   // §20 frontend-integration-guide.md (2026-09-13) — sesi kasir/shift.
   CASH_SESSION_ALREADY_OPEN: 'Masih ada sesi kasir lain yang belum ditutup.',
   INSUFFICIENT_CASH_IN_DRAWER: 'Nominal pengeluaran melebihi uang yang seharusnya ada di laci.',

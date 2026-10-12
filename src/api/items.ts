@@ -1,4 +1,4 @@
-import { apiGet, apiGetBlob, apiPost, apiPut } from './client'
+import { apiDelete, apiGet, apiGetBlob, apiPost, apiPut } from './client'
 import type { ApiDetailResponse, ApiListResponse } from '../types/common'
 import type { Item, ItemCost, ItemCostHistoryEntry, ItemImportResult, ItemInput, ItemStock } from '../types/item'
 
@@ -33,6 +33,12 @@ export function createItem(body: ItemInput) {
 
 export function updateItem(id: number, body: ItemInput) {
   return apiPut<ApiDetailResponse<Item>>(`/items/${id}`, body)
+}
+
+// Hapus = arsipkan (2026-10-12): syaratnya stok 0 di semua gudang dan tidak dipakai dokumen yang belum
+// selesai; kalau tidak, 409 `ITEM_HAS_STOCK` / `ITEM_IN_OPEN_DOCUMENTS` dengan `details` penjelasnya.
+export function deleteItem(id: number) {
+  return apiDelete<ApiDetailResponse<{ id: number; sku: string; deleted: boolean }>>(`/items/${id}`)
 }
 
 export function listItemStocks(id: number, params: { warehouse_id?: number; page?: number; per_page?: number }) {

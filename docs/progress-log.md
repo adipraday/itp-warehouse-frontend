@@ -1709,3 +1709,22 @@ staff-gudang, kasir-sales, finance, owner. Frontend: `WRITE_MATRIX.items` dipers
 ItemPicker/form Sales/form Inbound-Outbound (scan barcode belum terdaftar), dan bagian Import mengikuti `canWrite('items')`. **Export tetap tersedia**
 untuk admin-warehouse lewat `canExportItems()` (baca-saja; link di daftar item jadi "Export"). Android: `_writeMatrix['items']` dipersempit.
 Tes: 2 tes backend role-matrix baru (871 total); matriks diperiksa di container produksi (items write: super-admin, admin-bu, purchasing).
+
+## Fase 38 — Hapus item (2026-10-12)
+
+Fitur **hapus item** untuk admin-bu dan purchasing, dengan syarat **stok item 0 di semua gudang**. Karena 8 tabel mengacu ke `items` dengan FK `RESTRICT`
+(stok, mutasi, cost layer, semua baris dokumen), "hapus" = **arsip** (`items.deleted_at`): item hilang dari daftar, pencarian, scan barcode, export, daftar stok,
+hitungan low/out-of-stock, dan dashboard; riwayat tetap utuh dan `GET /items/:id` masih membukanya (dengan `deleted_at`). SKU dan barcode-nya bisa dipakai lagi
+(kunci unik kini `(bu_id, sku, active_key)`). Penjaga tambahan di luar permintaan: item juga **ditolak dihapus bila masih ada di dokumen yang belum selesai**
+(draft, transfer/retur disetujui tapi belum selesai, opname diajukan) — kalau tidak, draft itu tak akan pernah bisa diselesaikan; item terarsip juga tidak bisa
+dipakai di dokumen baru (`ITEM_DELETED`, termasuk super-admin).
+Backend `a692828` (+ migrasi `202610120002`, dijalankan di produksi setelah backup baru): `DELETE /api/items/:id`, 409 `ITEM_HAS_STOCK` (details: gudang + qty) /
+`ITEM_IN_OPEN_DOCUMENTS` (details: dokumen). Web: tombol "Hapus" di daftar item dan "Hapus Item" di detail; `DeleteItemDialog` menjelaskan alasan penolakan (gudang
+mana yang masih menyimpan, dokumen mana yang masih memakai); detail item terhapus menampilkan banner. Diuji end-to-end di DB produksi dengan item sekali-pakai
+(dibersihkan setelahnya): stok 5 → ditolak, stok 0 → terhapus, hilang dari daftar/pencarian/scan, SKU+barcode dipakai ulang, duplikat item aktif tetap ditolak;
+semua query baca (stok, dashboard, gudang, export) diverifikasi. 882 tes backend.
+
+**Temuan saat deploy — backup harian sempat mati 10–12 Okt**: `deploy/backup-db.sh` di VPS ternyata berakhir baris CRLF (`bash\r`) dan kehilangan bit eksekusi sejak
+salinan 10 Okt, sehingga cron 10 dan 11 Okt gagal ("Permission denied"). Diperbaiki (`chmod +x`, konversi ke LF), backup manual diambil, dan `.gitattributes` (`*.sh eol=lf`)
+ditambahkan agar tak terulang. **Masih terbuka**: unggahan off-site ke Google Drive gagal sejak 7 Okt (`invalid_grant`, token rclone kedaluwarsa) — perlu
+`rclone config reconnect gdrive:` interaktif oleh pemilik akun Google.

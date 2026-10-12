@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { DataTable } from '../../components/DataTable'
 import type { DataTableColumn } from '../../components/DataTable'
@@ -9,6 +9,8 @@ import { formatNumber, formatRupiah } from '../../utils/money'
 import { formatTimestamp } from '../../utils/date'
 import { getItem, getItemCost, getItemCostHistory, listItemStocks } from '../../api/items'
 import { listWarehouses } from '../../api/warehouses'
+import { usePermissions } from '../../auth/permissions'
+import { DeleteItemDialog } from './DeleteItemDialog'
 import type { ItemCostHistoryEntry, ItemStock } from '../../types/item'
 
 type Tab = 'stocks' | 'cost'
@@ -39,6 +41,9 @@ const costHistoryColumns: DataTableColumn<ItemCostHistoryEntry>[] = [
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>()
   const itemId = Number(id)
+  const navigate = useNavigate()
+  const { canWrite } = usePermissions()
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [tab, setTab] = useState<Tab>('stocks')
   const [stocksPage, setStocksPage] = useState(1)
   const [historyPage, setHistoryPage] = useState(1)
@@ -81,6 +86,21 @@ export default function ItemDetailPage() {
       <h1 className="mt-2 text-xl font-semibold text-slate-900">
         {item?.data.name ?? '...'} <span className="text-base font-normal text-slate-400">({item?.data.sku})</span>
       </h1>
+      {item?.data.deleted_at && (
+        <p role="status" className="mt-3 rounded-md border border-slate-300 bg-slate-100 p-3 text-sm text-slate-700">
+          Item ini sudah dihapus pada {formatTimestamp(item.data.deleted_at)}. Riwayatnya tetap tersimpan, tetapi item
+          tidak bisa dipakai di dokumen baru.
+        </p>
+      )}
+      {item?.data && !item.data.deleted_at && canWrite('items') && (
+        <button
+          type="button"
+          onClick={() => setDeleteOpen(true)}
+          className="mt-3 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+        >
+          Hapus Item
+        </button>
+      )}
       {item?.data && (
         <p className="mt-1 text-sm text-slate-500">
           Satuan: {item.data.unit} &middot; Min. stok: {item.data.min_stock} &middot; Harga jual:{' '}
@@ -159,6 +179,11 @@ export default function ItemDetailPage() {
           )}
         </div>
       )}
+      <DeleteItemDialog
+        item={deleteOpen && item?.data ? item.data : null}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => navigate('/items')}
+      />
     </div>
   )
 }

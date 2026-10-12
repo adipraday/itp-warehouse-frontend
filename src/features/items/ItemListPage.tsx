@@ -14,6 +14,7 @@ import { ItemFormModal } from './ItemFormModal'
 import { usePermissions } from '../../auth/permissions'
 import { BuLabel } from '../../components/BuLabel'
 import { hasMultipleBuIds } from '../../utils/bu'
+import { DeleteItemDialog } from './DeleteItemDialog'
 
 export default function ItemListPage() {
   const { canWrite, canExportItems } = usePermissions()
@@ -24,6 +25,7 @@ export default function ItemListPage() {
   const debouncedSearch = useDebouncedValue(search, 300)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Item | null>(null)
+  const [deleting, setDeleting] = useState<Item | null>(null)
 
   const isSearching = debouncedSearch.trim().length > 0
 
@@ -71,16 +73,25 @@ export default function ItemListPage() {
             header: '',
             className: 'text-right',
             render: (row: Item) => (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditing(row)
-                  setFormOpen(true)
-                }}
-                className="text-sm font-medium text-blue-600 hover:underline"
-              >
-                Edit
-              </button>
+              <div className="flex justify-end gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(row)
+                    setFormOpen(true)
+                  }}
+                  className="text-sm font-medium text-blue-600 hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleting(row)}
+                  className="text-sm font-medium text-red-600 hover:underline"
+                >
+                  Hapus
+                </button>
+              </div>
             ),
           },
         ] as DataTableColumn<Item>[])
@@ -145,6 +156,7 @@ export default function ItemListPage() {
       )}
 
       <ItemFormModal open={formOpen} onClose={() => setFormOpen(false)} item={editing} />
+      <DeleteItemDialog item={deleting} onClose={() => setDeleting(null)} />
     </div>
   )
 }
