@@ -67,6 +67,13 @@ const WRITE_MATRIX: Record<Resource, Role[]> = {
   payments: ['super-admin', 'admin-bu', 'admin-warehouse', 'finance', 'kasir-sales'],
 }
 
+// Menambah data BARU (beda dari mengubah yang sudah ada). Sumber: `create` di role-matrix.js backend.
+// `items` (2026-10-12): hanya admin-bu dan purchasing yang boleh menambah item baru (termasuk import
+// massal), supaya data item konsisten; admin-warehouse tetap boleh MENGUBAH item (WRITE_MATRIX).
+const CREATE_MATRIX: Partial<Record<Resource, Role[]>> = {
+  items: ['super-admin', 'admin-bu', 'purchasing'],
+}
+
 const APPROVE_MATRIX: Partial<Record<Resource, Role[]>> = {
   'stock-transfers': ['super-admin', 'admin-bu'],
   'stock-opnames': ['super-admin', 'admin-bu'],
@@ -85,6 +92,13 @@ export function usePermissions() {
 
   function canWrite(resource: Resource): boolean {
     return !!role && WRITE_MATRIX[resource].includes(role)
+  }
+
+  // Resource tanpa aturan `create` khusus mengikuti `canWrite`.
+  function canCreate(resource: Resource): boolean {
+    if (!role) return false
+    const createRoles = CREATE_MATRIX[resource]
+    return createRoles ? createRoles.includes(role) : canWrite(resource)
   }
 
   function canApprove(resource: Resource): boolean {
@@ -122,5 +136,5 @@ export function usePermissions() {
     return role === 'super-admin' || role === 'owner' || role === 'admin-bu'
   }
 
-  return { role, canWrite, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights }
+  return { role, canWrite, canCreate, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights }
 }

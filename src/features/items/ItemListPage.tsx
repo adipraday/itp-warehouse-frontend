@@ -16,8 +16,10 @@ import { BuLabel } from '../../components/BuLabel'
 import { hasMultipleBuIds } from '../../utils/bu'
 
 export default function ItemListPage() {
-  const { canWrite } = usePermissions()
+  const { canWrite, canCreate } = usePermissions()
   const canManage = canWrite('items')
+  // Menambah item baru lebih sempit dari mengubah: hanya admin-bu dan purchasing (backend 2026-10-12).
+  const canAdd = canCreate('items')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 300)
@@ -98,16 +100,18 @@ export default function ItemListPage() {
             >
               Import / Export
             </Link>
-            <button
-              type="button"
-              onClick={() => {
-                setEditing(null)
-                setFormOpen(true)
-              }}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              + Tambah Item
-            </button>
+            {canAdd && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(null)
+                  setFormOpen(true)
+                }}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                + Tambah Item
+              </button>
+            )}
           </div>
         )}
       </div>

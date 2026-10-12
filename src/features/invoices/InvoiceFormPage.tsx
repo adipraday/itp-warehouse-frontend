@@ -44,8 +44,8 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
   const toast = useToast()
   const basePath = kind === 'sales' ? '/sales' : '/purchases'
   const contactType = kind === 'sales' ? 'customer' : 'supplier'
-  const { canWrite } = usePermissions()
-  const canCreateItem = canWrite('items')
+  const { canCreate } = usePermissions()
+  const canCreateItem = canCreate('items')
 
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
   const [contactId, setContactId] = useState<number | null>(null)

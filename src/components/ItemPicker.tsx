@@ -33,11 +33,11 @@ export function ItemPicker({ label = 'Item', value, onChange, allowCreate = fals
   const debouncedQuery = useDebouncedValue(query, 300)
   const containerRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
-  const { canWrite } = usePermissions()
-  // Backend nolak 403 create item buat role yang bukan super-admin/admin-bu/purchasing (§5 WRITE_MATRIX)
+  const { canCreate: canCreateRole } = usePermissions()
+  // Backend nolak 403 create item buat role yang bukan super-admin/admin-bu/purchasing (CREATE_MATRIX)
   // — shortcut ini cuma ditampilkan buat role yang beneran boleh, biar nggak nawarin tombol yang
   // ujung-ujungnya ditolak backend (mis. staff-gudang pas inbound, kasir-sales pas sales).
-  const canCreate = allowCreate && canWrite('items')
+  const canCreate = allowCreate && canCreateRole('items')
 
   const { data: selectedItem } = useQuery({
     queryKey: ['items', value],

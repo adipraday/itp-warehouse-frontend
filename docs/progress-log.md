@@ -1699,3 +1699,14 @@ Kelima halaman Pemantauan (Perbandingan Cabang, Selisih Kas, Antrean Macet, Piut
 - **Cetak / Simpan PDF**: dialog cetak browser; menu, filter, tombol, dan footer disembunyikan (`print:hidden` di Layout/FilterBar), kepala cetak berisi perusahaan, judul, periode, dan "Dicetak … oleh …".
 Isi file diverifikasi dengan membangun kelima file dari data contoh lalu membacanya kembali dengan exceljs (angka bertipe number, WIB benar). Label bersama ada di `reportLabels.ts`, bentuk sheet di `exportSheets.ts`.
 Backend `67cc76a`: batas `limit` 1000 untuk `/stuck-queue`, `/aging`, `/cash-variance`.
+
+## Fase 37 — Hanya admin-bu dan purchasing yang boleh menambah item baru (2026-10-12)
+
+Permintaan: agar data item konsisten, **menambah item baru** dibatasi ke admin-bu dan purchasing (super-admin tetap lewat bypass platform).
+Backend `308b970`: aksi `create` baru untuk `items` di `role-matrix.js`; `POST /api/items` dan `POST /api/items/import` memakai `guard('items','create')`
+(403 untuk admin-warehouse, staff-gudang, kasir-sales, finance, owner). **Mengubah** item yang sudah ada (`PUT /api/items/:id`) tidak berubah:
+admin-bu, admin-warehouse, purchasing. Frontend: `canCreate()` + `CREATE_MATRIX` di `auth/permissions.ts`; tombol "+ Tambah Item" (ItemListPage),
+pembuatan item cepat di ItemPicker / form Sales / form Inbound-Outbound (scan barcode yang belum terdaftar, "buat item baru"), dan bagian Import di
+halaman Import/Export kini mengikuti `canCreate('items')`; Edit dan Export tetap mengikuti aturan lama. Android: `Permissions.canCreate` +
+FAB item, form item baru, dan import. Tes: 4 tes backend baru (873 total) + 3 tes Flutter; matriks diperiksa langsung di container produksi.
+Catatan: admin-warehouse yang memindai barcode belum terdaftar di form penjualan tidak lagi ditawari membuat item (harus minta admin-bu/purchasing).
