@@ -11,6 +11,7 @@ import { SelectField, TextField } from '../../components/FormField'
 import { formatNumber, formatRupiah } from '../../utils/money'
 import { formatTimestamp } from '../../utils/date'
 import { listStockMutations } from '../../api/stockMutations'
+import { StockMutationDetailModal } from './StockMutationDetailModal'
 import type {
   StockMutation,
   StockMutationDirection,
@@ -41,6 +42,8 @@ export default function StockMutationListPage() {
   const [sourceType, setSourceType] = useState<StockMutationSourceType | ''>('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  // Baris yang diklik → detail lengkap (nama gudang/item, nilai per unit, tautan ke dokumen sumber).
+  const [selected, setSelected] = useState<StockMutation | null>(null)
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['stock-mutations', warehouseId, itemId, type, direction, sourceType, from, to, page],
@@ -162,11 +165,14 @@ export default function StockMutationListPage() {
               getRowKey={(row) => row.id}
               loading={isLoading}
               emptyMessage="Tidak ada mutasi stok."
+              onRowClick={setSelected}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>
         )}
       </div>
+
+      <StockMutationDetailModal mutation={selected} onClose={() => setSelected(null)} />
     </div>
   )
 }
