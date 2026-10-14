@@ -9,6 +9,7 @@ import { FilterBar } from '../../components/FilterBar'
 import { WarehouseSelect } from '../../components/WarehouseSelect'
 import { SelectField } from '../../components/FormField'
 import { StatusBadge } from '../../components/StatusBadge'
+import { purchaseStage } from '../purchases/purchaseStage'
 import { formatDate } from '../../utils/date'
 import { formatRupiah } from '../../utils/money'
 import { listInvoicesByKind } from '../../api/invoices'
@@ -82,7 +83,12 @@ export default function InvoiceListPage({ kind, title }: InvoiceListPageProps) {
       render: (row) => formatRupiah(row.total_amount),
     },
     { key: 'payment_status', header: 'Pembayaran', render: (row) => <StatusBadge status={row.payment_status} /> },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+    {
+      key: 'status',
+      header: 'Status',
+      // Purchase: tampilkan tahap persetujuan gudang (Menunggu Persetujuan / Diterima Sebagian).
+      render: (row) => <StatusBadge status={isSales ? row.status : purchaseStage(row)} />,
+    },
     ...(isSales
       ? ([
           {

@@ -17,6 +17,8 @@ import { getItemByBarcode } from '../../api/items'
 import type { Item } from '../../types/item'
 import { ItemFormModal } from '../items/ItemFormModal'
 import { usePermissions } from '../../auth/permissions'
+import { uploadSupplierInvoiceFile } from '../../api/purchases'
+import { validateSupplierInvoiceFile } from '../purchases/supplierInvoiceFile'
 
 interface DetailRow {
   key: number
@@ -58,6 +60,12 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
   // (2026-09-13), diterapkan sebelum pajak: taxable_base = subtotal - discount.
   const [discountAmount, setDiscountAmount] = useState('0')
   const [notes, setNotes] = useState('')
+  // Invoice asli dari supplier (Purchase saja): nomor opsional + salinan PDF. PDF diunggah sesudah
+  // dokumennya tersimpan (butuh id pembelian); kalau unggahannya gagal, dokumen tetap tersimpan dan
+  // PDF bisa diunggah ulang dari halaman detail.
+  const [supplierInvoiceNo, setSupplierInvoiceNo] = useState('')
+  const [supplierFile, setSupplierFile] = useState<File | null>(null)
+  const [supplierFileError, setSupplierFileError] = useState<string | null>(null)
   const [isReversal, setIsReversal] = useState(false)
   const [reversalOfId, setReversalOfId] = useState('')
   const [reversalReason, setReversalReason] = useState('')
@@ -83,6 +91,7 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
       setDueDate(doc.due_date ?? '')
       setDiscountAmount(doc.discount_amount ?? '0')
       setNotes(doc.notes ?? '')
+      setSupplierInvoiceNo(doc.supplier_invoice_number ?? '')
       setIsReversal(!!doc.reversal_of_invoice_id)
       setReversalOfId(doc.reversal_of_invoice_id ? String(doc.reversal_of_invoice_id) : '')
       setReversalReason(doc.reversal_reason ?? '')
@@ -109,7 +118,7 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
   const total = taxableBase + taxAmount
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const details: InvoiceDetailInput[] = rows
         .filter((r) => r.item_id !== null)
         .map((r) => ({
@@ -125,15 +134,30 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
         tax_rate: taxRate,
         discount_amount: discountNum,
         notes: notes.trim() || null,
+        ...(kind === 'purchase' ? { supplier_invoice_number: supplierInvoiceNo.trim() || null } : {}),
         reversal_of_invoice_id: isReversal && reversalOfId ? Number(reversalOfId) : null,
         reversal_reason: isReversal ? reversalReason.trim() || null : null,
         details,
       }
-      return isEdit ? updateInvoiceByKind(kind, invoiceId as number, body) : createInvoiceByKind(kind, body)
+      const res = await (isEdit
+        ? updateInvoiceByKind(kind, invoiceId as number, body)
+        : createInvoiceByKind(kind, body))
+      let uploadError: string | null = null
+      if (kind === 'purchase' && supplierFile) {
+        try {
+          await uploadSupplierInvoiceFile(res.data.id, supplierFile)
+        } catch (err) {
+          uploadError = getErrorMessage(err)
+        }
+      }
+      return { res, uploadError }
     },
-    onSuccess: (res) => {
+    onSuccess: ({ res, uploadError }) => {
       queryClient.invalidateQueries({ queryKey: [kind] })
       toast.show(isEdit ? `${title} berhasil diupdate.` : `${title} berhasil dibuat.`, 'success')
+      if (uploadError) {
+        toast.show(`PDF invoice supplier belum terunggah: ${uploadError}. Unggah ulang dari halaman detail.`, 'error')
+      }
       navigate(`${basePath}/${res.data.id}`)
     },
     onError: (err) => {
@@ -242,6 +266,26 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
     return <p className="text-sm text-slate-400">Memuat data...</p>
   }
 
+  // Purchase yang sudah dibayar / diajukan ke gudang terkunci: totalnya sudah jadi dasar pembayaran.
+  const purchaseLocked =
+    kind === 'purchase' &&
+    !!existing &&
+    (!!existing.data.receipt_status || Number(existing.data.paid_amount ?? 0) > 0)
+
+  if (isEdit && existing && purchaseLocked) {
+    return (
+      <div>
+        <p className="text-sm text-red-600">
+          Purchase ini sudah dibayar atau sudah diajukan ke gudang, jadi tidak bisa diedit lagi. Batalkan lalu buat
+          purchase baru bila ada yang keliru.
+        </p>
+        <Link to={`${basePath}/${invoiceId}`} className="mt-2 inline-block text-sm text-blue-600 hover:underline">
+          &larr; Kembali ke detail
+        </Link>
+      </div>
+    )
+  }
+
   if (isEdit && existing && existing.data.status !== 'DRAFT') {
     return (
       <div>
@@ -307,6 +351,40 @@ export default function InvoiceFormPage({ kind, title }: InvoiceFormPageProps) {
         </div>
 
         <TextareaField label="Catatan" value={notes} onChange={(e) => setNotes(e.target.value)} />
+
+        {kind === 'purchase' && (
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 sm:grid-cols-2">
+            <TextField
+              label="No. Invoice Supplier (opsional)"
+              maxLength={100}
+              placeholder="mis. INV/2026/10/0042"
+              value={supplierInvoiceNo}
+              onChange={(e) => setSupplierInvoiceNo(e.target.value)}
+            />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">PDF Invoice Asli Supplier (opsional)</label>
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-50"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null
+                  const problem = file ? validateSupplierInvoiceFile(file) : null
+                  setSupplierFileError(problem)
+                  setSupplierFile(problem ? null : file)
+                  if (problem) e.target.value = ''
+                }}
+              />
+              {supplierFileError && <p className="mt-1 text-xs text-red-600">{supplierFileError}</p>}
+              {isEdit && existing?.data.has_supplier_invoice_file && !supplierFile && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Saat ini: {existing.data.supplier_invoice_file_name}. Pilih file baru untuk menggantinya.
+                </p>
+              )}
+              <p className="mt-1 text-xs text-slate-400">Hanya PDF, maksimal 10 MB.</p>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">

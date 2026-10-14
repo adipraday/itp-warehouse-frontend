@@ -19,6 +19,9 @@ const STATUS_STYLES: Record<string, string> = {
   // Hold/resume Sales (§22 frontend-integration-guide.md) — bukan status dokumen sungguhan (sale
   // yang ditahan tetap DRAFT), cuma indikator visual tambahan.
   DITAHAN: 'bg-amber-100 text-amber-700',
+  // Pembelian: tahap persetujuan gudang (turunan dari status + receipt_status, bukan status dokumen).
+  'MENUNGGU PERSETUJUAN': 'bg-amber-100 text-amber-700',
+  'DITERIMA SEBAGIAN': 'bg-blue-100 text-blue-700',
 }
 
 export function StatusBadge({ status }: { status: string }) {

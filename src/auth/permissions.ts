@@ -70,6 +70,9 @@ const WRITE_MATRIX: Record<Resource, Role[]> = {
 }
 
 const APPROVE_MATRIX: Partial<Record<Resource, Role[]>> = {
+  // Terima barang pembelian ke stok (2026-10-14). Backend tambahan: admin-warehouse harus di-assign
+  // ke gudang tujuan dan tidak boleh menyetujui pembelian yang ia buat sendiri (diputuskan per dokumen).
+  purchases: ['super-admin', 'admin-bu', 'admin-warehouse'],
   'stock-transfers': ['super-admin', 'admin-bu'],
   'stock-opnames': ['super-admin', 'admin-bu'],
   returns: ['super-admin', 'admin-bu'],
@@ -103,6 +106,12 @@ export function usePermissions() {
     return !!role && ['super-admin', 'admin-bu', 'admin-warehouse', 'purchasing'].includes(role)
   }
 
+  // Catat pengembalian dana dari supplier (pembelian dibatalkan / barang kurang) — sama seperti
+  // backend `purchases.refund`.
+  function canRefundPurchase(): boolean {
+    return !!role && ['super-admin', 'admin-bu', 'admin-warehouse', 'finance'].includes(role)
+  }
+
   function canViewHpp(): boolean {
     return !!role && HPP_ROLES.includes(role)
   }
@@ -130,5 +139,5 @@ export function usePermissions() {
     return role === 'super-admin' || role === 'owner' || role === 'admin-bu'
   }
 
-  return { role, canWrite, canExportItems, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights }
+  return { role, userId: user?.id, canRefundPurchase, canWrite, canExportItems, canApprove, canSubmit, canViewHpp, canManageUsers, canViewActivityLogs, canViewOwnerInsights }
 }

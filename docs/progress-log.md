@@ -1728,3 +1728,27 @@ semua query baca (stok, dashboard, gudang, export) diverifikasi. 882 tes backend
 salinan 10 Okt, sehingga cron 10 dan 11 Okt gagal ("Permission denied"). Diperbaiki (`chmod +x`, konversi ke LF), backup manual diambil, dan `.gitattributes` (`*.sh eol=lf`)
 ditambahkan agar tak terulang. **Masih terbuka**: unggahan off-site ke Google Drive gagal sejak 7 Okt (`invalid_grant`, token rclone kedaluwarsa) — perlu
 `rclone config reconnect gdrive:` interaktif oleh pemilik akun Google.
+
+## Fase 39 — Pembelian: bayar dulu, persetujuan gudang, refund, invoice asli supplier (2026-10-14)
+
+Alur pembelian berubah: barang **tidak lagi masuk stok saat "Complete" oleh pembuatnya**. Urutannya sekarang **buat → bayar sampai lunas → ajukan ke gudang → admin-warehouse
+gudang tujuan (atau admin-bu) menyetujui penerimaan dengan jumlah yang benar-benar datang → stok bertambah**. Status invoice tetap `DRAFT/COMPLETED/CANCELLED`; tahap
+persetujuan ada di field `receipt_status` (`PENDING_APPROVAL` / `PARTIALLY_RECEIVED`), jadi laporan dan filter lama tidak berubah. UI menurunkan satu label dari keduanya
+(`purchaseStage`: MENUNGGU PERSETUJUAN, DITERIMA SEBAGIAN).
+
+Skenario yang diminta: (a) disetujui → masuk stok gudang tujuan; (b) retur/penggantian → terima sebagian lalu pilih "tunggu pengganti" (pembelian tetap terbuka, bisa diterima
+lagi); (c) pembatalan setelah dibayar → semua sisa ditutup, total jadi 0, seluruh pembayaran menjadi `refund_due`; (d) barang tidak sesuai + sisa dikembalikan dananya →
+terima sebagian lalu pilih "tutup kekurangan & refund": total dihitung ulang dari yang benar-benar dibeli, selisihnya `refund_due`. Uang yang kembali dari supplier dicatat di
+tabel terpisah `purchase_refunds` (REF-xxxxxx) supaya rekap pembayaran dan rekonsiliasi kas shift tidak tersentuh.
+
+Aturan penjaga (keputusan desain, mudah diubah): pembelian harus **lunas** sebelum diajukan (kredit/hutang ke supplier tidak lagi lewat jalur ini); pembelian yang sudah dibayar atau
+diajukan **terkunci** (tidak bisa diedit/dihapus, hanya dibatalkan); admin-warehouse hanya boleh menyetujui di gudang yang di-assign kepadanya dan **tidak boleh menyetujui
+pembelian buatannya sendiri**; pembatalan pembelian yang sudah dibayar/diajukan **wajib beralasan**.
+
+Invoice asli supplier: kolom **No. Invoice Supplier** (opsional) dan **unggah PDF** di form pembelian; kartu "Invoice dari Supplier" di detail untuk lihat/ganti/hapus. PDF disimpan di
+**Cloudflare R2** lewat API (bucket privat, diambil lewat endpoint ber-token, tidak ada URL publik); tipe diperiksa dua kali (MIME + byte `%PDF-`), maks. 10 MB. Selama env
+`R2_*` belum diisi di server, unggah/lihat PDF menjawab 503 dan fitur lain tetap jalan.
+
+Backend `21d471c` (migrasi `202610140001`, diuji dulu di salinan DB produksi termasuk rollback; 508 tes). Web: `PurchaseDetailPage` baru (rute `/purchases/:id`) dengan
+`ReceivePurchaseModal`, `CancelPurchaseModal`, `PurchaseRefundModal`, `SupplierInvoiceCard`; form dan daftar pembelian ikut diperbarui. Android 1.0.5: tahap pembelian, ajukan, terima
+barang, batal dengan alasan, no. invoice supplier (unggah PDF dan catat refund dilakukan di web).

@@ -1,6 +1,6 @@
 import { apiDelete, apiGet, apiPost, apiPut } from './client'
 import type { ApiDetailResponse, ApiListResponse } from '../types/common'
-import type { Invoice, InvoiceInput, InvoiceStatus } from '../types/invoice'
+import type { Invoice, InvoiceInput, InvoiceStatus, ReceiptStatus } from '../types/invoice'
 import type { Receipt } from '../types/receipt'
 
 export type InvoiceKind = 'sales' | 'purchase'
@@ -12,6 +12,7 @@ function basePath(kind: InvoiceKind): string {
 type ListParams = {
   warehouse_id?: number
   status?: InvoiceStatus
+  receipt_status?: ReceiptStatus
   // Hold/resume cuma ada di Sales (§22 frontend-integration-guide.md) — pemanggil (list page)
   // sengaja tidak pernah kirim field ini untuk kind Purchase, biar tidak bergantung pada asumsi
   // backend meloloskan/mengabaikan query yang tidak dikenal.

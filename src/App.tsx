@@ -34,6 +34,7 @@ import StockOpnameDetailPage from './features/stockOpnames/StockOpnameDetailPage
 import InvoiceListPage from './features/invoices/InvoiceListPage'
 import InvoiceFormPage from './features/invoices/InvoiceFormPage'
 import InvoiceDetailPage from './features/invoices/InvoiceDetailPage'
+import PurchaseDetailPage from './features/purchases/PurchaseDetailPage'
 import InvoicePrintPage from './features/invoices/InvoicePrintPage'
 import AllInvoicesListPage from './features/invoices/AllInvoicesListPage'
 import ReturnListPage from './features/returns/ReturnListPage'
@@ -179,7 +180,7 @@ export default function App() {
 
               <Route path="/purchases" element={<InvoiceListPage kind="purchase" title="Purchase" />} />
               <Route path="/purchases/new" element={<InvoiceFormPage kind="purchase" title="Purchase" />} />
-              <Route path="/purchases/:id" element={<InvoiceDetailPage kind="purchase" title="Purchase" />} />
+              <Route path="/purchases/:id" element={<PurchaseDetailPage />} />
               <Route path="/purchases/:id/edit" element={<InvoiceFormPage kind="purchase" title="Purchase" />} />
 
               <Route path="/invoices" element={<AllInvoicesListPage />} />
