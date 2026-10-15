@@ -40,7 +40,8 @@ export default function CostLayerListPage() {
   const columns: DataTableColumn<CostLayer>[] = [
     { key: 'created_at', header: 'Tanggal', render: (row) => formatTimestamp(row.created_at) },
     { key: 'warehouse_id', header: 'Warehouse ID', render: (row) => row.warehouse_id },
-    { key: 'item_id', header: 'Item ID', render: (row) => row.item_id },
+    { key: 'sku', header: 'SKU', render: (row) => row.sku ?? `#${row.item_id}` },
+    { key: 'item_name', header: 'Nama Item', render: (row) => row.item_name ?? '-' },
     {
       key: 'quantity_received',
       header: 'Qty Masuk',
