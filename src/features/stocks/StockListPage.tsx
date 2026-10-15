@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { DataTable } from '../../components/DataTable'
 import type { DataTableColumn } from '../../components/DataTable'
 import { Pagination } from '../../components/Pagination'
@@ -9,7 +9,11 @@ import { WarehouseSelect } from '../../components/WarehouseSelect'
 import { ItemPicker } from '../../components/ItemPicker'
 import { formatNumber } from '../../utils/money'
 import { formatTimestamp } from '../../utils/date'
-import { listLowStock, listOutOfStock, listStocks } from '../../api/stocks'
+import { exportStocks, listLowStock, listOutOfStock, listStocks } from '../../api/stocks'
+import type { StockExportFormat } from '../../api/stocks'
+import { getErrorMessage } from '../../api/errors'
+import { useToast } from '../../hooks/useToast'
+import { downloadBlob } from '../../utils/download'
 import type { Stock } from '../../types/stock'
 
 type Tab = 'all' | 'low' | 'out'
@@ -25,6 +29,19 @@ export default function StockListPage() {
   const [page, setPage] = useState(1)
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
   const [itemId, setItemId] = useState<number | null>(null)
+  const [exportFormat, setExportFormat] = useState<StockExportFormat>('pdf')
+  const toast = useToast()
+
+  // Export mengikuti tab yang aktif (Semua / Low Stock / Out of Stock) dan filter warehouse; filter item
+  // tidak ikut (backend tidak mendukungnya) dan paginasi tidak berlaku — semua baris masuk satu file.
+  const exportMutation = useMutation({
+    mutationFn: () => exportStocks({ status: tab, format: exportFormat, warehouse_id: warehouseId ?? undefined }),
+    onSuccess: ({ blob, filename }) => {
+      downloadBlob(blob, filename ?? `stocks-export${tab === 'all' ? '' : `-${tab}`}.${exportFormat}`)
+      toast.show('Export berhasil diunduh.', 'success')
+    },
+    onError: (err) => toast.show(getErrorMessage(err), 'error'),
+  })
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['stocks', tab, warehouseId, itemId, page],
@@ -62,7 +79,30 @@ export default function StockListPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-slate-900">Stocks</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-slate-900">Stocks</h1>
+        <div className="flex items-center gap-2">
+          <select
+            aria-label="Format export"
+            value={exportFormat}
+            onChange={(e) => setExportFormat(e.target.value as StockExportFormat)}
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
+          >
+            <option value="pdf">PDF</option>
+            <option value="xlsx">XLSX</option>
+            <option value="csv">CSV</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => exportMutation.mutate()}
+            disabled={exportMutation.isPending}
+            title="Export mengikuti tab dan filter warehouse yang aktif (filter item tidak ikut)"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {exportMutation.isPending ? 'Menyiapkan...' : `Export ${TABS.find((t) => t.key === tab)?.label}`}
+          </button>
+        </div>
+      </div>
 
       <div className="mb-4 flex gap-1 border-b border-slate-200">
         {TABS.map((t) => (
