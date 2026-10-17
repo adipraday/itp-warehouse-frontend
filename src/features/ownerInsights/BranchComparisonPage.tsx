@@ -17,14 +17,16 @@ import { hasMultipleBuIds } from '../../utils/bu'
 import { downloadXlsx, reportFileName } from '../../utils/exportXlsx'
 import { branchComparisonSheets } from './exportSheets'
 import type { BranchPerformance } from '../../types/dashboard'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 type SortKey = 'sales_total' | 'gross_margin_pct' | 'sales_growth_pct' | 'stock_alerts'
 
 const SORT_LABEL: Record<SortKey, string> = {
-  sales_total: 'Penjualan terbesar',
-  gross_margin_pct: 'Margin tertinggi',
-  sales_growth_pct: 'Pertumbuhan tertinggi',
-  stock_alerts: 'Stok kritis terbanyak',
+  sales_total: tk('Penjualan terbesar'),
+  gross_margin_pct: tk('Margin tertinggi'),
+  sales_growth_pct: tk('Pertumbuhan tertinggi'),
+  stock_alerts: tk('Stok kritis terbanyak'),
 }
 
 function sortValue(row: BranchPerformance, key: SortKey): number {
@@ -43,12 +45,13 @@ function sortValue(row: BranchPerformance, key: SortKey): number {
 
 // Teks + panah, bukan warna saja — naik/turun tetap terbaca tanpa membedakan warna.
 function Growth({ pct }: { pct: number | null }) {
-  if (pct == null) return <span className="text-slate-400">Belum ada pembanding</span>
-  if (pct === 0) return <span className="text-slate-500">Sama dengan periode lalu</span>
+  const { t } = useI18n()
+  if (pct == null) return <span className="text-slate-400">{t('Belum ada pembanding')}</span>
+  if (pct === 0) return <span className="text-slate-500">{t('Sama dengan periode lalu')}</span>
   const up = pct > 0
   return (
     <span className={up ? 'font-medium text-emerald-600' : 'font-medium text-red-600'}>
-      {up ? '▲ naik' : '▼ turun'} {Math.abs(pct)}%
+      {up ? t('▲ naik') : t('▼ turun')} {Math.abs(pct)}%
     </span>
   )
 }
@@ -57,6 +60,7 @@ function Growth({ pct }: { pct: number | null }) {
 // BU perusahaannya). Datanya satu panggilan `GET /dashboard/branches`; periode pembanding
 // (rentang sama panjang tepat sebelum rentang terpilih) dihitung backend.
 export default function BranchComparisonPage() {
+  const { t } = useI18n()
   const { canViewHpp } = usePermissions()
   const [from, setFrom] = useState(daysAgoISO(29))
   const [to, setTo] = useState(todayISO())
@@ -80,7 +84,7 @@ export default function BranchComparisonPage() {
     { key: 'rank', header: '#', render: (row) => branches.indexOf(row) + 1 },
     {
       key: 'name',
-      header: 'Cabang',
+      header: t('Cabang'),
       render: (row) => (
         <div>
           <p className="font-medium text-slate-900">{row.name}</p>
@@ -89,29 +93,29 @@ export default function BranchComparisonPage() {
       ),
     },
     ...(showBu
-      ? [{ key: 'bu_id', header: 'BU', render: (row: BranchPerformance) => <BuLabel buId={row.bu_id} /> }]
+      ? [{ key: 'bu_id', header: t('BU'), render: (row: BranchPerformance) => <BuLabel buId={row.bu_id} /> }]
       : []),
     {
       key: 'sales_total',
-      header: 'Penjualan',
+      header: t('Penjualan'),
       className: 'text-right',
       render: (row) => (
         <div>
           <p className="font-mono">{formatRupiah(row.sales_total)}</p>
-          <p className="text-xs text-slate-400">{formatNumber(row.sales_count)} transaksi</p>
+          <p className="text-xs text-slate-400">{formatNumber(row.sales_count)} {t('transaksi')}</p>
         </div>
       ),
     },
     {
       key: 'growth',
-      header: 'Dibanding periode lalu',
+      header: t('Dibanding periode lalu'),
       render: (row) => <Growth pct={row.sales_growth_pct} />,
     },
     ...(canViewHpp()
       ? [
           {
             key: 'margin',
-            header: 'Margin',
+            header: t('Margin'),
             className: 'text-right',
             render: (row: BranchPerformance) => (
               <div>
@@ -122,18 +126,18 @@ export default function BranchComparisonPage() {
           },
         ]
       : []),
-    { key: 'stock_value', header: 'Nilai Stok', className: 'text-right', render: (row) => formatRupiah(row.stock_value) },
+    { key: 'stock_value', header: t('Nilai Stok'), className: 'text-right', render: (row) => formatRupiah(row.stock_value) },
     {
       key: 'stock_alerts',
-      header: 'Stok Kritis',
+      header: t('Stok Kritis'),
       render: (row) =>
         row.low_stock_count + row.out_of_stock_count === 0 ? (
-          <span className="text-slate-400">Aman</span>
+          <span className="text-slate-400">{t('Aman')}</span>
         ) : (
           <span className="font-medium text-amber-600">
-            {row.out_of_stock_count > 0 && `${formatNumber(row.out_of_stock_count)} habis`}
+            {row.out_of_stock_count > 0 && t('{v1} habis', { v1: formatNumber(row.out_of_stock_count) })}
             {row.out_of_stock_count > 0 && row.low_stock_count > 0 && ', '}
-            {row.low_stock_count > 0 && `${formatNumber(row.low_stock_count)} menipis`}
+            {row.low_stock_count > 0 && t('{v1} menipis', { v1: formatNumber(row.low_stock_count) })}
           </span>
         ),
     },
@@ -149,12 +153,12 @@ export default function BranchComparisonPage() {
 
   return (
     <div>
-      <ReportPrintHeader title="Perbandingan Cabang" subtitle={`Periode ${formatDate(from)} – ${formatDate(to)}`} />
+      <ReportPrintHeader title={t('Perbandingan Cabang')} subtitle={t('Periode {v1} – {v2}', { v1: formatDate(from), v2: formatDate(to) })} />
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
         <div>
-          <h1 className="mb-1 text-xl font-semibold text-slate-900">Perbandingan Cabang</h1>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">{t('Perbandingan Cabang')}</h1>
           <p className="text-sm text-slate-500">
-            Penjualan, margin, dan kondisi stok semua cabang dalam satu tampilan.
+            {t('Penjualan, margin, dan kondisi stok semua cabang dalam satu tampilan.')}
           </p>
         </div>
         <ReportActions onExcel={exportExcel} disabled={!comparison} />
@@ -162,16 +166,16 @@ export default function BranchComparisonPage() {
 
       <FilterBar>
         <div className="w-40">
-          <TextField label="Dari" type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+          <TextField label={t('Dari')} type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
         </div>
         <div className="w-40">
-          <TextField label="Sampai" type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+          <TextField label={t('Sampai')} type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
         </div>
         <div className="flex gap-2 pb-0.5">
           {[
-            { label: '7 hari', days: 6 },
-            { label: '30 hari', days: 29 },
-            { label: '90 hari', days: 89 },
+            { label: t('7 hari'), days: 6 },
+            { label: t('30 hari'), days: 29 },
+            { label: t('90 hari'), days: 89 },
           ].map((preset) => (
             <button
               key={preset.label}
@@ -187,19 +191,19 @@ export default function BranchComparisonPage() {
           ))}
         </div>
         <div className="w-56">
-          <SelectField label="Urutkan" value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
+          <SelectField label={t('Urutkan')} value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
             {(Object.keys(SORT_LABEL) as SortKey[])
               .filter((key) => key !== 'gross_margin_pct' || canViewHpp())
               .map((key) => (
                 <option key={key} value={key}>
-                  {SORT_LABEL[key]}
+                  {t(SORT_LABEL[key])}
                 </option>
               ))}
           </SelectField>
         </div>
       </FilterBar>
 
-      {!rangeValid && <p className="mt-4 text-sm text-red-600">Tanggal awal tidak boleh setelah tanggal akhir.</p>}
+      {!rangeValid && <p className="mt-4 text-sm text-red-600">{t('Tanggal awal tidak boleh setelah tanggal akhir.')}</p>}
 
       {isError ? (
         <div className="mt-4">
@@ -209,43 +213,43 @@ export default function BranchComparisonPage() {
         rangeValid && (
           <>
             <p className="mt-4 text-xs text-slate-500">
-              Periode {formatDate(comparison?.period.from ?? from)} – {formatDate(comparison?.period.to ?? to)}
+              {t('Periode')} {formatDate(comparison?.period.from ?? from)} – {formatDate(comparison?.period.to ?? to)}
               {comparison &&
-                `, dibanding ${formatDate(comparison.period.previous_from)} – ${formatDate(comparison.period.previous_to)}`}
+                t(', dibanding {v1} – {v2}', { v1: formatDate(comparison.period.previous_from), v2: formatDate(comparison.period.previous_to) })}
             </p>
 
             <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
               <StatCard
-                label="Total Penjualan"
+                label={t('Total Penjualan')}
                 value={totals ? formatRupiah(totals.sales_total) : '...'}
                 hint={
                   totals
                     ? totals.sales_growth_pct == null
-                      ? `${formatNumber(totals.sales_count)} transaksi`
-                      : `${formatNumber(totals.sales_count)} transaksi · ${totals.sales_growth_pct >= 0 ? 'naik' : 'turun'} ${Math.abs(totals.sales_growth_pct)}%`
+                      ? t('{v1} transaksi', { v1: formatNumber(totals.sales_count) })
+                      : t('{v1} transaksi · {v2} {v3}%', { v1: formatNumber(totals.sales_count), v2: totals.sales_growth_pct >= 0 ? 'naik' : 'turun', v3: Math.abs(totals.sales_growth_pct) })
                     : undefined
                 }
               />
               {canViewHpp() && (
                 <StatCard
-                  label="Gross Profit"
+                  label={t('Gross Profit')}
                   value={totals ? formatRupiah(totals.gross_profit) : '...'}
-                  hint={totals ? `Margin ${totals.gross_margin_pct}%` : undefined}
+                  hint={totals ? t('Margin {gross_margin_pct}%', { gross_margin_pct: totals.gross_margin_pct }) : undefined}
                   tone="good"
                 />
               )}
-              <StatCard label="Nilai Stok" value={totals ? formatRupiah(totals.stock_value) : '...'} />
+              <StatCard label={t('Nilai Stok')} value={totals ? formatRupiah(totals.stock_value) : '...'} />
               <StatCard
-                label="Stok Kritis"
+                label={t('Stok Kritis')}
                 value={totals ? formatNumber(totals.low_stock_count + totals.out_of_stock_count) : '...'}
-                hint={totals ? `${formatNumber(totals.out_of_stock_count)} habis, ${formatNumber(totals.low_stock_count)} menipis` : undefined}
+                hint={totals ? t('{v1} habis, {v2} menipis', { v1: formatNumber(totals.out_of_stock_count), v2: formatNumber(totals.low_stock_count) }) : undefined}
                 tone={totals && totals.low_stock_count + totals.out_of_stock_count > 0 ? 'warn' : 'default'}
               />
             </div>
 
             {branches.some((b) => parseMoney(b.sales_total) > 0) && (
               <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
-                <p className="mb-3 text-xs text-slate-500">Penjualan per cabang (maksimal 8 teratas menurut urutan)</p>
+                <p className="mb-3 text-xs text-slate-500">{t('Penjualan per cabang (maksimal 8 teratas menurut urutan)')}</p>
                 <SimpleBarChart
                   bars={branches.slice(0, 8).map((b) => ({
                     label: b.name,
@@ -262,7 +266,7 @@ export default function BranchComparisonPage() {
                 data={branches}
                 getRowKey={(row) => row.warehouse_id}
                 loading={isLoading}
-                emptyMessage="Belum ada cabang yang bisa ditampilkan."
+                emptyMessage={t('Belum ada cabang yang bisa ditampilkan.')}
               />
             </div>
           </>

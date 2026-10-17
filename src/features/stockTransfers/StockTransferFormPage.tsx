@@ -10,6 +10,7 @@ import { getErrorMessage } from '../../api/errors'
 import { todayISO } from '../../utils/date'
 import { createStockTransfer, getStockTransfer, updateStockTransfer } from '../../api/stockTransfers'
 import type { StockTransferDetailInput } from '../../types/stockTransfer'
+import { useI18n } from '../../i18n/useI18n'
 
 interface DetailRow {
   key: number
@@ -23,6 +24,7 @@ function emptyRow(): DetailRow {
 }
 
 export default function StockTransferFormPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const isEdit = !!id
   const transferId = isEdit ? Number(id) : null
@@ -79,7 +81,7 @@ export default function StockTransferFormPage() {
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['stock-transfers'] })
-      toast.show(isEdit ? 'Stock transfer berhasil diupdate.' : 'Stock transfer berhasil dibuat.', 'success')
+      toast.show(isEdit ? t('Stock transfer berhasil diupdate.') : t('Stock transfer berhasil dibuat.'), 'success')
       navigate(`/stock-transfers/${res.data.id}`)
     },
     onError: (err) => {
@@ -90,20 +92,20 @@ export default function StockTransferFormPage() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!sourceId || !destinationId) {
-      toast.show('Warehouse asal dan tujuan wajib dipilih.', 'error')
+      toast.show(t('Warehouse asal dan tujuan wajib dipilih.'), 'error')
       return
     }
     if (sourceId === destinationId) {
-      toast.show('Warehouse asal dan tujuan tidak boleh sama.', 'error')
+      toast.show(t('Warehouse asal dan tujuan tidak boleh sama.'), 'error')
       return
     }
     const validRows = rows.filter((r) => r.item_id !== null && Number(r.quantity) > 0)
     if (validRows.length === 0) {
-      toast.show('Minimal 1 baris item dengan quantity valid.', 'error')
+      toast.show(t('Minimal 1 baris item dengan quantity valid.'), 'error')
       return
     }
     if (isReversal && !reversalReason.trim()) {
-      toast.show('Alasan reversal wajib diisi.', 'error')
+      toast.show(t('Alasan reversal wajib diisi.'), 'error')
       return
     }
     mutation.mutate()
@@ -118,17 +120,17 @@ export default function StockTransferFormPage() {
   }
 
   if (isEdit && loadingExisting) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   if (isEdit && existing && existing.data.status !== 'DRAFT') {
     return (
       <div>
         <p className="text-sm text-red-600">
-          Dokumen ini berstatus <strong>{existing.data.status}</strong> dan tidak bisa diedit lagi.
+          {t('Dokumen ini berstatus')} <strong>{existing.data.status}</strong> {t('dan tidak bisa diedit lagi.')}
         </p>
         <Link to={`/stock-transfers/${transferId}`} className="mt-2 inline-block text-sm text-blue-600 hover:underline">
-          &larr; Kembali ke detail
+          {t('← Kembali ke detail')}
         </Link>
       </div>
     )
@@ -137,31 +139,31 @@ export default function StockTransferFormPage() {
   return (
     <div>
       <Link to="/stock-transfers" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar stock transfer
+        {t('← Kembali ke daftar stock transfer')}
       </Link>
       <h1 className="mt-2 mb-6 text-xl font-semibold text-slate-900">
-        {isEdit ? 'Edit Stock Transfer' : 'Tambah Stock Transfer'}
+        {isEdit ? t('Edit Stock Transfer') : t('Tambah Stock Transfer')}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <WarehouseSelect
-            label="Dari Warehouse"
+            label={t('Dari Warehouse')}
             required
-            placeholder="-- pilih warehouse asal --"
+            placeholder={t('-- pilih warehouse asal --')}
             value={sourceId}
             onChange={setSourceId}
           />
           <WarehouseSelect
-            label="Ke Warehouse"
+            label={t('Ke Warehouse')}
             required
-            placeholder="-- pilih warehouse tujuan --"
+            placeholder={t('-- pilih warehouse tujuan --')}
             scope="bu"
             value={destinationId}
             onChange={setDestinationId}
           />
           <TextField
-            label="Tanggal Transfer"
+            label={t('Tanggal Transfer')}
             type="date"
             required
             value={transferDate}
@@ -169,10 +171,10 @@ export default function StockTransferFormPage() {
           />
         </div>
         {sourceId !== null && destinationId !== null && sourceId === destinationId && (
-          <p className="text-sm text-red-600">Warehouse asal dan tujuan tidak boleh sama.</p>
+          <p className="text-sm text-red-600">{t('Warehouse asal dan tujuan tidak boleh sama.')}</p>
         )}
 
-        <TextareaField label="Catatan" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextareaField label={t('Catatan')} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
@@ -182,12 +184,12 @@ export default function StockTransferFormPage() {
               onChange={(e) => setIsReversal(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             />
-            Ini adalah dokumen reversal/koreksi
+            {t('Ini adalah dokumen reversal/koreksi')}
           </label>
           {isReversal && (
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextField
-                label="ID Transfer Asal"
+                label={t('ID Transfer Asal')}
                 type="number"
                 min={1}
                 required
@@ -195,7 +197,7 @@ export default function StockTransferFormPage() {
                 onChange={(e) => setReversalOfId(e.target.value)}
               />
               <TextField
-                label="Alasan Reversal"
+                label={t('Alasan Reversal')}
                 required
                 value={reversalReason}
                 onChange={(e) => setReversalReason(e.target.value)}
@@ -206,13 +208,13 @@ export default function StockTransferFormPage() {
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Detail Item</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
             <button
               type="button"
               onClick={() => setRows((prev) => [...prev, emptyRow()])}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
-              + Tambah Baris
+              {t('+ Tambah Baris')}
             </button>
           </div>
 
@@ -224,7 +226,7 @@ export default function StockTransferFormPage() {
                 </div>
                 <div className="col-span-3">
                   <TextField
-                    label="Qty"
+                    label={t('Qty')}
                     type="number"
                     min={0}
                     value={row.quantity}
@@ -238,7 +240,7 @@ export default function StockTransferFormPage() {
                     disabled={rows.length === 1}
                     className="text-sm text-red-600 hover:underline disabled:opacity-30"
                   >
-                    Hapus
+                    {t('Hapus')}
                   </button>
                 </div>
               </div>
@@ -251,14 +253,14 @@ export default function StockTransferFormPage() {
             to="/stock-transfers"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </Link>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

@@ -1,4 +1,5 @@
 import type { PaginationMeta } from '../types/common'
+import { useI18n } from '../i18n/useI18n'
 
 interface PaginationProps {
   meta: PaginationMeta
@@ -6,6 +7,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ meta, onPageChange }: PaginationProps) {
+  const { t } = useI18n()
   const totalPages = Math.max(1, Math.ceil(meta.total / meta.per_page))
   const from = meta.total === 0 ? 0 : (meta.page - 1) * meta.per_page + 1
   const to = Math.min(meta.page * meta.per_page, meta.total)
@@ -13,7 +15,7 @@ export function Pagination({ meta, onPageChange }: PaginationProps) {
   return (
     <div className="flex items-center justify-between px-1 py-3 text-sm text-slate-500">
       <span>
-        Menampilkan {from}-{to} dari {meta.total} data
+        {t('Menampilkan')} {from}-{to} {t('dari')} {meta.total} {t('data')}
       </span>
       <div className="flex gap-2">
         <button
@@ -22,10 +24,10 @@ export function Pagination({ meta, onPageChange }: PaginationProps) {
           disabled={meta.page <= 1}
           className="rounded-md border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Sebelumnya
+          {t('Sebelumnya')}
         </button>
         <span className="px-2 py-1.5">
-          Halaman {meta.page} / {totalPages}
+          {t('Halaman')} {meta.page} / {totalPages}
         </span>
         <button
           type="button"
@@ -33,7 +35,7 @@ export function Pagination({ meta, onPageChange }: PaginationProps) {
           disabled={meta.page >= totalPages}
           className="rounded-md border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Berikutnya
+          {t('Berikutnya')}
         </button>
       </div>
     </div>

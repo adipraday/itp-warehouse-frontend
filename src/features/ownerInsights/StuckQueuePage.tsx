@@ -18,21 +18,23 @@ import { stuckQueueSheets } from './exportSheets'
 import { formatTimestamp, todayISO } from '../../utils/date'
 import { STUCK_GROUP_LABEL, STUCK_KIND_INFO } from './reportLabels'
 import type { StuckQueueGroup, StuckQueueItem } from '../../types/dashboard'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 const GROUP_HINT: Record<StuckQueueGroup, string> = {
-  approval: 'transfer, opname, retur',
-  completion: 'sudah disetujui',
-  draft: 'belum selesai dikerjakan',
-  held: 'kasir menahan transaksi',
+  approval: tk('transfer, opname, retur'),
+  completion: tk('sudah disetujui'),
+  draft: tk('belum selesai dikerjakan'),
+  held: tk('kasir menahan transaksi'),
 }
 
 const AGE_OPTIONS = [
-  { value: 0, label: 'Semua yang sedang menunggu' },
-  { value: 1, label: '1 hari atau lebih' },
-  { value: 2, label: '2 hari atau lebih' },
-  { value: 3, label: '3 hari atau lebih' },
-  { value: 7, label: '7 hari atau lebih' },
-  { value: 14, label: '14 hari atau lebih' },
+  { value: 0, label: tk('Semua yang sedang menunggu') },
+  { value: 1, label: tk('1 hari atau lebih') },
+  { value: 2, label: tk('2 hari atau lebih') },
+  { value: 3, label: tk('3 hari atau lebih') },
+  { value: 7, label: tk('7 hari atau lebih') },
+  { value: 14, label: tk('14 hari atau lebih') },
 ]
 
 const LONG_WAIT_DAYS = 7
@@ -40,6 +42,7 @@ const LONG_WAIT_DAYS = 7
 // Antrean Macet — dokumen yang diam di status "ada yang harus bertindak", terlama dulu. Owner
 // hanya memantau (tidak ada tombol aksi): klik nomor dokumen membuka detailnya.
 export default function StuckQueuePage() {
+  const { t } = useI18n()
   const [minAge, setMinAge] = useState(2)
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
 
@@ -69,38 +72,38 @@ export default function StuckQueuePage() {
   const columns: DataTableColumn<StuckQueueItem>[] = [
     {
       key: 'age',
-      header: 'Menunggu',
+      header: t('Menunggu'),
       render: (row) => (
         <span className={row.age_days >= LONG_WAIT_DAYS ? 'font-medium text-red-600' : 'text-slate-700'}>
-          {row.age_days === 0 ? 'Hari ini' : `${formatNumber(row.age_days)} hari`}
-          {row.age_days >= LONG_WAIT_DAYS && ' (lama)'}
+          {row.age_days === 0 ? t('Hari ini') : t('{v1} hari', { v1: formatNumber(row.age_days) })}
+          {row.age_days >= LONG_WAIT_DAYS && t(' (lama)')}
         </span>
       ),
     },
     {
       key: 'document',
-      header: 'Dokumen',
+      header: t('Dokumen'),
       render: (row) => (
         <div>
           <Link to={STUCK_KIND_INFO[row.kind].path(row.document_id)} className="font-medium text-blue-600 hover:underline">
             {row.document_number}
           </Link>
-          <p className="text-xs text-slate-400">{STUCK_KIND_INFO[row.kind].label}</p>
+          <p className="text-xs text-slate-400">{t(STUCK_KIND_INFO[row.kind].label)}</p>
         </div>
       ),
     },
-    { key: 'status', header: 'Status', render: (row) => STUCK_KIND_INFO[row.kind].status },
+    { key: 'status', header: t('Status'), render: (row) => STUCK_KIND_INFO[row.kind].status },
     {
       key: 'warehouse',
-      header: 'Cabang',
+      header: t('Cabang'),
       render: (row) =>
         row.to_warehouse_id == null
           ? warehouseName(row.warehouse_id)
           : `${warehouseName(row.warehouse_id)} → ${warehouseName(row.to_warehouse_id)}`,
     },
-    { key: 'waitingOn', header: 'Menunggu tindakan', render: (row) => STUCK_KIND_INFO[row.kind].waitingOn },
-    { key: 'since', header: 'Sejak', render: (row) => formatTimestamp(row.waiting_since) },
-    { key: 'creator', header: 'Dibuat oleh', render: (row) => userName(row.created_by) },
+    { key: 'waitingOn', header: t('Menunggu tindakan'), render: (row) => STUCK_KIND_INFO[row.kind].waitingOn },
+    { key: 'since', header: t('Sejak'), render: (row) => formatTimestamp(row.waiting_since) },
+    { key: 'creator', header: t('Dibuat oleh'), render: (row) => userName(row.created_by) },
   ]
 
   async function exportExcel() {
@@ -113,12 +116,12 @@ export default function StuckQueuePage() {
 
   return (
     <div>
-      <ReportPrintHeader title="Antrean Macet" subtitle={`Menunggu ${minAge === 0 ? 'sekarang' : `${minAge} hari atau lebih`}`} />
+      <ReportPrintHeader title={t('Antrean Macet')} subtitle={minAge === 0 ? t('Menunggu sekarang') : t('Menunggu {minAge} hari atau lebih', { minAge })} />
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
         <div>
-          <h1 className="mb-1 text-xl font-semibold text-slate-900">Antrean Macet</h1>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">{t('Antrean Macet')}</h1>
           <p className="text-sm text-slate-500">
-            Dokumen yang menunggu tindakan seseorang, terlama dulu. Anda memantau; penyelesaiannya oleh yang berwenang.
+            {t('Dokumen yang menunggu tindakan seseorang, terlama dulu. Anda memantau; penyelesaiannya oleh yang berwenang.')}
           </p>
         </div>
         <ReportActions onExcel={exportExcel} disabled={!queue} />
@@ -126,16 +129,16 @@ export default function StuckQueuePage() {
 
       <FilterBar>
         <div className="w-64">
-          <SelectField label="Sudah menunggu" value={minAge} onChange={(e) => setMinAge(Number(e.target.value))}>
+          <SelectField label={t('Sudah menunggu')} value={minAge} onChange={(e) => setMinAge(Number(e.target.value))}>
             {AGE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </option>
             ))}
           </SelectField>
         </div>
         <div className="w-56">
-          <WarehouseSelect label="Cabang" placeholder="Semua cabang" value={warehouseId} onChange={setWarehouseId} />
+          <WarehouseSelect label={t('Cabang')} placeholder={t('Semua cabang')} value={warehouseId} onChange={setWarehouseId} />
         </div>
       </FilterBar>
 
@@ -162,8 +165,7 @@ export default function StuckQueuePage() {
 
           {queue?.summary.truncated && (
             <p className="mt-3 text-xs text-slate-500">
-              Menampilkan {formatNumber(queue.items.length)} dokumen terlama dari {formatNumber(queue.summary.total)}.
-              Persempit dengan cabang atau umur minimal untuk melihat sisanya.
+              {t('Menampilkan')} {formatNumber(queue.items.length)} {t('dokumen terlama dari')} {formatNumber(queue.summary.total)}{t('. Persempit dengan cabang atau umur minimal untuk melihat sisanya.')}
             </p>
           )}
 
@@ -175,8 +177,8 @@ export default function StuckQueuePage() {
               loading={isLoading}
               emptyMessage={
                 minAge === 0
-                  ? 'Tidak ada dokumen yang sedang menunggu. Semua lancar.'
-                  : `Tidak ada dokumen yang menunggu ${minAge} hari atau lebih. Semua lancar.`
+                  ? t('Tidak ada dokumen yang sedang menunggu. Semua lancar.')
+                  : t('Tidak ada dokumen yang menunggu {minAge} hari atau lebih. Semua lancar.', { minAge })
               }
             />
           </div>

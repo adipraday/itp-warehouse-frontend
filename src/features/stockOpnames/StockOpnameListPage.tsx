@@ -14,10 +14,12 @@ import { listStockOpnames } from '../../api/stockOpnames'
 import { listWarehouses } from '../../api/warehouses'
 import type { StockOpname, StockOpnameStatus } from '../../types/stockOpname'
 import { usePermissions } from '../../auth/permissions'
+import { useI18n } from '../../i18n/useI18n'
 
 const STATUS_OPTIONS: StockOpnameStatus[] = ['DRAFT', 'SUBMITTED', 'APPROVED', 'CANCELLED']
 
 export default function StockOpnameListPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const canCreate = canWrite('stock-opnames')
   const [page, setPage] = useState(1)
@@ -49,29 +51,29 @@ export default function StockOpnameListPage() {
   const columns: DataTableColumn<StockOpname>[] = [
     {
       key: 'opname_number',
-      header: 'No. Opname',
+      header: t('No. Opname'),
       render: (row) => (
         <Link to={`/stock-opnames/${row.id}`} className="font-medium text-blue-600 hover:underline">
           {row.opname_number}
         </Link>
       ),
     },
-    { key: 'warehouse', header: 'Warehouse', render: (row) => warehouseLabel(row.warehouse_id) },
-    { key: 'opname_date', header: 'Tanggal', render: (row) => formatDate(row.opname_date) },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-    { key: 'notes', header: 'Catatan', render: (row) => row.notes ?? '-' },
+    { key: 'warehouse', header: t('Warehouse'), render: (row) => warehouseLabel(row.warehouse_id) },
+    { key: 'opname_date', header: t('Tanggal'), render: (row) => formatDate(row.opname_date) },
+    { key: 'status', header: t('Status'), render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'notes', header: t('Catatan'), render: (row) => row.notes ?? '-' },
   ]
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Stock Opnames</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Stock Opnames')}</h1>
         {canCreate && (
           <Link
             to="/stock-opnames/new"
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            + Tambah Opname
+            {t('+ Tambah Opname')}
           </Link>
         )}
       </div>
@@ -82,11 +84,11 @@ export default function StockOpnameListPage() {
         </div>
         <div className="w-40">
           <SelectField
-            label="Status"
+            label={t('Status')}
             value={status}
             onChange={(e) => resetPage(setStatus)(e.target.value as StockOpnameStatus | '')}
           >
-            <option value="">Semua</option>
+            <option value="">{t('Semua')}</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -106,7 +108,7 @@ export default function StockOpnameListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Belum ada stock opname."
+              emptyMessage={t('Belum ada stock opname.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

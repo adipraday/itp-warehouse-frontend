@@ -1,4 +1,5 @@
 import { formatRupiah } from '../utils/money'
+import { useI18n } from '../i18n/useI18n'
 
 interface Point {
   label: string
@@ -21,8 +22,9 @@ const PAD_BOTTOM = 24
  * numpuk kalau rentang tanggal panjang (mis. 1 bulan = 30 titik).
  */
 export function SimpleLineChart({ points, colorClass = 'stroke-blue-500' }: { points: Point[]; colorClass?: string }) {
+  const { t } = useI18n()
   if (points.length === 0) {
-    return <p className="py-10 text-center text-sm text-slate-400">Tidak ada data pada rentang ini.</p>
+    return <p className="py-10 text-center text-sm text-slate-400">{t('Tidak ada data pada rentang ini.')}</p>
   }
 
   const max = Math.max(...points.map((p) => p.value), 1)

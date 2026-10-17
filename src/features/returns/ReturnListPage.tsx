@@ -14,10 +14,13 @@ import { listReturns } from '../../api/returns'
 import { listWarehouses } from '../../api/warehouses'
 import type { ReturnDocument, ReturnStatus, ReturnType } from '../../types/return'
 import { usePermissions } from '../../auth/permissions'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 const STATUS_OPTIONS: ReturnStatus[] = ['DRAFT', 'APPROVED', 'COMPLETED', 'REJECTED', 'CANCELLED']
 
 export default function ReturnListPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const canCreate = canWrite('returns')
   const [page, setPage] = useState(1)
@@ -55,30 +58,30 @@ export default function ReturnListPage() {
   const columns: DataTableColumn<ReturnDocument>[] = [
     {
       key: 'return_number',
-      header: 'No. Retur',
+      header: t('No. Retur'),
       render: (row) => (
         <Link to={`/returns/${row.id}`} className="font-medium text-blue-600 hover:underline">
           {row.return_number}
         </Link>
       ),
     },
-    { key: 'type', header: 'Tipe', render: (row) => (row.type === 'RETURN_CUSTOMER' ? 'Dari Customer' : 'Ke Supplier') },
-    { key: 'warehouse', header: 'Warehouse', render: (row) => warehouseLabel(row.warehouse_id) },
-    { key: 'return_date', header: 'Tanggal', render: (row) => formatDate(row.return_date) },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-    { key: 'reason', header: 'Alasan', render: (row) => row.reason ?? '-' },
+    { key: 'type', header: t('Tipe'), render: (row) => (row.type === 'RETURN_CUSTOMER' ? translate('Dari Customer') : translate('Ke Supplier')) },
+    { key: 'warehouse', header: t('Warehouse'), render: (row) => warehouseLabel(row.warehouse_id) },
+    { key: 'return_date', header: t('Tanggal'), render: (row) => formatDate(row.return_date) },
+    { key: 'status', header: t('Status'), render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'reason', header: t('Alasan'), render: (row) => row.reason ?? '-' },
   ]
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Returns</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Returns')}</h1>
         {canCreate && (
           <Link
             to="/returns/new"
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            + Tambah Retur
+            {t('+ Tambah Retur')}
           </Link>
         )}
       </div>
@@ -88,19 +91,19 @@ export default function ReturnListPage() {
           <WarehouseSelect value={warehouseId} onChange={resetPage(setWarehouseId)} />
         </div>
         <div className="w-48">
-          <SelectField label="Tipe" value={type} onChange={(e) => resetPage(setType)(e.target.value as ReturnType | '')}>
-            <option value="">Semua</option>
-            <option value="RETURN_CUSTOMER">Dari Customer</option>
-            <option value="RETURN_SUPPLIER">Ke Supplier</option>
+          <SelectField label={t('Tipe')} value={type} onChange={(e) => resetPage(setType)(e.target.value as ReturnType | '')}>
+            <option value="">{t('Semua')}</option>
+            <option value="RETURN_CUSTOMER">{t('Dari Customer')}</option>
+            <option value="RETURN_SUPPLIER">{t('Ke Supplier')}</option>
           </SelectField>
         </div>
         <div className="w-40">
           <SelectField
-            label="Status"
+            label={t('Status')}
             value={status}
             onChange={(e) => resetPage(setStatus)(e.target.value as ReturnStatus | '')}
           >
-            <option value="">Semua</option>
+            <option value="">{t('Semua')}</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -120,7 +123,7 @@ export default function ReturnListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Belum ada retur."
+              emptyMessage={t('Belum ada retur.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

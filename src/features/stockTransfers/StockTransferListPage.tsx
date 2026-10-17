@@ -14,10 +14,12 @@ import { listStockTransfers } from '../../api/stockTransfers'
 import { listWarehouses } from '../../api/warehouses'
 import type { StockTransfer, StockTransferStatus } from '../../types/stockTransfer'
 import { usePermissions } from '../../auth/permissions'
+import { useI18n } from '../../i18n/useI18n'
 
 const STATUS_OPTIONS: StockTransferStatus[] = ['DRAFT', 'APPROVED', 'COMPLETED', 'CANCELLED']
 
 export default function StockTransferListPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const canCreate = canWrite('stock-transfers')
   const [page, setPage] = useState(1)
@@ -55,7 +57,7 @@ export default function StockTransferListPage() {
   const columns: DataTableColumn<StockTransfer>[] = [
     {
       key: 'transfer_number',
-      header: 'No. Transfer',
+      header: t('No. Transfer'),
       render: (row) => (
         <Link to={`/stock-transfers/${row.id}`} className="font-medium text-blue-600 hover:underline">
           {row.transfer_number}
@@ -64,46 +66,46 @@ export default function StockTransferListPage() {
     },
     {
       key: 'route',
-      header: 'Rute',
+      header: t('Rute'),
       render: (row) => (
         <span>
           {warehouseLabel(row.source_warehouse_id)} &rarr; {warehouseLabel(row.destination_warehouse_id)}
         </span>
       ),
     },
-    { key: 'transfer_date', header: 'Tanggal', render: (row) => formatDate(row.transfer_date) },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-    { key: 'notes', header: 'Catatan', render: (row) => row.notes ?? '-' },
+    { key: 'transfer_date', header: t('Tanggal'), render: (row) => formatDate(row.transfer_date) },
+    { key: 'status', header: t('Status'), render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'notes', header: t('Catatan'), render: (row) => row.notes ?? '-' },
   ]
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Stock Transfers</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Stock Transfers')}</h1>
         {canCreate && (
           <Link
             to="/stock-transfers/new"
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            + Tambah Transfer
+            {t('+ Tambah Transfer')}
           </Link>
         )}
       </div>
 
       <FilterBar>
         <div className="w-56">
-          <WarehouseSelect label="Dari Warehouse" value={sourceId} onChange={resetPage(setSourceId)} />
+          <WarehouseSelect label={t('Dari Warehouse')} value={sourceId} onChange={resetPage(setSourceId)} />
         </div>
         <div className="w-56">
-          <WarehouseSelect label="Ke Warehouse" value={destinationId} onChange={resetPage(setDestinationId)} />
+          <WarehouseSelect label={t('Ke Warehouse')} value={destinationId} onChange={resetPage(setDestinationId)} />
         </div>
         <div className="w-40">
           <SelectField
-            label="Status"
+            label={t('Status')}
             value={status}
             onChange={(e) => resetPage(setStatus)(e.target.value as StockTransferStatus | '')}
           >
-            <option value="">Semua</option>
+            <option value="">{t('Semua')}</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -123,7 +125,7 @@ export default function StockTransferListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Belum ada stock transfer."
+              emptyMessage={t('Belum ada stock transfer.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

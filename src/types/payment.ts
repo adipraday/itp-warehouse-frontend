@@ -1,3 +1,4 @@
+import { tk, translate } from '../i18n/i18n'
 // §23 frontend-integration-guide.md (2026-09-13) — payment_method sekarang enum wajib di
 // backend (nilai teks bebas ditolak 400 VALIDATION_ERROR). Data LAMA yang sempat tersimpan
 // sebelum enum ini ada (mis. "Cash"/"transfer") tetap tampil apa adanya di response — enum cuma
@@ -7,20 +8,20 @@
 export type PaymentMethod = 'CASH' | 'QRIS' | 'DEBIT' | 'CREDIT' | 'TRANSFER' | 'EWALLET' | 'OTHER'
 
 export const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: 'CASH', label: 'Tunai (Cash)' },
+  { value: 'CASH', label: tk('Tunai (Cash)') },
   { value: 'QRIS', label: 'QRIS' },
-  { value: 'DEBIT', label: 'Kartu Debit' },
-  { value: 'CREDIT', label: 'Kartu Kredit' },
-  { value: 'TRANSFER', label: 'Transfer Bank' },
+  { value: 'DEBIT', label: tk('Kartu Debit') },
+  { value: 'CREDIT', label: tk('Kartu Kredit') },
+  { value: 'TRANSFER', label: tk('Transfer Bank') },
   { value: 'EWALLET', label: 'E-Wallet' },
-  { value: 'OTHER', label: 'Lainnya' },
+  { value: 'OTHER', label: tk('Lainnya') },
 ]
 
 // Data lama (sebelum enum ini ditegakkan) masih bisa berisi teks bebas seperti "Cash"/"transfer"
 // — tampilkan apa adanya kalau tidak cocok satu pun enum yang dikenal. Dipakai di
 // `InvoiceDetailPage` (tabel pembayaran per invoice) dan `CashSessionPage` (breakdown per metode).
 export function paymentMethodLabel(method: string): string {
-  return PAYMENT_METHODS.find((m) => m.value === method)?.label ?? method
+  return translate(PAYMENT_METHODS.find((m) => m.value === method)?.label ?? method)
 }
 
 export interface Payment {

@@ -1,5 +1,6 @@
 import * as authStore from './authStore'
 import { AuthApiError } from './authApi'
+import { translate } from '../i18n/i18n'
 
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL as string
 
@@ -53,12 +54,12 @@ async function request<T>(
         await authStore.refreshAccessToken()
         return request<T>(path, method, body, options, true)
       } catch {
-        const message = json?.message ?? `Request gagal dengan status ${res.status}`
+        const message = json?.message ?? translate('Request gagal dengan status {status}', { status: res.status })
         throw new AuthApiError(message, json?.code ?? 'UNAUTHORIZED', res.status)
       }
     }
 
-    const message = json?.message ?? `Request gagal dengan status ${res.status}`
+    const message = json?.message ?? translate('Request gagal dengan status {status}', { status: res.status })
     const code = json?.code ?? 'AUTH_ERROR'
     throw new AuthApiError(message, code, res.status)
   }

@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { useI18n } from '../i18n/useI18n'
+import { tk } from '../i18n/i18n'
 
 export interface DataTableColumn<T> {
   key: string
@@ -21,9 +23,10 @@ export function DataTable<T>({
   data,
   getRowKey,
   loading = false,
-  emptyMessage = 'Tidak ada data.',
+  emptyMessage = tk('Tidak ada data.'),
   onRowClick,
 }: DataTableProps<T>) {
+  const { t } = useI18n()
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
       <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -34,7 +37,7 @@ export function DataTable<T>({
                 key={col.key}
                 className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 ${col.className ?? ''}`}
               >
-                {col.header}
+                {t(col.header)}
               </th>
             ))}
           </tr>
@@ -43,14 +46,14 @@ export function DataTable<T>({
           {loading && (
             <tr>
               <td colSpan={columns.length} className="px-4 py-6 text-center text-slate-400">
-                Memuat data...
+                {t('Memuat data...')}
               </td>
             </tr>
           )}
           {!loading && data.length === 0 && (
             <tr>
               <td colSpan={columns.length} className="px-4 py-6 text-center text-slate-400">
-                {emptyMessage}
+                {t(emptyMessage)}
               </td>
             </tr>
           )}

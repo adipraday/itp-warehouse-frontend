@@ -4,6 +4,8 @@ import { Modal } from '../../components/Modal'
 import { useToast } from '../../hooks/useToast'
 import { getErrorMessage } from '../../api/errors'
 import { getSaleReceipt } from '../../api/invoices'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 interface SalesReceiptModalProps {
   open: boolean
@@ -31,6 +33,7 @@ const BLE_CHUNK_SIZE = 100
  * tapi "berhasil connect & tercetak" cuma bisa dikonfirmasi oleh user dengan printer aslinya.
  */
 export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalProps) {
+  const { t } = useI18n()
   const toast = useToast()
   const [paperWidth, setPaperWidth] = useState<58 | 80>(58)
   const [printing, setPrinting] = useState(false)
@@ -50,7 +53,7 @@ export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalPr
   async function handlePrint() {
     if (!data) return
     if (!bluetoothSupported) {
-      toast.show('Browser ini tidak mendukung Web Bluetooth. Pakai Chrome/Edge di desktop atau Android.', 'error')
+      toast.show(t('Browser ini tidak mendukung Web Bluetooth. Pakai Chrome/Edge di desktop atau Android.'), 'error')
       return
     }
     setPrinting(true)
@@ -58,21 +61,21 @@ export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalPr
       const bytes = Uint8Array.from(atob(data.data.escpos_base64), (c) => c.charCodeAt(0))
       const device = await navigator.bluetooth!.requestDevice({ filters: [{ services: [SERVICE_UUID] }] })
       const server = await device.gatt?.connect()
-      if (!server) throw new Error('Gagal terhubung ke printer.')
+      if (!server) throw new Error(translate('Gagal terhubung ke printer.'))
       const service = await server.getPrimaryService(SERVICE_UUID)
       const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID)
       for (let i = 0; i < bytes.length; i += BLE_CHUNK_SIZE) {
         await characteristic.writeValue(bytes.slice(i, i + BLE_CHUNK_SIZE))
         await new Promise((resolve) => setTimeout(resolve, 20))
       }
-      toast.show('Struk terkirim ke printer.', 'success')
+      toast.show(t('Struk terkirim ke printer.'), 'success')
     } catch (err) {
       // User batal pilih device di dialog chooser browser — bukan error sungguhan, jangan
       // tampilkan sebagai kegagalan.
       if (err instanceof DOMException && err.name === 'NotFoundError') {
         // no-op
       } else {
-        toast.show(err instanceof Error ? err.message : 'Gagal mencetak struk.', 'error')
+        toast.show(err instanceof Error ? err.message : t('Gagal mencetak struk.'), 'error')
       }
     } finally {
       setPrinting(false)
@@ -80,13 +83,13 @@ export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalPr
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Cetak Struk">
-      {isLoading && <p className="text-sm text-slate-400">Memuat struk...</p>}
+    <Modal open={open} onClose={onClose} title={t('Cetak Struk')}>
+      {isLoading && <p className="text-sm text-slate-400">{t('Memuat struk...')}</p>}
       {isError && <p className="text-sm text-red-600">{getErrorMessage(error)}</p>}
       {data && (
         <>
           <div className="mb-3 flex items-center gap-2 text-sm">
-            <span className="text-slate-500">Lebar kertas:</span>
+            <span className="text-slate-500">{t('Lebar kertas:')}</span>
             {([58, 80] as const).map((w) => (
               <button
                 key={w}
@@ -98,7 +101,7 @@ export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalPr
                     : 'border-slate-300 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                {w}mm
+                {w}{t('mm')}
               </button>
             ))}
           </div>
@@ -109,8 +112,7 @@ export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalPr
 
           {!bluetoothSupported && (
             <p className="mt-2 text-xs text-amber-600">
-              Browser ini tidak mendukung Web Bluetooth — bisa lihat preview di atas, tapi cetak
-              langsung ke printer thermal cuma jalan di Chrome/Edge (desktop atau Android).
+              {t('Browser ini tidak mendukung Web Bluetooth — bisa lihat preview di atas, tapi cetak langsung ke printer thermal cuma jalan di Chrome/Edge (desktop atau Android).')}
             </p>
           )}
 
@@ -120,7 +122,7 @@ export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalPr
               onClick={onClose}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Tutup
+              {t('Tutup')}
             </button>
             <button
               type="button"
@@ -128,7 +130,7 @@ export function SalesReceiptModal({ open, onClose, saleId }: SalesReceiptModalPr
               disabled={printing || !bluetoothSupported}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {printing ? 'Mencetak...' : 'Cetak via Bluetooth'}
+              {printing ? t('Mencetak...') : t('Cetak via Bluetooth')}
             </button>
           </div>
         </>

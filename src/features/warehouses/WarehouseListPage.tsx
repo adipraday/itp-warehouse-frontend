@@ -14,8 +14,10 @@ import { WarehouseFormModal } from './WarehouseFormModal'
 import { usePermissions } from '../../auth/permissions'
 import { BuLabel } from '../../components/BuLabel'
 import { hasMultipleBuIds } from '../../utils/bu'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function WarehouseListPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const canManage = canWrite('warehouses')
   const [page, setPage] = useState(1)
@@ -35,7 +37,7 @@ export default function WarehouseListPage() {
     mutationFn: (id: number) => deleteWarehouse(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['warehouses'] })
-      toast.show('Warehouse berhasil dihapus.', 'success')
+      toast.show(t('Warehouse berhasil dihapus.'), 'success')
       setDeleting(null)
     },
     onError: (err) => {
@@ -52,20 +54,20 @@ export default function WarehouseListPage() {
   const columns: DataTableColumn<Warehouse>[] = [
     {
       key: 'code',
-      header: 'Kode',
+      header: t('Kode'),
       render: (row) => (
         <Link to={`/warehouses/${row.id}`} className="font-medium text-blue-600 hover:underline">
           {row.code}
         </Link>
       ),
     },
-    { key: 'name', header: 'Nama', render: (row) => row.name },
-    { key: 'address', header: 'Alamat', render: (row) => row.address ?? '-' },
+    { key: 'name', header: t('Nama'), render: (row) => row.name },
+    { key: 'address', header: t('Alamat'), render: (row) => row.address ?? '-' },
     ...(showBuColumn
       ? ([
           {
             key: 'bu',
-            header: 'BU',
+            header: t('BU'),
             render: (row: Warehouse) => <BuLabel buId={row.bu_id} />,
           },
         ] as DataTableColumn<Warehouse>[])
@@ -86,14 +88,14 @@ export default function WarehouseListPage() {
                   }}
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
-                  Edit
+                  {t('Edit')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDeleting(row)}
                   className="text-sm font-medium text-red-600 hover:underline"
                 >
-                  Hapus
+                  {t('Hapus')}
                 </button>
               </div>
             ),
@@ -105,7 +107,7 @@ export default function WarehouseListPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Warehouses</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Warehouses')}</h1>
         {canManage && (
           <button
             type="button"
@@ -115,7 +117,7 @@ export default function WarehouseListPage() {
             }}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            + Tambah Warehouse
+            {t('+ Tambah Warehouse')}
           </button>
         )}
       </div>
@@ -129,7 +131,7 @@ export default function WarehouseListPage() {
             data={data?.data ?? []}
             getRowKey={(row) => row.id}
             loading={isLoading}
-            emptyMessage="Belum ada warehouse."
+            emptyMessage={t('Belum ada warehouse.')}
           />
           {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
         </>
@@ -139,9 +141,9 @@ export default function WarehouseListPage() {
 
       <ConfirmDialog
         open={!!deleting}
-        title="Hapus Warehouse"
-        description={`Yakin mau hapus warehouse "${deleting?.name}"? Aksi ini tidak bisa dibatalkan.`}
-        confirmLabel="Hapus"
+        title={t('Hapus Warehouse')}
+        description={t('Yakin mau hapus warehouse "{name}"? Aksi ini tidak bisa dibatalkan.', { name: deleting?.name })}
+        confirmLabel={t('Hapus')}
         danger
         loading={deleteMutation.isPending}
         onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}

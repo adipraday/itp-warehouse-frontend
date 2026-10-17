@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { SelectField } from './FormField'
 import { listWarehouses } from '../api/warehouses'
+import { translate } from '../i18n/i18n'
 
 interface WarehouseSelectProps {
   label?: string
@@ -13,11 +14,11 @@ interface WarehouseSelectProps {
 }
 
 export function WarehouseSelect({
-  label = 'Warehouse',
+  label = translate('Warehouse'),
   value,
   onChange,
   required,
-  placeholder = 'Semua warehouse',
+  placeholder = translate('Semua warehouse'),
   scope = 'assigned',
 }: WarehouseSelectProps) {
   const { data } = useQuery({

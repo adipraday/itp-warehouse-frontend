@@ -1,3 +1,5 @@
+import { useI18n } from '../i18n/useI18n'
+
 const STATUS_STYLES: Record<string, string> = {
   DRAFT: 'bg-slate-100 text-slate-700',
   SUBMITTED: 'bg-amber-100 text-amber-700',
@@ -25,12 +27,14 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export function StatusBadge({ status }: { status: string }) {
+  // Kode status (COMPLETED, PAID, ...) tampil apa adanya; hanya label berbahasa Indonesia yang diterjemahkan.
+  const { t } = useI18n()
   const style = STATUS_STYLES[status] ?? 'bg-slate-100 text-slate-700'
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[0.7rem] font-semibold tracking-wide ${style}`}
     >
-      {status}
+      {t(status)}
     </span>
   )
 }

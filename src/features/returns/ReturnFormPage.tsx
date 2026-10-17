@@ -13,6 +13,8 @@ import { createReturn, getReturn, updateReturn } from '../../api/returns'
 import { listInvoicesByKind, getInvoiceByKind } from '../../api/invoices'
 import { listInventoryTransactions, getInventoryTransaction } from '../../api/inventoryTransactions'
 import type { ReturnAction, ReturnCondition, ReturnDetailInput, ReturnType } from '../../types/return'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 interface OriginItem {
   item_id: number
@@ -40,12 +42,13 @@ function allowedActions(condition: ReturnCondition, type: ReturnType): ReturnAct
 }
 
 const ACTION_LABEL: Record<ReturnAction, string> = {
-  RESTOCK: 'Masuk stok lagi',
-  REPLACE: 'Ganti barang baru',
-  SCRAP: 'Musnahkan (scrap)',
+  RESTOCK: tk('Masuk stok lagi'),
+  REPLACE: tk('Ganti barang baru'),
+  SCRAP: tk('Musnahkan (scrap)'),
 }
 
 export default function ReturnFormPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const isEdit = !!id
   const returnId = isEdit ? Number(id) : null
@@ -153,7 +156,7 @@ export default function ReturnFormPage() {
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['returns'] })
-      toast.show(isEdit ? 'Retur berhasil diupdate.' : 'Retur berhasil dibuat.', 'success')
+      toast.show(isEdit ? t('Retur berhasil diupdate.') : t('Retur berhasil dibuat.'), 'success')
       navigate(`/returns/${res.data.id}`)
     },
     onError: (err) => {
@@ -164,16 +167,16 @@ export default function ReturnFormPage() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!warehouseId || !contactId) {
-      toast.show('Warehouse dan kontak wajib dipilih.', 'error')
+      toast.show(t('Warehouse dan kontak wajib dipilih.'), 'error')
       return
     }
     if (!originId) {
-      toast.show('Dokumen asal (origin) wajib dipilih.', 'error')
+      toast.show(t('Dokumen asal (origin) wajib dipilih.'), 'error')
       return
     }
     const validRows = rows.filter((r) => r.item_id !== null && Number(r.quantity) > 0)
     if (validRows.length === 0) {
-      toast.show('Minimal 1 baris item dengan quantity valid.', 'error')
+      toast.show(t('Minimal 1 baris item dengan quantity valid.'), 'error')
       return
     }
     mutation.mutate()
@@ -197,17 +200,17 @@ export default function ReturnFormPage() {
   }
 
   if (isEdit && loadingExisting) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   if (isEdit && existing && existing.data.status !== 'DRAFT') {
     return (
       <div>
         <p className="text-sm text-red-600">
-          Dokumen ini berstatus <strong>{existing.data.status}</strong> dan tidak bisa diedit lagi.
+          {t('Dokumen ini berstatus')} <strong>{existing.data.status}</strong> {t('dan tidak bisa diedit lagi.')}
         </p>
         <Link to={`/returns/${returnId}`} className="mt-2 inline-block text-sm text-blue-600 hover:underline">
-          &larr; Kembali ke detail
+          {t('← Kembali ke detail')}
         </Link>
       </div>
     )
@@ -216,17 +219,17 @@ export default function ReturnFormPage() {
   return (
     <div>
       <Link to="/returns" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar retur
+        {t('← Kembali ke daftar retur')}
       </Link>
-      <h1 className="mt-2 mb-6 text-xl font-semibold text-slate-900">{isEdit ? 'Edit Retur' : 'Tambah Retur'}</h1>
+      <h1 className="mt-2 mb-6 text-xl font-semibold text-slate-900">{isEdit ? t('Edit Retur') : t('Tambah Retur')}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <span className="text-sm font-medium text-slate-700">Tipe Retur</span>
+          <span className="text-sm font-medium text-slate-700">{t('Tipe Retur')}</span>
           {isEdit ? (
             <p className="mt-1 text-sm text-slate-900">
-              {type === 'RETURN_CUSTOMER' ? 'Retur dari Customer' : 'Retur ke Supplier'}{' '}
-              <span className="text-slate-400">(tidak bisa diubah setelah dibuat)</span>
+              {type === 'RETURN_CUSTOMER' ? t('Retur dari Customer') : t('Retur ke Supplier')}{' '}
+              <span className="text-slate-400">{t('(tidak bisa diubah setelah dibuat)')}</span>
             </p>
           ) : (
             <div className="mt-2 flex gap-4">
@@ -240,7 +243,7 @@ export default function ReturnFormPage() {
                     setContactId(null)
                   }}
                 />
-                Retur dari Customer (barang balik dari pembeli)
+                {t('Retur dari Customer (barang balik dari pembeli)')}
               </label>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
@@ -252,7 +255,7 @@ export default function ReturnFormPage() {
                     setContactId(null)
                   }}
                 />
-                Retur ke Supplier (barang balik ke pemasok)
+                {t('Retur ke Supplier (barang balik ke pemasok)')}
               </label>
             </div>
           )}
@@ -260,9 +263,9 @@ export default function ReturnFormPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <WarehouseSelect
-            label="Warehouse"
+            label={t('Warehouse')}
             required
-            placeholder="-- pilih warehouse --"
+            placeholder={t('-- pilih warehouse --')}
             value={warehouseId}
             onChange={(v) => {
               setWarehouseId(v)
@@ -270,14 +273,14 @@ export default function ReturnFormPage() {
             }}
           />
           <ContactSelect
-            label={type === 'RETURN_CUSTOMER' ? 'Customer' : 'Supplier'}
+            label={type === 'RETURN_CUSTOMER' ? t('Customer') : t('Supplier')}
             required
             type={type === 'RETURN_CUSTOMER' ? 'customer' : 'supplier'}
             value={contactId}
             onChange={setContactId}
           />
           <TextField
-            label="Tanggal Retur"
+            label={t('Tanggal Retur')}
             type="date"
             required
             value={returnDate}
@@ -287,23 +290,23 @@ export default function ReturnFormPage() {
 
         <div>
           <span className="text-sm font-medium text-slate-700">
-            Dokumen Asal ({type === 'RETURN_CUSTOMER' ? 'Sales invoice yang sudah COMPLETED' : 'Inbound yang sudah COMPLETED'})
+            {t('Dokumen Asal (')}{type === 'RETURN_CUSTOMER' ? t('Sales invoice yang sudah COMPLETED') : t('Inbound yang sudah COMPLETED')})
           </span>
           {isEdit ? (
             <p className="mt-1 text-sm text-slate-900">
-              #{originId} <span className="text-slate-400">(tidak bisa diubah setelah dibuat)</span>
+              #{originId} <span className="text-slate-400">{t('(tidak bisa diubah setelah dibuat)')}</span>
             </p>
           ) : (
             <div className="mt-1 max-w-sm">
               {warehouseId === null ? (
-                <p className="text-sm text-slate-400">Pilih warehouse dulu.</p>
+                <p className="text-sm text-slate-400">{t('Pilih warehouse dulu.')}</p>
               ) : (
                 <select
                   value={originId ?? ''}
                   onChange={(e) => setOriginId(e.target.value ? Number(e.target.value) : null)}
                   className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
-                  <option value="">-- pilih dokumen asal --</option>
+                  <option value="">{t('-- pilih dokumen asal --')}</option>
                   {originOptions?.map((doc) => (
                     <option key={doc.id} value={doc.id}>
                       {doc.label}
@@ -315,24 +318,24 @@ export default function ReturnFormPage() {
           )}
         </div>
 
-        <TextareaField label="Alasan" value={reason} onChange={(e) => setReason(e.target.value)} />
+        <TextareaField label={t('Alasan')} value={reason} onChange={(e) => setReason(e.target.value)} />
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Detail Item</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
             {originId !== null && (
               <button
                 type="button"
                 onClick={() => setRows((prev) => [...prev, emptyRow()])}
                 className="text-sm font-medium text-blue-600 hover:underline"
               >
-                + Tambah Baris
+                {t('+ Tambah Baris')}
               </button>
             )}
           </div>
 
           {originId === null ? (
-            <p className="text-sm text-slate-400">Pilih dokumen asal dulu untuk mulai isi detail item.</p>
+            <p className="text-sm text-slate-400">{t('Pilih dokumen asal dulu untuk mulai isi detail item.')}</p>
           ) : (
             <div className="space-y-3">
               {rows.map((row) => {
@@ -342,11 +345,11 @@ export default function ReturnFormPage() {
                   <div key={row.key} className="grid grid-cols-12 items-end gap-3 rounded-lg border border-slate-200 p-3">
                     <div className="col-span-3">
                       <SelectField
-                        label="Item"
+                        label={t('Item')}
                         value={row.item_id ?? ''}
                         onChange={(e) => updateRow(row.key, { item_id: e.target.value ? Number(e.target.value) : null })}
                       >
-                        <option value="">-- pilih item --</option>
+                        <option value="">{t('-- pilih item --')}</option>
                         {originItems.map((oi) => (
                           <option key={oi.item_id} value={oi.item_id}>
                             {oi.sku} — {oi.name}
@@ -354,12 +357,12 @@ export default function ReturnFormPage() {
                         ))}
                       </SelectField>
                       {originItem && (
-                        <p className="mt-1 text-xs text-slate-400">Qty asli di dokumen: {formatNumber(originItem.quantity)}</p>
+                        <p className="mt-1 text-xs text-slate-400">{t('Qty asli di dokumen:')} {formatNumber(originItem.quantity)}</p>
                       )}
                     </div>
                     <div className="col-span-2">
                       <TextField
-                        label="Qty"
+                        label={t('Qty')}
                         type="number"
                         min={0}
                         value={row.quantity}
@@ -368,24 +371,24 @@ export default function ReturnFormPage() {
                     </div>
                     <div className="col-span-3">
                       <SelectField
-                        label="Kondisi"
+                        label={t('Kondisi')}
                         value={row.condition}
                         onChange={(e) => updateRow(row.key, { condition: e.target.value as ReturnCondition })}
                       >
-                        <option value="GOOD">Baik (GOOD)</option>
-                        <option value="DAMAGED">Rusak (DAMAGED)</option>
+                        <option value="GOOD">{t('Baik (GOOD)')}</option>
+                        <option value="DAMAGED">{t('Rusak (DAMAGED)')}</option>
                       </SelectField>
                     </div>
                     <div className="col-span-3">
                       <SelectField
-                        label="Aksi"
+                        label={t('Aksi')}
                         value={row.action}
                         disabled={options.length === 1}
                         onChange={(e) => updateRow(row.key, { action: e.target.value as ReturnAction })}
                       >
                         {options.map((a) => (
                           <option key={a} value={a}>
-                            {ACTION_LABEL[a]}
+                            {t(ACTION_LABEL[a])}
                           </option>
                         ))}
                       </SelectField>
@@ -397,7 +400,7 @@ export default function ReturnFormPage() {
                         disabled={rows.length === 1}
                         className="text-sm text-red-600 hover:underline disabled:opacity-30"
                       >
-                        Hapus
+                        {t('Hapus')}
                       </button>
                     </div>
                   </div>
@@ -412,14 +415,14 @@ export default function ReturnFormPage() {
             to="/returns"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </Link>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

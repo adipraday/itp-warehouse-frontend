@@ -7,6 +7,7 @@ import { useToast } from '../../hooks/useToast'
 import { getErrorMessage } from '../../api/errors'
 import { createItem, updateItem } from '../../api/items'
 import type { Item, ItemInput } from '../../types/item'
+import { useI18n } from '../../i18n/useI18n'
 
 interface ItemFormModalProps {
   open: boolean
@@ -36,6 +37,7 @@ interface FormState {
 const EMPTY_FORM: FormState = { sku: '', barcode: '', name: '', unit: '', min_stock: '0', selling_price: '0' }
 
 export function ItemFormModal({ open, onClose, item, initialName, initialBarcode, onCreated }: ItemFormModalProps) {
+  const { t } = useI18n()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const queryClient = useQueryClient()
   const toast = useToast()
@@ -61,7 +63,7 @@ export function ItemFormModal({ open, onClose, item, initialName, initialBarcode
     mutationFn: (input: ItemInput) => (item ? updateItem(item.id, input) : createItem(input)),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['items'] })
-      toast.show(item ? 'Item berhasil diupdate.' : 'Item berhasil dibuat.', 'success')
+      toast.show(item ? t('Item berhasil diupdate.') : t('Item berhasil dibuat.'), 'success')
       if (!item) onCreated?.(res.data)
       onClose()
     },
@@ -83,48 +85,48 @@ export function ItemFormModal({ open, onClose, item, initialName, initialBarcode
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={item ? 'Edit Item' : 'Tambah Item'}>
+    <Modal open={open} onClose={onClose} title={item ? t('Edit Item') : t('Tambah Item')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label="SKU"
+          label={t('SKU')}
           required
           maxLength={50}
           value={form.sku}
           onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
-          placeholder="SKU-001"
+          placeholder={t('SKU-001')}
         />
         <TextField
-          label="Barcode (opsional)"
+          label={t('Barcode (opsional)')}
           maxLength={64}
           value={form.barcode}
           onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
           placeholder="8991234567890"
         />
         <TextField
-          label="Nama"
+          label={t('Nama')}
           required
           maxLength={150}
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder="Router TP-Link"
+          placeholder={t('Router TP-Link')}
         />
         <TextField
-          label="Satuan"
+          label={t('Satuan')}
           required
           maxLength={20}
           value={form.unit}
           onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-          placeholder="pcs"
+          placeholder={t('pcs')}
         />
         <TextField
-          label="Min. Stok"
+          label={t('Min. Stok')}
           type="number"
           min={0}
           value={form.min_stock}
           onChange={(e) => setForm((f) => ({ ...f, min_stock: e.target.value }))}
         />
         <TextField
-          label="Harga Jual"
+          label={t('Harga Jual')}
           type="number"
           min={0}
           value={form.selling_price}
@@ -136,14 +138,14 @@ export function ItemFormModal({ open, onClose, item, initialName, initialBarcode
             onClick={onClose}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

@@ -4,6 +4,9 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { TextField } from '../components/FormField'
 import { resetPassword, AuthApiError } from '../auth/authApi'
 import logoIcon from '../assets/logo-icon.png'
+import { useI18n } from '../i18n/useI18n'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { translate } from '../i18n/i18n'
 
 /**
  * §7A auth-backend-requirements.md — konsumsi `?token=` dari link email. Satu endpoint
@@ -13,6 +16,7 @@ import logoIcon from '../assets/logo-icon.png'
  * Sukses me-revoke semua refresh token lama user itu, jadi TIDAK auto-login — arahkan ke /login.
  */
 export default function ResetPasswordPage() {
+  const { t } = useI18n()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
 
@@ -26,11 +30,11 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError('')
     if (password.length < 8) {
-      setError('Password minimal 8 karakter.')
+      setError(translate('Password minimal 8 karakter.'))
       return
     }
     if (password !== confirmPassword) {
-      setError('Konfirmasi password tidak cocok.')
+      setError(translate('Konfirmasi password tidak cocok.'))
       return
     }
     setSubmitting(true)
@@ -41,7 +45,7 @@ export default function ResetPasswordPage() {
       setError(
         err instanceof AuthApiError
           ? err.message
-          : 'Gagal mengatur ulang password. Coba lagi.',
+          : translate('Gagal mengatur ulang password. Coba lagi.'),
       )
     } finally {
       setSubmitting(false)
@@ -50,42 +54,43 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <div className="fixed right-4 top-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center text-center">
-          <img src={logoIcon} alt="Warehouse System" className="h-20 w-20 object-contain" />
-          <h1 className="mt-3 text-lg font-semibold text-slate-900">Atur Ulang Password</h1>
+          <img src={logoIcon} alt={t('Warehouse System')} className="h-20 w-20 object-contain" />
+          <h1 className="mt-3 text-lg font-semibold text-slate-900">{t('Atur Ulang Password')}</h1>
         </div>
 
         {!token ? (
           <div className="mt-6 space-y-4">
             <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-              Link tidak valid — token tidak ditemukan. Minta link baru lewat halaman lupa
-              password.
+              {t('Link tidak valid — token tidak ditemukan. Minta link baru lewat halaman lupa password.')}
             </p>
             <Link
               to="/forgot-password"
               className="block w-full rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700"
             >
-              Minta Link Baru
+              {t('Minta Link Baru')}
             </Link>
           </div>
         ) : done ? (
           <div className="mt-6 space-y-4">
             <p className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
-              Password berhasil diatur ulang. Semua sesi lama sudah keluar otomatis — silakan
-              login pakai password baru.
+              {t('Password berhasil diatur ulang. Semua sesi lama sudah keluar otomatis — silakan login pakai password baru.')}
             </p>
             <Link
               to="/login"
               className="block w-full rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700"
             >
-              Ke Halaman Login
+              {t('Ke Halaman Login')}
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <TextField
-              label="Password Baru"
+              label={t('Password Baru')}
               type="password"
               required
               autoFocus
@@ -94,21 +99,21 @@ export default function ResetPasswordPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
             <TextField
-              label="Konfirmasi Password Baru"
+              label={t('Konfirmasi Password Baru')}
               type="password"
               required
               minLength={8}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            <p className="text-xs text-slate-400">Minimal 8 karakter.</p>
+            <p className="text-xs text-slate-400">{t('Minimal 8 karakter.')}</p>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
               disabled={submitting}
               className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {submitting ? 'Menyimpan...' : 'Simpan Password Baru'}
+              {submitting ? t('Menyimpan...') : t('Simpan Password Baru')}
             </button>
           </form>
         )}

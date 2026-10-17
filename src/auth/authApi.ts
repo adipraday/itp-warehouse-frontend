@@ -1,3 +1,4 @@
+import { translate } from '../i18n/i18n'
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL as string
 
 export interface AuthUser {
@@ -46,7 +47,7 @@ async function authRequest(path: string, body: unknown): Promise<AuthSession> {
   // Bentuk error auth-backend belum didokumentasikan eksplisit untuk kasus gagal — parse
   // defensif untuk 2 kemungkinan bentuk umum: { success:false, message } atau { error:{code,message} }.
   if (!res.ok || json?.success === false) {
-    const message = json?.message ?? json?.error?.message ?? `Request gagal dengan status ${res.status}`
+    const message = json?.message ?? json?.error?.message ?? translate('Request gagal dengan status {status}', { status: res.status })
     const code = json?.error?.code ?? json?.code ?? 'AUTH_ERROR'
     throw new AuthApiError(message, code, res.status)
   }
@@ -86,7 +87,7 @@ async function authRequestMessage(path: string, body: unknown): Promise<{ messag
   const json = await res.json().catch(() => null)
 
   if (!res.ok || json?.success === false) {
-    const message = json?.message ?? json?.error?.message ?? `Request gagal dengan status ${res.status}`
+    const message = json?.message ?? json?.error?.message ?? translate('Request gagal dengan status {status}', { status: res.status })
     const code = json?.error?.code ?? json?.code ?? 'AUTH_ERROR'
     throw new AuthApiError(message, code, res.status)
   }

@@ -10,6 +10,7 @@ import { SelectField, TextField } from '../../components/FormField'
 import { formatTimestamp } from '../../utils/date'
 import { listActivityLogs } from '../../api/activityLogs'
 import type { ActivityLog } from '../../types/activityLog'
+import { useI18n } from '../../i18n/useI18n'
 
 const ENTITY_TYPE_OPTIONS = [
   'warehouses',
@@ -28,6 +29,7 @@ const ENTITY_TYPE_OPTIONS = [
 const ACTION_OPTIONS = ['create', 'update', 'delete', 'complete', 'approve', 'reject', 'cancel', 'submit']
 
 export default function ActivityLogListPage() {
+  const { t } = useI18n()
   const [page, setPage] = useState(1)
   const [userId, setUserId] = useState('')
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
@@ -60,16 +62,16 @@ export default function ActivityLogListPage() {
   }
 
   const columns: DataTableColumn<ActivityLog>[] = [
-    { key: 'created_at', header: 'Waktu', render: (row) => formatTimestamp(row.created_at) },
-    { key: 'user_id', header: 'User', render: (row) => `User #${row.user_id}` },
-    { key: 'action', header: 'Aksi', render: (row) => row.action },
-    { key: 'entity_type', header: 'Resource', render: (row) => row.entity_type },
-    { key: 'entity_id', header: 'ID', className: 'text-right', render: (row) => row.entity_id },
-    { key: 'method', header: 'Method', render: (row) => row.method },
-    { key: 'endpoint', header: 'Endpoint', render: (row) => <span className="text-slate-500">{row.endpoint}</span> },
+    { key: 'created_at', header: t('Waktu'), render: (row) => formatTimestamp(row.created_at) },
+    { key: 'user_id', header: t('User'), render: (row) => `User #${row.user_id}` },
+    { key: 'action', header: t('Aksi'), render: (row) => row.action },
+    { key: 'entity_type', header: t('Resource'), render: (row) => row.entity_type },
+    { key: 'entity_id', header: t('ID'), className: 'text-right', render: (row) => row.entity_id },
+    { key: 'method', header: t('Method'), render: (row) => row.method },
+    { key: 'endpoint', header: t('Endpoint'), render: (row) => <span className="text-slate-500">{row.endpoint}</span> },
     {
       key: 'status_code',
-      header: 'Status',
+      header: t('Status'),
       className: 'text-right',
       render: (row) => (
         <span className={row.status_code >= 400 ? 'font-medium text-red-600' : 'text-emerald-600'}>
@@ -81,18 +83,18 @@ export default function ActivityLogListPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-slate-900">Activity Logs</h1>
+      <h1 className="mb-6 text-xl font-semibold text-slate-900">{t('Activity Logs')}</h1>
 
       <FilterBar>
         <div className="w-32">
-          <TextField label="User ID" type="number" min={1} value={userId} onChange={(e) => resetPage(setUserId)(e.target.value)} />
+          <TextField label={t('User ID')} type="number" min={1} value={userId} onChange={(e) => resetPage(setUserId)(e.target.value)} />
         </div>
         <div className="w-56">
           <WarehouseSelect value={warehouseId} onChange={resetPage(setWarehouseId)} />
         </div>
         <div className="w-44">
-          <SelectField label="Resource" value={entityType} onChange={(e) => resetPage(setEntityType)(e.target.value)}>
-            <option value="">Semua</option>
+          <SelectField label={t('Resource')} value={entityType} onChange={(e) => resetPage(setEntityType)(e.target.value)}>
+            <option value="">{t('Semua')}</option>
             {ENTITY_TYPE_OPTIONS.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -102,7 +104,7 @@ export default function ActivityLogListPage() {
         </div>
         <div className="w-28">
           <TextField
-            label="Entity ID"
+            label={t('Entity ID')}
             type="number"
             min={1}
             value={entityId}
@@ -110,8 +112,8 @@ export default function ActivityLogListPage() {
           />
         </div>
         <div className="w-36">
-          <SelectField label="Aksi" value={action} onChange={(e) => resetPage(setAction)(e.target.value)}>
-            <option value="">Semua</option>
+          <SelectField label={t('Aksi')} value={action} onChange={(e) => resetPage(setAction)(e.target.value)}>
+            <option value="">{t('Semua')}</option>
             {ACTION_OPTIONS.map((a) => (
               <option key={a} value={a}>
                 {a}
@@ -120,10 +122,10 @@ export default function ActivityLogListPage() {
           </SelectField>
         </div>
         <div className="w-40">
-          <TextField label="Dari Tanggal" type="date" value={from} onChange={(e) => resetPage(setFrom)(e.target.value)} />
+          <TextField label={t('Dari Tanggal')} type="date" value={from} onChange={(e) => resetPage(setFrom)(e.target.value)} />
         </div>
         <div className="w-40">
-          <TextField label="Sampai Tanggal" type="date" value={to} onChange={(e) => resetPage(setTo)(e.target.value)} />
+          <TextField label={t('Sampai Tanggal')} type="date" value={to} onChange={(e) => resetPage(setTo)(e.target.value)} />
         </div>
       </FilterBar>
 
@@ -137,7 +139,7 @@ export default function ActivityLogListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Tidak ada activity log."
+              emptyMessage={t('Tidak ada activity log.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

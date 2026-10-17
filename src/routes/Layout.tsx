@@ -7,6 +7,9 @@ import { getHealth } from '../api/client'
 import { NotificationBell } from '../components/NotificationBell'
 import logoFull from '../assets/logo-full.png'
 import { COMPANY_NAME, SUPPORT_EMAIL, SUPPORT_PHONE } from '../config/company'
+import { useI18n } from '../i18n/useI18n'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { translate } from '../i18n/i18n'
 
 interface NavItem {
   to: string
@@ -27,19 +30,19 @@ function buildNavGroups(
   return [
     {
       label: '',
-      items: [{ to: '/dashboard', label: 'Dashboard' }],
+      items: [{ to: '/dashboard', label: translate('Dashboard') }],
     },
     // Pemantauan lintas cabang — hanya super-admin/owner/admin-bu (sama dengan gating backend).
     ...(canViewOwnerInsights
       ? [
           {
-            label: 'Pemantauan',
+            label: translate('Pemantauan'),
             items: [
-              { to: '/branch-comparison', label: 'Perbandingan Cabang' },
-              { to: '/cash-variance', label: 'Selisih Kas' },
-              { to: '/stuck-queue', label: 'Antrean Macet' },
-              { to: '/receivables', label: 'Piutang & Hutang' },
-              { to: '/unusual-activity', label: 'Aktivitas Tidak Biasa' },
+              { to: '/branch-comparison', label: translate('Perbandingan Cabang') },
+              { to: '/cash-variance', label: translate('Selisih Kas') },
+              { to: '/stuck-queue', label: translate('Antrean Macet') },
+              { to: '/receivables', label: translate('Piutang & Hutang') },
+              { to: '/unusual-activity', label: translate('Aktivitas Tidak Biasa') },
             ],
           },
         ]
@@ -49,62 +52,63 @@ function buildNavGroups(
     ...(canManageUsers
       ? [
           {
-            label: 'Administrasi',
+            label: translate('Administrasi'),
             items: [
-              { to: '/users', label: 'Users' },
-              { to: '/warehouse-assignments', label: 'Assign Staff' },
+              { to: '/users', label: translate('Users') },
+              { to: '/warehouse-assignments', label: translate('Assign Staff') },
             ],
           },
         ]
       : []),
     {
-      label: 'Master Data',
+      label: translate('Master Data'),
       items: [
-        { to: '/warehouses', label: 'Warehouses' },
-        { to: '/items', label: 'Items' },
-        { to: '/contacts', label: 'Contacts' },
+        { to: '/warehouses', label: translate('Warehouses') },
+        { to: '/items', label: translate('Items') },
+        { to: '/contacts', label: translate('Contacts') },
       ],
     },
     {
-      label: 'Laporan',
+      label: translate('Laporan'),
       items: [
-        { to: '/stocks', label: 'Stocks' },
-        { to: '/stock-mutations', label: 'Mutations' },
+        { to: '/stocks', label: translate('Stocks') },
+        { to: '/stock-mutations', label: translate('Mutations') },
         // Cost/HPP disembunyikan total (bukan cuma disable) untuk role yang tidak berhak lihat
         // HPP (§7 frontend-integration-guide.md) — jangan sampai user tetap manggil API-nya.
-        ...(canViewHpp ? [{ to: '/cost-layers', label: 'Cost/HPP' }] : []),
+        ...(canViewHpp ? [{ to: '/cost-layers', label: translate('Cost/HPP') }] : []),
         // Activity Logs di-scope per BU di backend — disembunyikan buat role yang nggak berhak
         // (staff/kasir/purchasing/finance), pola sama seperti Users & Cost/HPP.
-        ...(canViewActivityLogs ? [{ to: '/activity-logs', label: 'Activity Logs' }] : []),
+        ...(canViewActivityLogs ? [{ to: '/activity-logs', label: translate('Activity Logs') }] : []),
       ],
     },
     {
-      label: 'Transaksi Inventory',
+      label: translate('Transaksi Inventory'),
       items: [
-        { to: '/inbounds', label: 'Inbound' },
-        { to: '/outbounds', label: 'Outbound' },
-        { to: '/stock-transfers', label: 'Transfers' },
-        { to: '/stock-opnames', label: 'Opname' },
+        { to: '/inbounds', label: translate('Inbound') },
+        { to: '/outbounds', label: translate('Outbound') },
+        { to: '/stock-transfers', label: translate('Transfers') },
+        { to: '/stock-opnames', label: translate('Opname') },
       ],
     },
     {
-      label: 'Penjualan & Pembelian',
+      label: translate('Penjualan & Pembelian'),
       items: [
         // Sesi Kasir (§20 frontend-integration-guide.md) — tidak digating permission, sama
         // seperti route-nya di App.tsx: self-scoped ke sesi milik user yang login sendiri.
-        { to: '/cash-session', label: 'Sesi Kasir' },
+        { to: '/cash-session', label: translate('Sesi Kasir') },
         // Riwayat Sesi Kasir — browse lintas user, digating sama seperti Activity Logs.
-        ...(canViewActivityLogs ? [{ to: '/cash-sessions/history', label: 'Riwayat Sesi Kasir' }] : []),
-        { to: '/sales', label: 'Sales' },
-        { to: '/purchases', label: 'Purchases' },
-        { to: '/invoices', label: 'Invoices' },
-        { to: '/returns', label: 'Returns' },
+        ...(canViewActivityLogs ? [{ to: '/cash-sessions/history', label: translate('Riwayat Sesi Kasir') }] : []),
+        { to: '/sales', label: translate('Sales') },
+        { to: '/purchases', label: translate('Purchases') },
+        { to: '/invoices', label: translate('Invoices') },
+        { to: '/returns', label: translate('Returns') },
       ],
     },
   ]
 }
 
 export default function Layout() {
+  const { t } = useI18n()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
@@ -153,7 +157,7 @@ export default function Layout() {
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              aria-label="Buka menu"
+              aria-label={t('Buka menu')}
               className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
             >
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -165,11 +169,12 @@ export default function Layout() {
                 />
               </svg>
             </button>
-            <img src={logoFull} alt="Warehouse System" className="h-9 w-auto" />
+            <img src={logoFull} alt={t('Warehouse System')} className="h-9 w-auto" />
           </div>
 
           {user && (
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               <NotificationBell />
               <Link to="/profile" className="hidden text-right sm:block">
                 <p className="text-sm font-medium text-slate-900 hover:underline">{user.name}</p>
@@ -183,7 +188,7 @@ export default function Layout() {
                 onClick={handleLogout}
                 className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
               >
-                Logout
+                {t('Logout')}
               </button>
             </div>
           )}
@@ -193,7 +198,7 @@ export default function Layout() {
       {sidebarOpen && (
         <button
           type="button"
-          aria-label="Tutup menu"
+          aria-label={t('Tutup menu')}
           onClick={() => setSidebarOpen(false)}
           className="fixed inset-0 z-40 cursor-default bg-slate-900/40 print:hidden"
         />
@@ -204,11 +209,11 @@ export default function Layout() {
         style={{ transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
-          <span className="text-base font-semibold text-slate-900">Menu</span>
+          <span className="text-base font-semibold text-slate-900">{t('Menu')}</span>
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            aria-label="Tutup menu"
+            aria-label={t('Tutup menu')}
             className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -259,13 +264,13 @@ export default function Layout() {
       <footer className="border-t border-slate-200 bg-white print:hidden">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-4 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <span>
-            © {new Date().getFullYear()} {COMPANY_NAME} — Warehouse System{' '}
+            © {new Date().getFullYear()} {COMPANY_NAME} {t('— Warehouse System')}{' '}
             <span className="font-mono">v{__APP_VERSION__}</span>
           </span>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>
-              Butuh bantuan?{' '}
+              {t('Butuh bantuan?')}{' '}
               <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium text-primary-600 hover:underline">
                 {SUPPORT_EMAIL}
               </a>{' '}
@@ -276,7 +281,7 @@ export default function Layout() {
                 className={`h-2 w-2 rounded-full ${backendOnline ? 'bg-emerald-500' : 'bg-red-500'}`}
                 aria-hidden="true"
               />
-              Backend {backendOnline ? 'terhubung' : 'terputus'}
+              {t('Backend')} {backendOnline ? t('terhubung') : t('terputus')}
             </span>
           </div>
         </div>

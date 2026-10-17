@@ -13,6 +13,7 @@ import { formatNumber } from '../../utils/money'
 import { listStocks } from '../../api/stocks'
 import { createStockOpname, getStockOpname, updateStockOpname } from '../../api/stockOpnames'
 import type { StockOpnameDetailInput } from '../../types/stockOpname'
+import { useI18n } from '../../i18n/useI18n'
 
 interface DetailRow {
   key: number
@@ -27,6 +28,7 @@ function emptyRow(): DetailRow {
 }
 
 export default function StockOpnameFormPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const isEdit = !!id
   const opnameId = isEdit ? Number(id) : null
@@ -91,7 +93,7 @@ export default function StockOpnameFormPage() {
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['stock-opnames'] })
-      toast.show(isEdit ? 'Stock opname berhasil diupdate.' : 'Stock opname berhasil dibuat.', 'success')
+      toast.show(isEdit ? t('Stock opname berhasil diupdate.') : t('Stock opname berhasil dibuat.'), 'success')
       navigate(`/stock-opnames/${res.data.id}`)
     },
     onError: (err) => {
@@ -102,16 +104,16 @@ export default function StockOpnameFormPage() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!warehouseId) {
-      toast.show('Warehouse wajib dipilih.', 'error')
+      toast.show(t('Warehouse wajib dipilih.'), 'error')
       return
     }
     const validRows = rows.filter((r) => r.item_id !== null)
     if (validRows.length === 0) {
-      toast.show('Minimal 1 baris item.', 'error')
+      toast.show(t('Minimal 1 baris item.'), 'error')
       return
     }
     if (isReversal && !reversalReason.trim()) {
-      toast.show('Alasan reversal wajib diisi.', 'error')
+      toast.show(t('Alasan reversal wajib diisi.'), 'error')
       return
     }
     mutation.mutate()
@@ -126,17 +128,17 @@ export default function StockOpnameFormPage() {
   }
 
   if (isEdit && loadingExisting) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   if (isEdit && existing && existing.data.status !== 'DRAFT') {
     return (
       <div>
         <p className="text-sm text-red-600">
-          Dokumen ini berstatus <strong>{existing.data.status}</strong> dan tidak bisa diedit lagi.
+          {t('Dokumen ini berstatus')} <strong>{existing.data.status}</strong> {t('dan tidak bisa diedit lagi.')}
         </p>
         <Link to={`/stock-opnames/${opnameId}`} className="mt-2 inline-block text-sm text-blue-600 hover:underline">
-          &larr; Kembali ke detail
+          {t('← Kembali ke detail')}
         </Link>
       </div>
     )
@@ -145,29 +147,27 @@ export default function StockOpnameFormPage() {
   return (
     <div>
       <Link to="/stock-opnames" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar stock opname
+        {t('← Kembali ke daftar stock opname')}
       </Link>
       <h1 className="mt-2 mb-6 text-xl font-semibold text-slate-900">
-        {isEdit ? 'Edit Stock Opname' : 'Tambah Stock Opname'}
+        {isEdit ? t('Edit Stock Opname') : t('Tambah Stock Opname')}
       </h1>
 
       <p className="mb-6 rounded-md bg-blue-50 p-3 text-sm text-blue-800">
-        Isi <strong>hasil hitung fisik</strong> (Physical Qty) per item. Sistem akan snapshot qty sistem saat
-        ini (system_qty) otomatis saat disimpan — kolom "Qty Sistem" di bawah cuma <strong>perkiraan</strong> dari
-        stok saat ini untuk bantu preview selisih, nilai final ditentukan backend saat data disimpan.
+        {t('Isi')} <strong>{t('hasil hitung fisik')}</strong> {t('(Physical Qty) per item. Sistem akan snapshot qty sistem saat ini (system_qty) otomatis saat disimpan — kolom "Qty Sistem" di bawah cuma')} <strong>{t('perkiraan')}</strong> {t('dari stok saat ini untuk bantu preview selisih, nilai final ditentukan backend saat data disimpan.')}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <WarehouseSelect
-            label="Warehouse"
+            label={t('Warehouse')}
             required
-            placeholder="-- pilih warehouse --"
+            placeholder={t('-- pilih warehouse --')}
             value={warehouseId}
             onChange={setWarehouseId}
           />
           <TextField
-            label="Tanggal Opname"
+            label={t('Tanggal Opname')}
             type="date"
             required
             value={opnameDate}
@@ -175,7 +175,7 @@ export default function StockOpnameFormPage() {
           />
         </div>
 
-        <TextareaField label="Catatan" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextareaField label={t('Catatan')} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
@@ -185,12 +185,12 @@ export default function StockOpnameFormPage() {
               onChange={(e) => setIsReversal(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             />
-            Ini adalah dokumen reversal/koreksi
+            {t('Ini adalah dokumen reversal/koreksi')}
           </label>
           {isReversal && (
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextField
-                label="ID Opname Asal"
+                label={t('ID Opname Asal')}
                 type="number"
                 min={1}
                 required
@@ -198,7 +198,7 @@ export default function StockOpnameFormPage() {
                 onChange={(e) => setReversalOfId(e.target.value)}
               />
               <TextField
-                label="Alasan Reversal"
+                label={t('Alasan Reversal')}
                 required
                 value={reversalReason}
                 onChange={(e) => setReversalReason(e.target.value)}
@@ -209,13 +209,13 @@ export default function StockOpnameFormPage() {
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Detail Item</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
             <button
               type="button"
               onClick={() => setRows((prev) => [...prev, emptyRow()])}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
-              + Tambah Baris
+              {t('+ Tambah Baris')}
             </button>
           </div>
 
@@ -238,14 +238,14 @@ export default function StockOpnameFormPage() {
             to="/stock-opnames"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </Link>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>
@@ -262,6 +262,7 @@ interface OpnameFormRowProps {
 }
 
 function OpnameFormRow({ row, warehouseId, onChange, onRemove, canRemove }: OpnameFormRowProps) {
+  const { t } = useI18n()
   const { data: stocks } = useQuery({
     queryKey: ['stocks', warehouseId, row.item_id],
     queryFn: () => listStocks({ warehouse_id: warehouseId ?? undefined, item_id: row.item_id ?? undefined }),
@@ -279,7 +280,7 @@ function OpnameFormRow({ row, warehouseId, onChange, onRemove, canRemove }: Opna
       </div>
       <div className="col-span-2">
         <TextField
-          label="Physical Qty"
+          label={t('Physical Qty')}
           type="number"
           min={0}
           value={row.physical_qty}
@@ -287,15 +288,15 @@ function OpnameFormRow({ row, warehouseId, onChange, onRemove, canRemove }: Opna
         />
       </div>
       <div className="col-span-2">
-        <span className="block text-sm font-medium text-slate-700">Qty Sistem (estimasi)</span>
+        <span className="block text-sm font-medium text-slate-700">{t('Qty Sistem (estimasi)')}</span>
         <p className="mt-1 py-2 text-sm text-slate-500">{showEstimate ? formatNumber(estimatedSystemQty) : '-'}</p>
       </div>
       <div className="col-span-2">
-        <span className="block text-sm font-medium text-slate-700">Selisih (estimasi)</span>
+        <span className="block text-sm font-medium text-slate-700">{t('Selisih (estimasi)')}</span>
         <div className="mt-1 py-1.5">{showEstimate ? <DifferenceBadge value={estimatedDifference} /> : '-'}</div>
       </div>
       <div className="col-span-1">
-        <TextField label="Catatan" value={row.notes} onChange={(e) => onChange({ notes: e.target.value })} />
+        <TextField label={t('Catatan')} value={row.notes} onChange={(e) => onChange({ notes: e.target.value })} />
       </div>
       <div className="col-span-1 pb-2 text-right">
         <button
@@ -304,7 +305,7 @@ function OpnameFormRow({ row, warehouseId, onChange, onRemove, canRemove }: Opna
           disabled={!canRemove}
           className="text-sm text-red-600 hover:underline disabled:opacity-30"
         >
-          Hapus
+          {t('Hapus')}
         </button>
       </div>
     </div>

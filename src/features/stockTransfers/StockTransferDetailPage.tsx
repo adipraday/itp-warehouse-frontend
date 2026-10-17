@@ -22,16 +22,19 @@ import {
   getStockTransfer,
 } from '../../api/stockTransfers'
 import type { StockTransferDetail } from '../../types/stockTransfer'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 const detailColumns: DataTableColumn<StockTransferDetail>[] = [
   { key: 'sku', header: 'SKU', render: (row) => row.sku },
-  { key: 'name', header: 'Nama Item', render: (row) => row.name },
-  { key: 'quantity', header: 'Qty', className: 'text-right', render: (row) => row.quantity },
+  { key: 'name', header: tk('Nama Item'), render: (row) => row.name },
+  { key: 'quantity', header: tk('Qty'), className: 'text-right', render: (row) => row.quantity },
 ]
 
 type ActiveDialog = 'approve' | 'complete' | 'cancel' | 'delete' | null
 
 export default function StockTransferDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const transferId = Number(id)
   const navigate = useNavigate()
@@ -76,7 +79,7 @@ export default function StockTransferDetailPage() {
     mutationFn: () => approveStockTransfer(transferId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock-transfers'] })
-      toast.show('Stock transfer disetujui.', 'success')
+      toast.show(t('Stock transfer disetujui.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -90,7 +93,7 @@ export default function StockTransferDetailPage() {
     onSuccess: () => {
       reset()
       invalidateAfterStockChange()
-      toast.show('Stock transfer berhasil diselesaikan.', 'success')
+      toast.show(t('Stock transfer berhasil diselesaikan.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -103,7 +106,7 @@ export default function StockTransferDetailPage() {
     mutationFn: () => cancelStockTransfer(transferId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock-transfers'] })
-      toast.show('Stock transfer dibatalkan.', 'success')
+      toast.show(t('Stock transfer dibatalkan.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -117,7 +120,7 @@ export default function StockTransferDetailPage() {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: ['stock-transfers', transferId] })
       queryClient.invalidateQueries({ queryKey: ['stock-transfers'] })
-      toast.show('Stock transfer dihapus.', 'success')
+      toast.show(t('Stock transfer dihapus.'), 'success')
       navigate('/stock-transfers')
     },
     onError: (err) => {
@@ -127,7 +130,7 @@ export default function StockTransferDetailPage() {
   })
 
   if (isLoading || !doc) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   const d = doc.data
@@ -148,7 +151,7 @@ export default function StockTransferDetailPage() {
   return (
     <div>
       <Link to="/stock-transfers" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar stock transfer
+        {t('← Kembali ke daftar stock transfer')}
       </Link>
 
       <div className="mt-2 flex items-center justify-between">
@@ -169,7 +172,7 @@ export default function StockTransferDetailPage() {
               to={`/stock-transfers/${d.id}/edit`}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Edit
+              {t('Edit')}
             </Link>
           )}
           {can('delete') && canWriteThis && (
@@ -178,7 +181,7 @@ export default function StockTransferDetailPage() {
               onClick={() => setActiveDialog('delete')}
               className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Hapus
+              {t('Hapus')}
             </button>
           )}
           {can('cancel') && canWriteThis && (
@@ -187,7 +190,7 @@ export default function StockTransferDetailPage() {
               onClick={() => setActiveDialog('cancel')}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batalkan
+              {t('Batalkan')}
             </button>
           )}
           {can('approve') && canApproveThis && (
@@ -196,7 +199,7 @@ export default function StockTransferDetailPage() {
               onClick={() => setActiveDialog('approve')}
               className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
             >
-              Approve
+              {t('Approve')}
             </button>
           )}
           {can('complete') && canWriteThis && (
@@ -205,7 +208,7 @@ export default function StockTransferDetailPage() {
               onClick={() => setActiveDialog('complete')}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Complete
+              {t('Complete')}
             </button>
           )}
         </div>
@@ -213,58 +216,58 @@ export default function StockTransferDetailPage() {
 
       {d.reversal_of_transfer_id && (
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          Dokumen reversal dari transfer #{d.reversal_of_transfer_id}. Alasan: {d.reversal_reason}
+          {t('Dokumen reversal dari transfer #')}{d.reversal_of_transfer_id}{t('. Alasan:')} {d.reversal_reason}
         </div>
       )}
 
-      {d.notes && <p className="mt-4 text-sm text-slate-600">Catatan: {d.notes}</p>}
+      {d.notes && <p className="mt-4 text-sm text-slate-600">{t('Catatan:')} {d.notes}</p>}
 
-      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">Detail Item</h2>
+      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
       <DataTable columns={detailColumns} data={d.details ?? []} getRowKey={(row) => row.id} />
 
       <div className="mt-4 text-xs text-slate-400">
-        Dibuat: {formatTimestamp(d.created_at)}
-        {d.created_by != null && <> oleh User #{d.created_by}</>}
+        {t('Dibuat:')} {formatTimestamp(d.created_at)}
+        {d.created_by != null && <> {t('oleh User #')}{d.created_by}</>}
         {d.approved_at && (
           <>
             {' '}
-            &middot; Disetujui: {formatTimestamp(d.approved_at)}
-            {d.approved_by != null && <> oleh User #{d.approved_by}</>}
+            {t('· Disetujui:')} {formatTimestamp(d.approved_at)}
+            {d.approved_by != null && <> {t('oleh User #')}{d.approved_by}</>}
           </>
         )}
         {d.completed_at && (
           <>
             {' '}
-            &middot; Selesai: {formatTimestamp(d.completed_at)}
-            {d.completed_by != null && <> oleh User #{d.completed_by}</>}
+            {t('· Selesai:')} {formatTimestamp(d.completed_at)}
+            {d.completed_by != null && <> {t('oleh User #')}{d.completed_by}</>}
           </>
         )}
-        {d.cancelled_at && <> &middot; Dibatalkan: {formatTimestamp(d.cancelled_at)}</>}
+        {d.cancelled_at && <> {t('· Dibatalkan:')} {formatTimestamp(d.cancelled_at)}</>}
       </div>
 
       <ConfirmDialog
         open={activeDialog === 'approve'}
-        title="Approve Stock Transfer"
-        description="Dokumen akan berpindah status ke APPROVED. Lanjutkan?"
-        confirmLabel="Approve"
+        title={t('Approve Stock Transfer')}
+        description={t('Dokumen akan berpindah status ke APPROVED. Lanjutkan?')}
+        confirmLabel={t('Approve')}
         loading={approveMutation.isPending}
         onConfirm={() => approveMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'complete'}
-        title="Complete Stock Transfer"
-        description="Aksi ini akan memindahkan stok secara permanen antar gudang dan tidak bisa dibatalkan. Lanjutkan?"
-        confirmLabel="Complete"
+        title={t('Complete Stock Transfer')}
+        description={t('Aksi ini akan memindahkan stok secara permanen antar gudang dan tidak bisa dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Complete')}
         loading={completeMutation.isPending}
         onConfirm={() => completeMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'cancel'}
-        title="Batalkan Stock Transfer"
-        description="Dokumen ini akan dibatalkan. Lanjutkan?"
-        confirmLabel="Batalkan"
+        title={t('Batalkan Stock Transfer')}
+        description={t('Dokumen ini akan dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Batalkan')}
         danger
         loading={cancelMutation.isPending}
         onConfirm={() => cancelMutation.mutate()}
@@ -272,9 +275,9 @@ export default function StockTransferDetailPage() {
       />
       <ConfirmDialog
         open={activeDialog === 'delete'}
-        title="Hapus Stock Transfer"
-        description="Dokumen ini akan dihapus permanen. Lanjutkan?"
-        confirmLabel="Hapus"
+        title={t('Hapus Stock Transfer')}
+        description={t('Dokumen ini akan dihapus permanen. Lanjutkan?')}
+        confirmLabel={t('Hapus')}
         danger
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}

@@ -1,4 +1,5 @@
 import type { StuckQueueGroup, StuckQueueKind, UnusualFindingType } from '../../types/dashboard'
+import { tk } from '../../i18n/i18n'
 
 // Label dan tautan bersama untuk halaman Pemantauan dan ekspor Excel-nya, supaya tampilan di layar
 // dan isi file selalu memakai istilah yang sama.
@@ -13,112 +14,112 @@ export interface StuckKindInfo {
 
 export const STUCK_KIND_INFO: Record<StuckQueueKind, StuckKindInfo> = {
   transfer_pending_approval: {
-    label: 'Transfer',
-    status: 'Belum disetujui',
-    waitingOn: 'Admin bisnis atau kepala cabang tujuan menyetujui',
+    label: tk('Transfer'),
+    status: tk('Belum disetujui'),
+    waitingOn: tk('Admin bisnis atau kepala cabang tujuan menyetujui'),
     path: (id) => `/stock-transfers/${id}`,
   },
   transfer_pending_completion: {
-    label: 'Transfer',
-    status: 'Disetujui, belum diselesaikan',
-    waitingOn: 'Gudang pengirim menekan Complete',
+    label: tk('Transfer'),
+    status: tk('Disetujui, belum diselesaikan'),
+    waitingOn: tk('Gudang pengirim menekan Complete'),
     path: (id) => `/stock-transfers/${id}`,
   },
   opname_pending_submission: {
-    label: 'Stok opname',
-    status: 'Draft, belum diajukan',
-    waitingOn: 'Staf gudang mengajukan hasil hitung',
+    label: tk('Stok opname'),
+    status: tk('Draft, belum diajukan'),
+    waitingOn: tk('Staf gudang mengajukan hasil hitung'),
     path: (id) => `/stock-opnames/${id}`,
   },
   opname_pending_approval: {
-    label: 'Stok opname',
-    status: 'Diajukan, belum disetujui',
-    waitingOn: 'Admin bisnis menyetujui',
+    label: tk('Stok opname'),
+    status: tk('Diajukan, belum disetujui'),
+    waitingOn: tk('Admin bisnis menyetujui'),
     path: (id) => `/stock-opnames/${id}`,
   },
   return_pending_approval: {
-    label: 'Retur',
-    status: 'Belum disetujui',
-    waitingOn: 'Admin bisnis menyetujui',
+    label: tk('Retur'),
+    status: tk('Belum disetujui'),
+    waitingOn: tk('Admin bisnis menyetujui'),
     path: (id) => `/returns/${id}`,
   },
   return_pending_completion: {
-    label: 'Retur',
-    status: 'Disetujui, belum diselesaikan',
-    waitingOn: 'Staf menyelesaikan retur',
+    label: tk('Retur'),
+    status: tk('Disetujui, belum diselesaikan'),
+    waitingOn: tk('Staf menyelesaikan retur'),
     path: (id) => `/returns/${id}`,
   },
   sale_held: {
-    label: 'Penjualan',
-    status: 'Ditahan',
-    waitingOn: 'Kasir melanjutkan atau membatalkan',
+    label: tk('Penjualan'),
+    status: tk('Ditahan'),
+    waitingOn: tk('Kasir melanjutkan atau membatalkan'),
     path: (id) => `/sales/${id}`,
   },
   sale_draft: {
-    label: 'Penjualan',
-    status: 'Draft belum selesai',
-    waitingOn: 'Kasir menyelesaikan atau menghapus',
+    label: tk('Penjualan'),
+    status: tk('Draft belum selesai'),
+    waitingOn: tk('Kasir menyelesaikan atau menghapus'),
     path: (id) => `/sales/${id}`,
   },
   purchase_draft: {
-    label: 'Pembelian',
-    status: 'Draft belum selesai',
-    waitingOn: 'Purchasing menyelesaikan atau menghapus',
+    label: tk('Pembelian'),
+    status: tk('Draft belum selesai'),
+    waitingOn: tk('Purchasing menyelesaikan atau menghapus'),
     path: (id) => `/purchases/${id}`,
   },
   inbound_draft: {
-    label: 'Barang masuk',
-    status: 'Draft belum selesai',
-    waitingOn: 'Staf gudang menyelesaikan atau menghapus',
+    label: tk('Barang masuk'),
+    status: tk('Draft belum selesai'),
+    waitingOn: tk('Staf gudang menyelesaikan atau menghapus'),
     path: (id) => `/inbounds/${id}`,
   },
   outbound_draft: {
-    label: 'Barang keluar',
-    status: 'Draft belum selesai',
-    waitingOn: 'Staf gudang menyelesaikan atau menghapus',
+    label: tk('Barang keluar'),
+    status: tk('Draft belum selesai'),
+    waitingOn: tk('Staf gudang menyelesaikan atau menghapus'),
     path: (id) => `/outbounds/${id}`,
   },
 }
 
 export const STUCK_GROUP_LABEL: Record<StuckQueueGroup, string> = {
-  approval: 'Menunggu persetujuan',
-  completion: 'Menunggu diselesaikan',
-  draft: 'Draft menggantung',
-  held: 'Transaksi tertahan',
+  approval: tk('Menunggu persetujuan'),
+  completion: tk('Menunggu diselesaikan'),
+  draft: tk('Draft menggantung'),
+  held: tk('Transaksi tertahan'),
 }
 
 export const FINDING_TITLE: Record<UnusualFindingType, string> = {
-  cancellations: 'Pembatalan dokumen berulang',
-  deletions: 'Penghapusan data berulang',
-  night_activity: 'Aktivitas transaksi di malam hari',
-  item_edits: 'Banyak perubahan data item',
+  cancellations: tk('Pembatalan dokumen berulang'),
+  deletions: tk('Penghapusan data berulang'),
+  night_activity: tk('Aktivitas transaksi di malam hari'),
+  item_edits: tk('Banyak perubahan data item'),
 }
 
 export const ACTION_LABEL: Record<string, string> = {
-  CREATE: 'Dibuat',
-  UPDATE: 'Diubah',
-  DELETE: 'Dihapus',
-  CANCEL: 'Dibatalkan',
-  COMPLETE: 'Diselesaikan',
-  APPROVE: 'Disetujui',
-  SUBMIT: 'Diajukan',
-  REJECT: 'Ditolak',
-  HOLD: 'Ditahan',
-  RESUME: 'Dilanjutkan',
+  CREATE: tk('Dibuat'),
+  UPDATE: tk('Diubah'),
+  DELETE: tk('Dihapus'),
+  CANCEL: tk('Dibatalkan'),
+  COMPLETE: tk('Diselesaikan'),
+  APPROVE: tk('Disetujui'),
+  SUBMIT: tk('Diajukan'),
+  REJECT: tk('Ditolak'),
+  HOLD: tk('Ditahan'),
+  RESUME: tk('Dilanjutkan'),
 }
 
 export const ENTITY_LABEL: Record<string, string> = {
-  SALE: 'Penjualan',
-  PURCHASE: 'Pembelian',
-  INBOUND: 'Barang masuk',
-  OUTBOUND: 'Barang keluar',
-  STOCK_TRANSFER: 'Transfer',
-  STOCK_OPNAME: 'Stok opname',
-  RETURN: 'Retur',
-  PAYMENT: 'Pembayaran',
-  ITEM: 'Item',
-  CONTACT: 'Kontak',
-  WAREHOUSE: 'Warehouse',
+  SALE: tk('Penjualan'),
+  PURCHASE: tk('Pembelian'),
+  INBOUND: tk('Barang masuk'),
+  OUTBOUND: tk('Barang keluar'),
+  STOCK_TRANSFER: tk('Transfer'),
+  STOCK_OPNAME: tk('Stok opname'),
+  RETURN: tk('Retur'),
+  PAYMENT: tk('Pembayaran'),
+  ITEM: tk('Item'),
+  CONTACT: tk('Kontak'),
+  WAREHOUSE: tk('Warehouse'),
 }
 
 // Halaman detail per jenis dokumen; jenis tanpa halaman detail (pembayaran, kontak) tidak ditautkan.
@@ -133,3 +134,13 @@ export const ENTITY_PATH: Record<string, (id: number) => string> = {
   ITEM: (id) => `/items/${id}`,
   WAREHOUSE: (id) => `/warehouses/${id}`,
 }
+
+// Label rentang umur piutang/hutang dikirim backend (aging.service.js); didaftarkan di sini supaya
+// terjemahannya ikut dicek `npm run i18n:check`, lalu ditampilkan lewat t(bucket.label).
+export const AGING_BUCKET_LABELS = [
+  tk('Belum jatuh tempo'),
+  tk('1–30 hari'),
+  tk('31–60 hari'),
+  tk('61–90 hari'),
+  tk('Lebih dari 90 hari'),
+]

@@ -1752,3 +1752,20 @@ Invoice asli supplier: kolom **No. Invoice Supplier** (opsional) dan **unggah PD
 Backend `21d471c` (migrasi `202610140001`, diuji dulu di salinan DB produksi termasuk rollback; 508 tes). Web: `PurchaseDetailPage` baru (rute `/purchases/:id`) dengan
 `ReceivePurchaseModal`, `CancelPurchaseModal`, `PurchaseRefundModal`, `SupplierInvoiceCard`; form dan daftar pembelian ikut diperbarui. Android 1.0.5: tahap pembelian, ajukan, terima
 barang, batal dengan alasan, no. invoice supplier (unggah PDF dan catat refund dilakukan di web).
+
+## Fase 40 — Dua bahasa antarmuka: Indonesia dan English (2026-10-17)
+
+Seluruh antarmuka web kini punya dua bahasa. Pengalih **ID | EN** ada di header (setelah login) dan di halaman login, lupa password, reset password, dan "akses belum disiapkan". Pilihan
+disimpan di browser (`localStorage` `warkas.language`), berlaku seketika tanpa memuat ulang, dan ikut mengubah `<html lang>`. Bahasa bawaan tetap Indonesia.
+
+**Cara kerjanya**: teks Indonesia yang tampil dipakai *sebagai kunci* — `t('Simpan')`, parameter `{nama}` seperti `t('Halo {name}', { name })` — jadi kode tetap terbaca dan Indonesia
+tidak butuh kamus; hanya `src/i18n/en.ts` (kunci → padanan Inggris) yang dipelihara. Kunci yang belum diterjemahkan jatuh kembali ke teks Indonesia, tidak pernah kosong.
+- Komponen: `const { t } = useI18n()` (render ulang saat bahasa berganti). Di luar komponen (util, pesan error, builder Excel): `translate('...')`.
+- Konstanta label di tingkat modul (nama kolom, peta status): bungkus dengan `tk('...')` (penanda saja, nilainya tetap), lalu tampilkan lewat `t(nilai)`. Komponen bersama
+  (`DataTable`, `FormField`, `StatCard`, `ConfirmDialog`, `Modal`, `StatusBadge`) menerjemahkan label yang dilewatkan lewat props.
+- Tanggal (nama bulan) dan angka (pemisah ribuan) mengikuti bahasa; mata uang tetap Rupiah.
+- **`npm run i18n:check`** memindai semua `t()/translate()/tk()` di kode dan menggagalkan bila ada teks tanpa padanan Inggris, terjemahan kosong, atau placeholder `{param}` yang tidak sama.
+  Jalankan setiap menambah teks baru; tambahkan padanannya di `en.ts`.
+
+Yang **belum** ikut berganti bahasa: notifikasi (judul/isi disimpan server dalam Indonesia saat dibuat), dan pesan error mentah dari server yang tidak punya padanan di `ERROR_MESSAGES`
+(sebagian besar sudah berbahasa Inggris). Aplikasi Android belum punya pengalih bahasa.

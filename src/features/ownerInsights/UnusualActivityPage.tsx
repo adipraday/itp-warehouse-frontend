@@ -17,21 +17,24 @@ import { unusualActivitySheets } from './exportSheets'
 import { daysAgoISO, formatDate, formatTimestamp, todayISO } from '../../utils/date'
 import { ACTION_LABEL, ENTITY_LABEL, ENTITY_PATH, FINDING_TITLE } from './reportLabels'
 import type { UnusualExample, UnusualFinding, UnusualFindingType } from '../../types/dashboard'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 // Aturan tiap jenis temuan, ditulis di kartu supaya jelas apa yang dihitung.
 const FINDING_RULE: Record<UnusualFindingType, (t: Record<string, number>) => string> = {
-  cancellations: (t) => `${t.cancellations} dokumen transaksi dibatalkan atau lebih oleh satu orang`,
-  deletions: (t) => `${t.deletions} data dihapus atau lebih oleh satu orang`,
+  cancellations: (t) => translate('{cancellations} dokumen transaksi dibatalkan atau lebih oleh satu orang', { cancellations: t.cancellations }),
+  deletions: (t) => translate('{deletions} data dihapus atau lebih oleh satu orang', { deletions: t.deletions }),
   night_activity: (t) =>
-    `${t.night_activity} aksi transaksi atau lebih antara ${String(t.night_start_hour).padStart(2, '0')}:00 dan ${String(t.night_end_hour).padStart(2, '0')}:00 WIB`,
+    translate('{night_activity} aksi transaksi atau lebih antara {v2}:00 dan {v3}:00 WIB', { night_activity: t.night_activity, v2: String(t.night_start_hour).padStart(2, '0'), v3: String(t.night_end_hour).padStart(2, '0') }),
   item_edits: (t) =>
-    `${t.item_edits} perubahan item atau lebih oleh satu orang (log tidak mencatat bagian yang diubah, mis. harga)`,
+    translate('{item_edits} perubahan item atau lebih oleh satu orang (log tidak mencatat bagian yang diubah, mis. harga)', { item_edits: t.item_edits }),
 }
 
 // Aktivitas Tidak Biasa — pola di log aktivitas yang layak dicek (pembatalan/penghapusan berulang,
 // transaksi di malam hari, banyak perubahan item), dikelompokkan per orang. Sengaja netral: ini
 // penanda untuk bertanya, bukan tuduhan, dan aturannya ditulis di tiap temuan.
 export default function UnusualActivityPage() {
+  const { t } = useI18n()
   const [from, setFrom] = useState(daysAgoISO(6))
   const [to, setTo] = useState(todayISO())
 
@@ -59,13 +62,13 @@ export default function UnusualActivityPage() {
   const userName = (id: number) => usersData?.users.find((u) => u.id === id)?.name ?? `User #${id}`
 
   const exampleColumns: DataTableColumn<UnusualExample>[] = [
-    { key: 'at', header: 'Waktu', render: (row) => formatTimestamp(row.at) },
-    { key: 'action', header: 'Aksi', render: (row) => ACTION_LABEL[row.action] ?? row.action },
+    { key: 'at', header: t('Waktu'), render: (row) => formatTimestamp(row.at) },
+    { key: 'action', header: t('Aksi'), render: (row) => t(ACTION_LABEL[row.action] ?? row.action) },
     {
       key: 'entity',
-      header: 'Data',
+      header: t('Data'),
       render: (row) => {
-        const label = ENTITY_LABEL[row.entity_type] ?? row.entity_type
+        const label = t(ENTITY_LABEL[row.entity_type] ?? row.entity_type)
         const path = ENTITY_PATH[row.entity_type]
         // Data yang sudah dihapus tidak punya halaman lagi.
         if (row.entity_id == null || !path || row.action === 'DELETE') {
@@ -78,7 +81,7 @@ export default function UnusualActivityPage() {
         )
       },
     },
-    { key: 'warehouse', header: 'Cabang', render: (row) => warehouseName(row.warehouse_id) },
+    { key: 'warehouse', header: t('Cabang'), render: (row) => warehouseName(row.warehouse_id) },
   ]
 
   function FindingCard({ finding }: { finding: UnusualFinding }) {
@@ -88,11 +91,11 @@ export default function UnusualActivityPage() {
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-slate-900">
-              {userName(finding.user_id)} — {FINDING_TITLE[finding.type]}
+              {userName(finding.user_id)} — {t(FINDING_TITLE[finding.type])}
             </h3>
             <p className="mt-0.5 text-xs text-slate-500">
-              {formatNumber(finding.count)} kali · {warehouseName(finding.warehouse_id)} · {formatTimestamp(finding.first_at)}
-              {finding.first_at !== finding.last_at && ` sampai ${formatTimestamp(finding.last_at)}`}
+              {formatNumber(finding.count)} {t('kali ·')} {warehouseName(finding.warehouse_id)} · {formatTimestamp(finding.first_at)}
+              {finding.first_at !== finding.last_at && t(' sampai {v1}', { v1: formatTimestamp(finding.last_at) })}
             </p>
           </div>
           <span
@@ -100,18 +103,17 @@ export default function UnusualActivityPage() {
               high ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
             }`}
           >
-            {high ? 'Perlu perhatian' : 'Perlu dicek'}
+            {high ? t('Perlu perhatian') : t('Perlu dicek')}
           </span>
         </div>
         {finding.cancel_rate_pct != null && (
           <p className="mt-2 text-sm text-slate-600">
-            {finding.cancel_rate_pct}% dari {formatNumber(finding.documents_created ?? 0)} dokumen yang dibuat orang ini pada
-            periode yang sama dibatalkan.
+            {finding.cancel_rate_pct}{t('% dari')} {formatNumber(finding.documents_created ?? 0)} {t('dokumen yang dibuat orang ini pada periode yang sama dibatalkan.')}
           </p>
         )}
         <p className="mt-2 text-xs text-slate-400">
-          Aturan: {FINDING_RULE[finding.type](report?.thresholds ?? {})}.
-          {finding.examples.length < finding.count && ` Contoh ${finding.examples.length} terbaru:`}
+          {t('Aturan:')} {FINDING_RULE[finding.type](report?.thresholds ?? {})}.
+          {finding.examples.length < finding.count && t(' Contoh {length} terbaru:', { length: finding.examples.length })}
         </p>
         <div className="mt-2">
           <DataTable columns={exampleColumns} data={finding.examples} getRowKey={(row) => `${row.at}-${row.entity_type}-${row.entity_id}-${row.action}`} />
@@ -130,12 +132,12 @@ export default function UnusualActivityPage() {
 
   return (
     <div>
-      <ReportPrintHeader title="Aktivitas Tidak Biasa" subtitle={`Periode ${formatDate(from)} – ${formatDate(to)}`} />
+      <ReportPrintHeader title={t('Aktivitas Tidak Biasa')} subtitle={t('Periode {v1} – {v2}', { v1: formatDate(from), v2: formatDate(to) })} />
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
         <div>
-          <h1 className="mb-1 text-xl font-semibold text-slate-900">Aktivitas Tidak Biasa</h1>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">{t('Aktivitas Tidak Biasa')}</h1>
           <p className="text-sm text-slate-500">
-            Pola di log aktivitas yang layak ditanyakan. Tidak biasa belum tentu salah: bisa saja ada alasan yang wajar.
+            {t('Pola di log aktivitas yang layak ditanyakan. Tidak biasa belum tentu salah: bisa saja ada alasan yang wajar.')}
           </p>
         </div>
         <ReportActions onExcel={exportExcel} disabled={!report} />
@@ -143,16 +145,16 @@ export default function UnusualActivityPage() {
 
       <FilterBar>
         <div className="w-40">
-          <TextField label="Dari" type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+          <TextField label={t('Dari')} type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
         </div>
         <div className="w-40">
-          <TextField label="Sampai" type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+          <TextField label={t('Sampai')} type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
         </div>
         <div className="flex gap-2 pb-0.5">
           {[
-            { label: '7 hari', days: 6 },
-            { label: '30 hari', days: 29 },
-            { label: '90 hari', days: 89 },
+            { label: t('7 hari'), days: 6 },
+            { label: t('30 hari'), days: 29 },
+            { label: t('90 hari'), days: 89 },
           ].map((preset) => (
             <button
               key={preset.label}
@@ -169,7 +171,7 @@ export default function UnusualActivityPage() {
         </div>
       </FilterBar>
 
-      {!rangeValid && <p className="mt-4 text-sm text-red-600">Tanggal awal tidak boleh setelah tanggal akhir.</p>}
+      {!rangeValid && <p className="mt-4 text-sm text-red-600">{t('Tanggal awal tidak boleh setelah tanggal akhir.')}</p>}
 
       {isError ? (
         <div className="mt-4">
@@ -179,41 +181,40 @@ export default function UnusualActivityPage() {
         rangeValid && (
           <>
             <p className="mt-4 text-xs text-slate-500">
-              Periode {formatDate(report?.period.from ?? from)} – {formatDate(report?.period.to ?? to)}
+              {t('Periode')} {formatDate(report?.period.from ?? from)} – {formatDate(report?.period.to ?? to)}
             </p>
 
             <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
               <StatCard
-                label="Temuan"
+                label={t('Temuan')}
                 value={report ? formatNumber(report.summary.findings) : '...'}
                 tone={report && report.summary.findings > 0 ? 'warn' : 'default'}
               />
-              <StatCard label="Orang terkait" value={report ? formatNumber(report.summary.flagged_users) : '...'} />
+              <StatCard label={t('Orang terkait')} value={report ? formatNumber(report.summary.flagged_users) : '...'} />
               <StatCard
-                label="Perlu perhatian"
+                label={t('Perlu perhatian')}
                 value={report ? formatNumber(report.summary.high_severity) : '...'}
-                hint="dua kali ambang atau lebih"
+                hint={t('dua kali ambang atau lebih')}
                 tone={report && report.summary.high_severity > 0 ? 'warn' : 'default'}
               />
               <StatCard
-                label="Aktivitas malam"
+                label={t('Aktivitas malam')}
                 value={report ? formatNumber(report.summary.by_type.night_activity) : '...'}
-                hint="22:00–05:00 WIB"
+                hint={t('22:00–05:00 WIB')}
               />
             </div>
 
             {report?.summary.row_limit_reached && (
               <p className="mt-3 text-xs text-amber-700">
-                Log pada periode ini sangat banyak sehingga sebagian tidak terbaca; angka bisa lebih rendah dari sebenarnya.
-                Persempit rentang tanggalnya.
+                {t('Log pada periode ini sangat banyak sehingga sebagian tidak terbaca; angka bisa lebih rendah dari sebenarnya. Persempit rentang tanggalnya.')}
               </p>
             )}
 
             <div className="mt-4 space-y-4">
-              {isLoading && <p className="text-sm text-slate-400">Memuat data...</p>}
+              {isLoading && <p className="text-sm text-slate-400">{t('Memuat data...')}</p>}
               {report && report.findings.length === 0 && (
                 <p className="rounded-lg border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-                  Tidak ada pola tidak biasa pada periode ini.
+                  {t('Tidak ada pola tidak biasa pada periode ini.')}
                 </p>
               )}
               {report?.findings.map((finding) => (

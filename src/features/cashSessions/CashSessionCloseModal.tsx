@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../api/errors'
 import { formatRupiah } from '../../utils/money'
 import { closeCashSession } from '../../api/cashSessions'
 import type { CashSession } from '../../types/cashSession'
+import { useI18n } from '../../i18n/useI18n'
 
 interface CashSessionCloseModalProps {
   open: boolean
@@ -32,6 +33,7 @@ export function CashSessionCloseModal({
   liveExpectedCash,
   onClosed,
 }: CashSessionCloseModalProps) {
+  const { t } = useI18n()
   const [closingAmount, setClosingAmount] = useState('')
   const [notes, setNotes] = useState('')
   const queryClient = useQueryClient()
@@ -51,7 +53,7 @@ export function CashSessionCloseModal({
     mutationFn: () => closeCashSession(sessionId, { closing_amount: closingNum, notes: notes.trim() || null }),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['cash-sessions', 'current'] })
-      toast.show('Sesi kasir ditutup.', 'success')
+      toast.show(t('Sesi kasir ditutup.'), 'success')
       onClosed(res.data)
       onClose()
     },
@@ -66,14 +68,13 @@ export function CashSessionCloseModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Tutup Kasir">
+    <Modal open={open} onClose={onClose} title={t('Tutup Kasir')}>
       <p className="mb-4 text-sm text-slate-500">
-        Hitung fisik uang tunai di laci saat ini, lalu masukkan hasilnya di bawah. Uang seharusnya
-        (modal awal + kas masuk − pengeluaran): <strong>{formatRupiah(liveExpectedCash)}</strong>
+        {t('Hitung fisik uang tunai di laci saat ini, lalu masukkan hasilnya di bawah. Uang seharusnya (modal awal + kas masuk − pengeluaran):')} <strong>{formatRupiah(liveExpectedCash)}</strong>
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label="Hasil Hitung Fisik (Uang Tunai)"
+          label={t('Hasil Hitung Fisik (Uang Tunai)')}
           type="number"
           min={0}
           required
@@ -82,26 +83,26 @@ export function CashSessionCloseModal({
         />
         {closingAmount !== '' && (
           <p className={`text-sm font-medium ${diffPreview === 0 ? 'text-slate-600' : diffPreview > 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-            Selisih: {diffPreview > 0 ? '+' : ''}
+            {t('Selisih:')} {diffPreview > 0 ? '+' : ''}
             {formatRupiah(diffPreview)}
-            {diffPreview !== 0 && (diffPreview > 0 ? ' (lebih)' : ' (kurang)')}
+            {diffPreview !== 0 && (diffPreview > 0 ? t(' (lebih)') : t(' (kurang)'))}
           </p>
         )}
-        <TextareaField label="Catatan (opsional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextareaField label={t('Catatan (opsional)')} value={notes} onChange={(e) => setNotes(e.target.value)} />
         <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onClose}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menutup...' : 'Tutup Kasir'}
+            {mutation.isPending ? t('Menutup...') : t('Tutup Kasir')}
           </button>
         </div>
       </form>

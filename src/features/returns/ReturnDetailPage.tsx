@@ -23,27 +23,30 @@ import {
   rejectReturn,
 } from '../../api/returns'
 import type { ReturnDetail } from '../../types/return'
+import { useI18n } from '../../i18n/useI18n'
+import { tk, translate } from '../../i18n/i18n'
 
-const CONDITION_LABEL: Record<string, string> = { GOOD: 'Baik', DAMAGED: 'Rusak' }
+const CONDITION_LABEL: Record<string, string> = { GOOD: tk('Baik'), DAMAGED: tk('Rusak') }
 const ACTION_LABEL: Record<string, string> = {
-  RESTOCK: 'Masuk stok lagi',
-  REPLACE: 'Ganti barang baru',
-  SCRAP: 'Musnahkan (scrap)',
+  RESTOCK: tk('Masuk stok lagi'),
+  REPLACE: tk('Ganti barang baru'),
+  SCRAP: tk('Musnahkan (scrap)'),
 }
 
 const detailColumns: DataTableColumn<ReturnDetail>[] = [
   { key: 'sku', header: 'SKU', render: (row) => row.sku },
-  { key: 'name', header: 'Nama Item', render: (row) => row.name },
-  { key: 'quantity', header: 'Qty', className: 'text-right', render: (row) => row.quantity },
-  { key: 'condition', header: 'Kondisi', render: (row) => CONDITION_LABEL[row.condition] },
-  { key: 'action', header: 'Aksi', render: (row) => ACTION_LABEL[row.action] },
-  { key: 'unit_cost', header: 'Unit Cost', className: 'text-right', render: (row) => formatRupiah(row.unit_cost) },
-  { key: 'total_cost', header: 'Total Cost', className: 'text-right', render: (row) => formatRupiah(row.total_cost) },
+  { key: 'name', header: tk('Nama Item'), render: (row) => row.name },
+  { key: 'quantity', header: tk('Qty'), className: 'text-right', render: (row) => row.quantity },
+  { key: 'condition', header: tk('Kondisi'), render: (row) => translate(CONDITION_LABEL[row.condition]) },
+  { key: 'action', header: tk('Aksi'), render: (row) => translate(ACTION_LABEL[row.action]) },
+  { key: 'unit_cost', header: tk('Unit Cost'), className: 'text-right', render: (row) => formatRupiah(row.unit_cost) },
+  { key: 'total_cost', header: tk('Total Cost'), className: 'text-right', render: (row) => formatRupiah(row.total_cost) },
 ]
 
 type ActiveDialog = 'approve' | 'complete' | 'reject' | 'cancel' | 'delete' | null
 
 export default function ReturnDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const returnId = Number(id)
   const navigate = useNavigate()
@@ -87,7 +90,7 @@ export default function ReturnDetailPage() {
     mutationFn: () => approveReturn(returnId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['returns'] })
-      toast.show('Retur disetujui.', 'success')
+      toast.show(t('Retur disetujui.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -101,7 +104,7 @@ export default function ReturnDetailPage() {
     onSuccess: () => {
       reset()
       invalidateAfterStockChange()
-      toast.show('Retur berhasil diselesaikan.', 'success')
+      toast.show(t('Retur berhasil diselesaikan.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -114,7 +117,7 @@ export default function ReturnDetailPage() {
     mutationFn: () => rejectReturn(returnId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['returns'] })
-      toast.show('Retur ditolak.', 'success')
+      toast.show(t('Retur ditolak.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -127,7 +130,7 @@ export default function ReturnDetailPage() {
     mutationFn: () => cancelReturn(returnId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['returns'] })
-      toast.show('Retur dibatalkan.', 'success')
+      toast.show(t('Retur dibatalkan.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -141,7 +144,7 @@ export default function ReturnDetailPage() {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: ['returns', returnId] })
       queryClient.invalidateQueries({ queryKey: ['returns'] })
-      toast.show('Retur dihapus.', 'success')
+      toast.show(t('Retur dihapus.'), 'success')
       navigate('/returns')
     },
     onError: (err) => {
@@ -151,7 +154,7 @@ export default function ReturnDetailPage() {
   })
 
   if (isLoading || !doc) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   const d = doc.data
@@ -161,7 +164,7 @@ export default function ReturnDetailPage() {
   return (
     <div>
       <Link to="/returns" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar retur
+        {t('← Kembali ke daftar retur')}
       </Link>
 
       <div className="mt-2 flex items-center justify-between">
@@ -171,13 +174,13 @@ export default function ReturnDetailPage() {
             <StatusBadge status={d.status} />
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {d.type === 'RETURN_CUSTOMER' ? 'Retur dari Customer' : 'Retur ke Supplier'} &middot;{' '}
+            {d.type === 'RETURN_CUSTOMER' ? t('Retur dari Customer') : t('Retur ke Supplier')} &middot;{' '}
             {warehouse?.data.code} — {warehouse?.data.name}
             {contact && <> &middot; {contact.data.name}</>} &middot; {formatDate(d.return_date)}
           </p>
           {originId && (
             <p className="mt-1 text-sm">
-              Dokumen asal:{' '}
+              {t('Dokumen asal:')}{' '}
               <Link to={`${originPath}/${originId}`} className="text-blue-600 hover:underline">
                 #{originId}
               </Link>
@@ -185,7 +188,7 @@ export default function ReturnDetailPage() {
           )}
           {d.replacement_inventory_transaction_id && (
             <p className="mt-1 text-sm">
-              Outbound pengganti:{' '}
+              {t('Outbound pengganti:')}{' '}
               <Link to={`/outbounds/${d.replacement_inventory_transaction_id}`} className="text-blue-600 hover:underline">
                 #{d.replacement_inventory_transaction_id}
               </Link>
@@ -199,7 +202,7 @@ export default function ReturnDetailPage() {
               to={`/returns/${d.id}/edit`}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Edit
+              {t('Edit')}
             </Link>
           )}
           {can('delete') && canWriteResource && (
@@ -208,7 +211,7 @@ export default function ReturnDetailPage() {
               onClick={() => setActiveDialog('delete')}
               className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Hapus
+              {t('Hapus')}
             </button>
           )}
           {can('cancel') && canWriteResource && (
@@ -217,7 +220,7 @@ export default function ReturnDetailPage() {
               onClick={() => setActiveDialog('cancel')}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batalkan
+              {t('Batalkan')}
             </button>
           )}
           {can('reject') && canApproveResource && (
@@ -226,7 +229,7 @@ export default function ReturnDetailPage() {
               onClick={() => setActiveDialog('reject')}
               className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Tolak
+              {t('Tolak')}
             </button>
           )}
           {can('approve') && canApproveResource && (
@@ -235,7 +238,7 @@ export default function ReturnDetailPage() {
               onClick={() => setActiveDialog('approve')}
               className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
             >
-              Approve
+              {t('Approve')}
             </button>
           )}
           {can('complete') && canWriteResource && (
@@ -244,60 +247,60 @@ export default function ReturnDetailPage() {
               onClick={() => setActiveDialog('complete')}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Complete
+              {t('Complete')}
             </button>
           )}
         </div>
       </div>
 
-      {d.reason && <p className="mt-4 text-sm text-slate-600">Alasan: {d.reason}</p>}
+      {d.reason && <p className="mt-4 text-sm text-slate-600">{t('Alasan:')} {d.reason}</p>}
 
-      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">Detail Item</h2>
+      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
       <DataTable columns={detailColumns} data={d.details ?? []} getRowKey={(row) => row.id} />
 
       <div className="mt-4 text-xs text-slate-400">
-        Dibuat: {formatTimestamp(d.created_at)}
-        {d.created_by != null && <> oleh User #{d.created_by}</>}
+        {t('Dibuat:')} {formatTimestamp(d.created_at)}
+        {d.created_by != null && <> {t('oleh User #')}{d.created_by}</>}
         {d.approved_at && (
           <>
             {' '}
-            &middot; Disetujui: {formatTimestamp(d.approved_at)}
-            {d.approved_by != null && <> oleh User #{d.approved_by}</>}
+            {t('· Disetujui:')} {formatTimestamp(d.approved_at)}
+            {d.approved_by != null && <> {t('oleh User #')}{d.approved_by}</>}
           </>
         )}
         {d.completed_at && (
           <>
             {' '}
-            &middot; Selesai: {formatTimestamp(d.completed_at)}
-            {d.completed_by != null && <> oleh User #{d.completed_by}</>}
+            {t('· Selesai:')} {formatTimestamp(d.completed_at)}
+            {d.completed_by != null && <> {t('oleh User #')}{d.completed_by}</>}
           </>
         )}
-        {d.cancelled_at && <> &middot; Dibatalkan: {formatTimestamp(d.cancelled_at)}</>}
+        {d.cancelled_at && <> {t('· Dibatalkan:')} {formatTimestamp(d.cancelled_at)}</>}
       </div>
 
       <ConfirmDialog
         open={activeDialog === 'approve'}
-        title="Approve Retur"
-        description="Dokumen akan berpindah status ke APPROVED. Lanjutkan?"
-        confirmLabel="Approve"
+        title={t('Approve Retur')}
+        description={t('Dokumen akan berpindah status ke APPROVED. Lanjutkan?')}
+        confirmLabel={t('Approve')}
         loading={approveMutation.isPending}
         onConfirm={() => approveMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'complete'}
-        title="Complete Retur"
-        description="Aksi ini akan mengubah stok secara permanen sesuai kondisi & aksi tiap item (termasuk membuat outbound pengganti kalau ada baris REPLACE), dan tidak bisa dibatalkan. Lanjutkan?"
-        confirmLabel="Complete"
+        title={t('Complete Retur')}
+        description={t('Aksi ini akan mengubah stok secara permanen sesuai kondisi & aksi tiap item (termasuk membuat outbound pengganti kalau ada baris REPLACE), dan tidak bisa dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Complete')}
         loading={completeMutation.isPending}
         onConfirm={() => completeMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'reject'}
-        title="Tolak Retur"
-        description="Dokumen ini akan ditolak dan tidak akan diproses lebih lanjut. Lanjutkan?"
-        confirmLabel="Tolak"
+        title={t('Tolak Retur')}
+        description={t('Dokumen ini akan ditolak dan tidak akan diproses lebih lanjut. Lanjutkan?')}
+        confirmLabel={t('Tolak')}
         danger
         loading={rejectMutation.isPending}
         onConfirm={() => rejectMutation.mutate()}
@@ -305,9 +308,9 @@ export default function ReturnDetailPage() {
       />
       <ConfirmDialog
         open={activeDialog === 'cancel'}
-        title="Batalkan Retur"
-        description="Dokumen ini akan dibatalkan. Lanjutkan?"
-        confirmLabel="Batalkan"
+        title={t('Batalkan Retur')}
+        description={t('Dokumen ini akan dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Batalkan')}
         danger
         loading={cancelMutation.isPending}
         onConfirm={() => cancelMutation.mutate()}
@@ -315,9 +318,9 @@ export default function ReturnDetailPage() {
       />
       <ConfirmDialog
         open={activeDialog === 'delete'}
-        title="Hapus Retur"
-        description="Dokumen ini akan dihapus permanen. Lanjutkan?"
-        confirmLabel="Hapus"
+        title={t('Hapus Retur')}
+        description={t('Dokumen ini akan dihapus permanen. Lanjutkan?')}
+        confirmLabel={t('Hapus')}
         danger
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}

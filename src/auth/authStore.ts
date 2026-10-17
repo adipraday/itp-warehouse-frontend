@@ -1,5 +1,6 @@
 import { refresh as refreshApiCall } from './authApi'
 import type { AuthUser } from './authApi'
+import { translate } from '../i18n/i18n'
 
 const REFRESH_TOKEN_KEY = 'warehouse_refresh_token'
 
@@ -103,7 +104,7 @@ export function refreshAccessToken(): Promise<string> {
   const storedRefreshToken = getStoredRefreshToken()
   if (!storedRefreshToken) {
     clearSession()
-    return Promise.reject(new Error('Tidak ada sesi untuk di-refresh.'))
+    return Promise.reject(new Error(translate('Tidak ada sesi untuk di-refresh.')))
   }
 
   refreshPromise = refreshApiCall(storedRefreshToken)

@@ -4,6 +4,7 @@ import { useAuth } from './useAuth'
 import { STAFF_ROLES } from './permissions'
 import type { Role } from './permissions'
 import { getAccessStatus } from '../api/me'
+import { useI18n } from '../i18n/useI18n'
 
 /**
  * Guard tambahan khusus role staff (§17 frontend-integration-guide.md) — dicek SEKALI setelah
@@ -16,6 +17,7 @@ import { getAccessStatus } from '../api/me'
  * guard ini cuma buat pengecekan awal sekali per sesi.
  */
 export default function RequireWarehouseAccess() {
+  const { t } = useI18n()
   const { user } = useAuth()
   const isStaff = !!user && STAFF_ROLES.includes(user.role as Role)
 
@@ -39,7 +41,7 @@ export default function RequireWarehouseAccess() {
   if (isLoading || isFetching) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-400">
-        Memeriksa akses...
+        {t('Memeriksa akses...')}
       </div>
     )
   }

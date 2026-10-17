@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { useI18n } from '../i18n/useI18n'
 
 interface RequirePermissionProps {
   allowed: boolean
@@ -11,12 +12,13 @@ interface RequirePermissionProps {
  * Server tetap validator akhir (403 kalau nekat panggil API), ini murni UX di sisi client.
  */
 export default function RequirePermission({ allowed }: RequirePermissionProps) {
+  const { t } = useI18n()
   if (!allowed) {
     return (
       <div className="mx-auto max-w-md rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-lg font-semibold text-slate-900">Akses Ditolak</h1>
+        <h1 className="text-lg font-semibold text-slate-900">{t('Akses Ditolak')}</h1>
         <p className="mt-2 text-sm text-slate-500">
-          Anda tidak punya akses untuk membuka halaman ini. Hubungi admin kalau menurut Anda ini keliru.
+          {t('Anda tidak punya akses untuk membuka halaman ini. Hubungi admin kalau menurut Anda ini keliru.')}
         </p>
       </div>
     )

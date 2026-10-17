@@ -22,13 +22,15 @@ import {
 } from '../../api/inventoryTransactions'
 import type { InventoryTransactionKind } from '../../api/inventoryTransactions'
 import type { InventoryTransactionDetail } from '../../types/inventoryTransaction'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 const detailColumns: DataTableColumn<InventoryTransactionDetail>[] = [
   { key: 'sku', header: 'SKU', render: (row) => row.sku },
-  { key: 'name', header: 'Nama Item', render: (row) => row.name },
-  { key: 'quantity', header: 'Qty', className: 'text-right', render: (row) => row.quantity },
-  { key: 'unit_price', header: 'Unit Price', className: 'text-right', render: (row) => formatRupiah(row.unit_price) },
-  { key: 'total_price', header: 'Total', className: 'text-right', render: (row) => formatRupiah(row.total_price) },
+  { key: 'name', header: tk('Nama Item'), render: (row) => row.name },
+  { key: 'quantity', header: tk('Qty'), className: 'text-right', render: (row) => row.quantity },
+  { key: 'unit_price', header: tk('Unit Price'), className: 'text-right', render: (row) => formatRupiah(row.unit_price) },
+  { key: 'total_price', header: tk('Total'), className: 'text-right', render: (row) => formatRupiah(row.total_price) },
 ]
 
 interface InventoryTransactionDetailPageProps {
@@ -39,6 +41,7 @@ interface InventoryTransactionDetailPageProps {
 type ActiveDialog = 'complete' | 'cancel' | 'delete' | null
 
 export default function InventoryTransactionDetailPage({ kind, title }: InventoryTransactionDetailPageProps) {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const transactionId = Number(id)
   const navigate = useNavigate()
@@ -83,7 +86,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
     onSuccess: () => {
       reset()
       invalidateAfterStockChange()
-      toast.show(`${title} berhasil diselesaikan.`, 'success')
+      toast.show(t('{title} berhasil diselesaikan.', { title }), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -96,7 +99,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
     mutationFn: () => cancelInventoryTransaction(kind, transactionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [listQueryKey] })
-      toast.show(`${title} dibatalkan.`, 'success')
+      toast.show(t('{title} dibatalkan.', { title }), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -113,7 +116,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
       // (404, harmless — lihat progress-log.md) sebelum navigate() di bawah unmount halaman.
       queryClient.removeQueries({ queryKey: [listQueryKey, transactionId] })
       queryClient.invalidateQueries({ queryKey: [listQueryKey] })
-      toast.show(`${title} dihapus.`, 'success')
+      toast.show(t('{title} dihapus.', { title }), 'success')
       navigate(basePath)
     },
     onError: (err) => {
@@ -123,7 +126,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
   })
 
   if (isLoading || !doc) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   const d = doc.data
@@ -131,7 +134,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
   return (
     <div>
       <Link to={basePath} className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar {title.toLowerCase()}
+        {t('← Kembali ke daftar {title}', { title: title.toLowerCase() })}
       </Link>
 
       <div className="mt-2 flex items-center justify-between">
@@ -153,14 +156,14 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
             rel="noopener noreferrer"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Cetak Surat Jalan
+            {t('Cetak Surat Jalan')}
           </Link>
           {can('edit') && canWriteResource && (
             <Link
               to={`${basePath}/${d.id}/edit`}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Edit
+              {t('Edit')}
             </Link>
           )}
           {can('delete') && canWriteResource && (
@@ -169,7 +172,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
               onClick={() => setActiveDialog('delete')}
               className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Hapus
+              {t('Hapus')}
             </button>
           )}
           {can('cancel') && canWriteResource && (
@@ -178,7 +181,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
               onClick={() => setActiveDialog('cancel')}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batalkan
+              {t('Batalkan')}
             </button>
           )}
           {can('complete') && canWriteResource && (
@@ -187,7 +190,7 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
               onClick={() => setActiveDialog('complete')}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Complete
+              {t('Complete')}
             </button>
           )}
         </div>
@@ -195,42 +198,46 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
 
       {d.reversal_of_transaction_id && (
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          Dokumen reversal dari transaksi #{d.reversal_of_transaction_id}. Alasan: {d.reversal_reason}
+          {t('Dokumen reversal dari transaksi #')}{d.reversal_of_transaction_id}{t('. Alasan:')} {d.reversal_reason}
         </div>
       )}
 
-      {d.notes && <p className="mt-4 text-sm text-slate-600">Catatan: {d.notes}</p>}
+      {d.notes && <p className="mt-4 text-sm text-slate-600">{t('Catatan:')} {d.notes}</p>}
 
-      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">Detail Item</h2>
+      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
       <DataTable columns={detailColumns} data={d.details ?? []} getRowKey={(row) => row.id} />
 
       <div className="mt-4 text-xs text-slate-400">
-        Dibuat: {formatTimestamp(d.created_at)}
-        {d.created_by != null && <> oleh User #{d.created_by}</>}
+        {t('Dibuat:')} {formatTimestamp(d.created_at)}
+        {d.created_by != null && <> {t('oleh User #')}{d.created_by}</>}
         {d.completed_at && (
           <>
             {' '}
-            &middot; Selesai: {formatTimestamp(d.completed_at)}
-            {d.completed_by != null && <> oleh User #{d.completed_by}</>}
+            {t('· Selesai:')} {formatTimestamp(d.completed_at)}
+            {d.completed_by != null && <> {t('oleh User #')}{d.completed_by}</>}
           </>
         )}
-        {d.cancelled_at && <> &middot; Dibatalkan: {formatTimestamp(d.cancelled_at)}</>}
+        {d.cancelled_at && <> {t('· Dibatalkan:')} {formatTimestamp(d.cancelled_at)}</>}
       </div>
 
       <ConfirmDialog
         open={activeDialog === 'complete'}
-        title={`Complete ${title}`}
-        description={`Aksi ini akan ${kind === 'inbound' ? 'menambah' : 'mengurangi'} stok secara permanen dan tidak bisa dibatalkan. Lanjutkan?`}
-        confirmLabel="Complete"
+        title={t('Complete {title}', { title })}
+        description={
+          kind === 'inbound'
+            ? t('Aksi ini akan menambah stok secara permanen dan tidak bisa dibatalkan. Lanjutkan?')
+            : t('Aksi ini akan mengurangi stok secara permanen dan tidak bisa dibatalkan. Lanjutkan?')
+        }
+        confirmLabel={t('Complete')}
         loading={completeMutation.isPending}
         onConfirm={() => completeMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'cancel'}
-        title={`Batalkan ${title}`}
-        description="Dokumen DRAFT ini akan dibatalkan. Lanjutkan?"
-        confirmLabel="Batalkan"
+        title={t('Batalkan {title}', { title })}
+        description={t('Dokumen DRAFT ini akan dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Batalkan')}
         danger
         loading={cancelMutation.isPending}
         onConfirm={() => cancelMutation.mutate()}
@@ -238,9 +245,9 @@ export default function InventoryTransactionDetailPage({ kind, title }: Inventor
       />
       <ConfirmDialog
         open={activeDialog === 'delete'}
-        title={`Hapus ${title}`}
-        description="Dokumen ini akan dihapus permanen. Lanjutkan?"
-        confirmLabel="Hapus"
+        title={t('Hapus {title}', { title })}
+        description={t('Dokumen ini akan dihapus permanen. Lanjutkan?')}
+        confirmLabel={t('Hapus')}
         danger
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}

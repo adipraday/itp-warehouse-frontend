@@ -2,8 +2,10 @@ import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import * as authStore from './authStore'
+import { useI18n } from '../i18n/useI18n'
 
 export default function RequireAuth() {
+  const { t } = useI18n()
   const { status } = useAuth()
   const location = useLocation()
 
@@ -24,7 +26,7 @@ export default function RequireAuth() {
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-400">
-        Memuat sesi...
+        {t('Memuat sesi...')}
       </div>
     )
   }

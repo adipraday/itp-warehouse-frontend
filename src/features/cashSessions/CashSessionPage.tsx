@@ -19,6 +19,7 @@ import { paymentMethodLabel } from '../../types/payment'
 import { CashSessionExpenseModal } from './CashSessionExpenseModal'
 import { CashSessionCloseModal } from './CashSessionCloseModal'
 import type { CashSession, CashSessionExpense, CashSessionMethodBreakdown } from '../../types/cashSession'
+import { useI18n } from '../../i18n/useI18n'
 
 /**
  * Sesi kasir/shift (§20 frontend-integration-guide.md, 2026-09-13) — halaman self-scoped: cuma
@@ -29,6 +30,7 @@ import type { CashSession, CashSessionExpense, CashSessionMethodBreakdown } from
  * kebuka buat siapa pun yang login, sama seperti halaman Profile.
  */
 export default function CashSessionPage() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const toast = useToast()
   const { canViewActivityLogs } = usePermissions()
@@ -64,7 +66,7 @@ export default function CashSessionPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cash-sessions', 'current'] })
-      toast.show('Kasir dibuka.', 'success')
+      toast.show(t('Kasir dibuka.'), 'success')
       setLastClosed(null)
       setWarehouseId(null)
       setOpeningAmount('0')
@@ -78,14 +80,14 @@ export default function CashSessionPage() {
   function handleOpenSubmit(e: FormEvent) {
     e.preventDefault()
     if (!warehouseId) {
-      toast.show('Warehouse wajib dipilih.', 'error')
+      toast.show(t('Warehouse wajib dipilih.'), 'error')
       return
     }
     openMutation.mutate()
   }
 
   if (isLoading) {
-    return <p className="text-sm text-slate-400">Memuat...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat...')}</p>
   }
 
   // --- Belum ada sesi terbuka: form Buka Kasir (+ laporan penutupan terakhir kalau ada) ---
@@ -93,35 +95,35 @@ export default function CashSessionPage() {
     return (
       <div>
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-slate-900">Sesi Kasir</h1>
+          <h1 className="text-xl font-semibold text-slate-900">{t('Sesi Kasir')}</h1>
           {canViewActivityLogs() && (
             <Link to="/cash-sessions/history" className="text-sm font-medium text-blue-600 hover:underline">
-              Riwayat Sesi Kasir &rarr;
+              {t('Riwayat Sesi Kasir →')}
             </Link>
           )}
         </div>
         <p className="mt-1 text-sm text-slate-500">
-          Belum ada sesi kasir yang terbuka. Buka kasir dulu sebelum mulai catat transaksi.
+          {t('Belum ada sesi kasir yang terbuka. Buka kasir dulu sebelum mulai catat transaksi.')}
         </p>
 
         {lastClosed && (
           <div className="mt-6 max-w-md rounded-lg border border-slate-200 bg-white p-4">
-            <h2 className="text-sm font-semibold text-slate-700">Laporan Penutupan Terakhir</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Laporan Penutupan Terakhir')}</h2>
             <dl className="mt-3 space-y-1.5 text-sm">
               <div className="flex justify-between">
-                <dt className="text-slate-500">Modal Awal</dt>
+                <dt className="text-slate-500">{t('Modal Awal')}</dt>
                 <dd>{formatRupiah(lastClosed.opening_amount)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-500">Uang Seharusnya</dt>
+                <dt className="text-slate-500">{t('Uang Seharusnya')}</dt>
                 <dd>{formatRupiah(lastClosed.expected_cash_amount ?? '0')}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-slate-500">Hasil Hitung Fisik</dt>
+                <dt className="text-slate-500">{t('Hasil Hitung Fisik')}</dt>
                 <dd>{formatRupiah(lastClosed.closing_amount ?? '0')}</dd>
               </div>
               <div className="flex justify-between border-t border-slate-200 pt-1.5 font-semibold">
-                <dt>Selisih</dt>
+                <dt>{t('Selisih')}</dt>
                 <dd
                   className={
                     parseMoney(lastClosed.cash_difference ?? '0') < 0
@@ -143,26 +145,26 @@ export default function CashSessionPage() {
           className="mt-6 max-w-sm space-y-4 rounded-lg border border-slate-200 bg-white p-4"
         >
           <WarehouseSelect
-            label="Warehouse"
+            label={t('Warehouse')}
             required
-            placeholder="-- pilih warehouse --"
+            placeholder={t('-- pilih warehouse --')}
             value={warehouseId}
             onChange={setWarehouseId}
           />
           <TextField
-            label="Modal Awal"
+            label={t('Modal Awal')}
             type="number"
             min={0}
             value={openingAmount}
             onChange={(e) => setOpeningAmount(e.target.value)}
           />
-          <TextareaField label="Catatan (opsional)" value={openNotes} onChange={(e) => setOpenNotes(e.target.value)} />
+          <TextareaField label={t('Catatan (opsional)')} value={openNotes} onChange={(e) => setOpenNotes(e.target.value)} />
           <button
             type="submit"
             disabled={openMutation.isPending}
             className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {openMutation.isPending ? 'Membuka...' : 'Buka Kasir'}
+            {openMutation.isPending ? t('Membuka...') : t('Buka Kasir')}
           </button>
         </form>
       </div>
@@ -174,15 +176,15 @@ export default function CashSessionPage() {
   const liveExpectedCash = parseMoney(summary?.live_expected_cash ?? session.opening_amount)
 
   const methodColumns: DataTableColumn<CashSessionMethodBreakdown>[] = [
-    { key: 'method', header: 'Metode', render: (row) => paymentMethodLabel(row.method) },
-    { key: 'count', header: 'Jumlah Transaksi', className: 'text-right', render: (row) => row.count },
-    { key: 'amount', header: 'Total', className: 'text-right', render: (row) => formatRupiah(row.amount) },
+    { key: 'method', header: t('Metode'), render: (row) => paymentMethodLabel(row.method) },
+    { key: 'count', header: t('Jumlah Transaksi'), className: 'text-right', render: (row) => row.count },
+    { key: 'amount', header: t('Total'), className: 'text-right', render: (row) => formatRupiah(row.amount) },
   ]
 
   const expenseColumns: DataTableColumn<CashSessionExpense>[] = [
-    { key: 'created_at', header: 'Waktu', render: (row) => formatTimestamp(row.created_at) },
-    { key: 'description', header: 'Alasan', render: (row) => row.description },
-    { key: 'amount', header: 'Jumlah', className: 'text-right', render: (row) => formatRupiah(row.amount) },
+    { key: 'created_at', header: t('Waktu'), render: (row) => formatTimestamp(row.created_at) },
+    { key: 'description', header: t('Alasan'), render: (row) => row.description },
+    { key: 'amount', header: t('Jumlah'), className: 'text-right', render: (row) => formatRupiah(row.amount) },
   ]
 
   return (
@@ -190,16 +192,16 @@ export default function CashSessionPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-3 text-xl font-semibold text-slate-900">
-            Sesi Kasir
+            {t('Sesi Kasir')}
             <StatusBadge status={session.status} />
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {warehouse?.data.code} — {warehouse?.data.name} &middot; Dibuka {formatTimestamp(session.opened_at)}
+            {warehouse?.data.code} — {warehouse?.data.name} {t('· Dibuka')} {formatTimestamp(session.opened_at)}
           </p>
-          {session.notes && <p className="mt-1 text-sm text-slate-500">Catatan: {session.notes}</p>}
+          {session.notes && <p className="mt-1 text-sm text-slate-500">{t('Catatan:')} {session.notes}</p>}
           {canViewActivityLogs() && (
             <Link to="/cash-sessions/history" className="mt-1 inline-block text-sm font-medium text-blue-600 hover:underline">
-              Riwayat Sesi Kasir &rarr;
+              {t('Riwayat Sesi Kasir →')}
             </Link>
           )}
         </div>
@@ -209,38 +211,38 @@ export default function CashSessionPage() {
             onClick={() => setExpenseModalOpen(true)}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            + Kas Keluar
+            {t('+ Kas Keluar')}
           </button>
           <button
             type="button"
             onClick={() => setCloseModalOpen(true)}
             className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
           >
-            Tutup Kasir
+            {t('Tutup Kasir')}
           </button>
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Modal Awal" value={formatRupiah(session.opening_amount)} />
-        <StatCard label="Uang Seharusnya Sekarang" value={formatRupiah(liveExpectedCash)} tone="good" />
-        <StatCard label="Total Pengeluaran" value={formatRupiah(summary?.total_expenses ?? '0')} tone="warn" />
+        <StatCard label={t('Modal Awal')} value={formatRupiah(session.opening_amount)} />
+        <StatCard label={t('Uang Seharusnya Sekarang')} value={formatRupiah(liveExpectedCash)} tone="good" />
+        <StatCard label={t('Total Pengeluaran')} value={formatRupiah(summary?.total_expenses ?? '0')} tone="warn" />
       </div>
 
-      <h2 className="mt-8 mb-3 text-sm font-semibold text-slate-700">Rincian per Metode Bayar</h2>
+      <h2 className="mt-8 mb-3 text-sm font-semibold text-slate-700">{t('Rincian per Metode Bayar')}</h2>
       <DataTable
         columns={methodColumns}
         data={summary?.by_method ?? []}
         getRowKey={(row) => row.method}
-        emptyMessage="Belum ada transaksi di sesi ini."
+        emptyMessage={t('Belum ada transaksi di sesi ini.')}
       />
 
-      <h2 className="mt-8 mb-3 text-sm font-semibold text-slate-700">Kas Keluar</h2>
+      <h2 className="mt-8 mb-3 text-sm font-semibold text-slate-700">{t('Kas Keluar')}</h2>
       <DataTable
         columns={expenseColumns}
         data={summary?.expenses ?? []}
         getRowKey={(row) => row.id}
-        emptyMessage="Belum ada pengeluaran dicatat."
+        emptyMessage={t('Belum ada pengeluaran dicatat.')}
       />
 
       <CashSessionExpenseModal

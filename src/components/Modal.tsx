@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
+import { useI18n } from '../i18n/useI18n'
 
 interface ModalProps {
   open: boolean
@@ -10,6 +11,7 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, title, children }: ModalProps) {
+  const { t } = useI18n()
   useEffect(() => {
     if (!open) return
     function handleKeyDown(e: KeyboardEvent) {
@@ -30,11 +32,11 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
       <button
         className="absolute inset-0 cursor-default"
-        aria-label="Tutup modal"
+        aria-label={t('Tutup modal')}
         onClick={onClose}
       />
       <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        {title && <h2 className="text-base font-semibold text-slate-900">{title}</h2>}
+        {title && <h2 className="text-base font-semibold text-slate-900">{t(title)}</h2>}
         <div className={title ? 'mt-4' : ''}>{children}</div>
       </div>
     </div>,

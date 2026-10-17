@@ -8,18 +8,21 @@ import { getContact } from '../../api/contacts'
 import { getInventoryTransaction } from '../../api/inventoryTransactions'
 import type { InventoryTransactionKind } from '../../api/inventoryTransactions'
 import { PrintLetterhead } from '../../components/PrintLetterhead'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 interface InventoryTransactionPrintPageProps {
   kind: InventoryTransactionKind
 }
 
 export default function InventoryTransactionPrintPage({ kind }: InventoryTransactionPrintPageProps) {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const transactionId = Number(id)
   const basePath = kind === 'inbound' ? '/inbounds' : '/outbounds'
   const listQueryKey = kind === 'inbound' ? 'inbounds' : 'outbounds'
-  const contactLabel = kind === 'inbound' ? 'Diterima dari (Supplier)' : 'Dikirim ke (Customer)'
-  const docLabel = kind === 'inbound' ? 'Surat Jalan — Barang Masuk' : 'Surat Jalan — Barang Keluar'
+  const contactLabel = kind === 'inbound' ? translate('Diterima dari (Supplier)') : translate('Dikirim ke (Customer)')
+  const docLabel = kind === 'inbound' ? translate('Surat Jalan — Barang Masuk') : translate('Surat Jalan — Barang Keluar')
   const directionLabel = kind === 'inbound' ? 'MASUK' : 'KELUAR'
 
   const { data: doc, isLoading, isError, error } = useQuery({
@@ -55,11 +58,11 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
   }, [ready])
 
   if (isLoading) {
-    return <p className="p-8 text-sm text-slate-400">Memuat data...</p>
+    return <p className="p-8 text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   if (isError || !doc) {
-    return <div className="p-8 text-sm text-red-600">Gagal memuat data: {getErrorMessage(error)}</div>
+    return <div className="p-8 text-sm text-red-600">{t('Gagal memuat data:')} {getErrorMessage(error)}</div>
   }
 
   const d = doc.data
@@ -74,14 +77,14 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
           to={`${basePath}/${transactionId}`}
           className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          &larr; Kembali
+          {t('← Kembali')}
         </Link>
         <button
           type="button"
           onClick={() => window.print()}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
-          Cetak / Simpan PDF
+          {t('Cetak / Simpan PDF')}
         </button>
       </div>
 
@@ -106,7 +109,7 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
             <div className="text-right">
               <h2 className="text-base font-semibold uppercase tracking-wide text-slate-700">{docLabel}</h2>
               <p className="mt-1 font-mono text-sm text-slate-900">{d.transaction_number}</p>
-              <p className="text-xs text-slate-400">Status: {d.status}</p>
+              <p className="text-xs text-slate-400">{t('Status:')} {d.status}</p>
             </div>
           </div>
 
@@ -119,11 +122,11 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
             </div>
             <div className="text-right">
               <p>
-                <span className="text-slate-400">Tanggal: </span>
+                <span className="text-slate-400">{t('Tanggal:')} </span>
                 {formatDate(d.transaction_date)}
               </p>
               <p>
-                <span className="text-slate-400">Arah Barang: </span>
+                <span className="text-slate-400">{t('Arah Barang:')} </span>
                 <strong>{directionLabel}</strong>
               </p>
             </div>
@@ -132,10 +135,10 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
           <table className="mt-6 w-full border-collapse text-sm">
             <thead>
               <tr className="border-b-2 border-slate-300 text-left text-xs uppercase tracking-wide text-slate-500">
-                <th className="py-2 w-10">No.</th>
-                <th className="py-2">SKU</th>
-                <th className="py-2">Nama Item</th>
-                <th className="py-2 text-right">Qty</th>
+                <th className="py-2 w-10">{t('No.')}</th>
+                <th className="py-2">{t('SKU')}</th>
+                <th className="py-2">{t('Nama Item')}</th>
+                <th className="py-2 text-right">{t('Qty')}</th>
               </tr>
             </thead>
             <tbody>
@@ -152,35 +155,34 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
 
           {d.notes && (
             <p className="mt-6 text-sm text-slate-500">
-              <span className="text-slate-400">Catatan: </span>
+              <span className="text-slate-400">{t('Catatan:')} </span>
               {d.notes}
             </p>
           )}
 
           <div className="mt-16 grid grid-cols-3 gap-6 text-center text-sm">
             <div>
-              <p className="text-slate-500">Dikirim oleh,</p>
+              <p className="text-slate-500">{t('Dikirim oleh,')}</p>
               <div className="mt-16 border-t border-slate-400 pt-1 text-xs text-slate-400">
-                (Nama &amp; Tanda Tangan)
+                {t('(Nama & Tanda Tangan)')}
               </div>
             </div>
             <div>
-              <p className="text-slate-500">Diterima oleh,</p>
+              <p className="text-slate-500">{t('Diterima oleh,')}</p>
               <div className="mt-16 border-t border-slate-400 pt-1 text-xs text-slate-400">
-                (Nama &amp; Tanda Tangan)
+                {t('(Nama & Tanda Tangan)')}
               </div>
             </div>
             <div>
-              <p className="text-slate-500">Mengetahui,</p>
+              <p className="text-slate-500">{t('Mengetahui,')}</p>
               <div className="mt-16 border-t border-slate-400 pt-1 text-xs text-slate-400">
-                (Nama &amp; Tanda Tangan)
+                {t('(Nama & Tanda Tangan)')}
               </div>
             </div>
           </div>
 
           <p className="mt-10 text-xs text-slate-400">
-            Dicetak {formatDate(todayISO())} &middot; Dokumen ini dihasilkan
-            otomatis oleh Warehouse System.
+            {t('Dicetak')} {formatDate(todayISO())} {t('· Dokumen ini dihasilkan otomatis oleh Warehouse System.')}
           </p>
         </div>
       </div>

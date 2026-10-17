@@ -6,6 +6,7 @@ import { getErrorMessage } from '../../api/errors'
 import { listUserSessions, revokeUserSession } from '../../api/users'
 import { formatIsoTimestamp } from '../../utils/date'
 import type { AuthUser } from '../../auth/authApi'
+import { useI18n } from '../../i18n/useI18n'
 
 interface UserSessionsModalProps {
   open: boolean
@@ -14,6 +15,7 @@ interface UserSessionsModalProps {
 }
 
 export function UserSessionsModal({ open, onClose, user }: UserSessionsModalProps) {
+  const { t } = useI18n()
   const toast = useToast()
   const queryClient = useQueryClient()
 
@@ -27,17 +29,17 @@ export function UserSessionsModal({ open, onClose, user }: UserSessionsModalProp
     mutationFn: (sessionId: number) => revokeUserSession(user!.id, sessionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users', user?.id, 'sessions'] })
-      toast.show('Sesi berhasil dicabut.', 'success')
+      toast.show(t('Sesi berhasil dicabut.'), 'success')
     },
     onError: (err) => toast.show(getErrorMessage(err), 'error'),
   })
 
   return (
-    <Modal open={open} onClose={onClose} title={user ? `Riwayat Sesi — ${user.name}` : 'Riwayat Sesi'}>
-      {isLoading && <p className="text-sm text-slate-400">Memuat sesi...</p>}
+    <Modal open={open} onClose={onClose} title={user ? t('Riwayat Sesi — {name}', { name: user.name }) : t('Riwayat Sesi')}>
+      {isLoading && <p className="text-sm text-slate-400">{t('Memuat sesi...')}</p>}
 
       {!isLoading && (sessions?.length ?? 0) === 0 && (
-        <p className="text-sm text-slate-400">Belum ada riwayat sesi.</p>
+        <p className="text-sm text-slate-400">{t('Belum ada riwayat sesi.')}</p>
       )}
 
       {!isLoading && sessions && sessions.length > 0 && (
@@ -47,12 +49,12 @@ export function UserSessionsModal({ open, onClose, user }: UserSessionsModalProp
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <StatusBadge status={session.status.toUpperCase()} />
-                  <p className="text-xs text-slate-400">Login: {formatIsoTimestamp(session.created_at)}</p>
+                  <p className="text-xs text-slate-400">{t('Login:')} {formatIsoTimestamp(session.created_at)}</p>
                 </div>
                 <p className="mt-0.5 text-xs text-slate-400">
-                  Berlaku sampai: {formatIsoTimestamp(session.expires_at)}
-                  {session.revoked_at && <> &middot; Dicabut: {formatIsoTimestamp(session.revoked_at)}</>}
-                  {session.used_at && <> &middot; Diperbarui: {formatIsoTimestamp(session.used_at)}</>}
+                  {t('Berlaku sampai:')} {formatIsoTimestamp(session.expires_at)}
+                  {session.revoked_at && <> {t('· Dicabut:')} {formatIsoTimestamp(session.revoked_at)}</>}
+                  {session.used_at && <> {t('· Diperbarui:')} {formatIsoTimestamp(session.used_at)}</>}
                 </p>
               </div>
               {session.status === 'active' && (
@@ -62,7 +64,7 @@ export function UserSessionsModal({ open, onClose, user }: UserSessionsModalProp
                   disabled={revokeMutation.isPending}
                   className="shrink-0 text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
                 >
-                  Cabut
+                  {t('Cabut')}
                 </button>
               )}
             </li>
@@ -76,7 +78,7 @@ export function UserSessionsModal({ open, onClose, user }: UserSessionsModalProp
           onClick={onClose}
           className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          Tutup
+          {t('Tutup')}
         </button>
       </div>
     </Modal>

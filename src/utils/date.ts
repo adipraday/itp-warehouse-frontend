@@ -1,9 +1,14 @@
 const WIB_OFFSET_MS = 7 * 60 * 60 * 1000
 
-const MONTHS_ID = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-  'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
-]
+import { getLanguage } from '../i18n/i18n'
+
+const MONTHS = {
+  id: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+}
+
+// Nama bulan mengikuti bahasa yang aktif saat tanggal diformat.
+const monthNames = () => MONTHS[getLanguage()]
 
 /**
  * Format tanggal murni (`YYYY-MM-DD`, kolom DATE tanpa waktu/timezone).
@@ -12,7 +17,7 @@ const MONTHS_ID = [
 export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '-'
   const [year, month, day] = dateStr.split('-')
-  const monthName = MONTHS_ID[Number(month) - 1] ?? month
+  const monthName = monthNames()[Number(month) - 1] ?? month
   return `${Number(day)} ${monthName} ${year}`
 }
 
@@ -32,7 +37,7 @@ export function formatTimestamp(ts: string | null | undefined): string {
   const wib = new Date(parsed.getTime() + WIB_OFFSET_MS)
   const hours = String(wib.getUTCHours()).padStart(2, '0')
   const minutes = String(wib.getUTCMinutes()).padStart(2, '0')
-  return `${wib.getUTCDate()} ${MONTHS_ID[wib.getUTCMonth()]} ${wib.getUTCFullYear()} ${hours}:${minutes}`
+  return `${wib.getUTCDate()} ${monthNames()[wib.getUTCMonth()]} ${wib.getUTCFullYear()} ${hours}:${minutes}`
 }
 
 /**
@@ -45,7 +50,7 @@ export function formatIsoTimestamp(ts: string | null | undefined): string {
   const date = new Date(ts)
   if (Number.isNaN(date.getTime())) return '-'
   const day = date.getDate()
-  const monthName = MONTHS_ID[date.getMonth()]
+  const monthName = monthNames()[date.getMonth()]
   const year = date.getFullYear()
   const hours = String(date.getHours()).padStart(2, '0')
   const minutes = String(date.getMinutes()).padStart(2, '0')
@@ -55,7 +60,7 @@ export function formatIsoTimestamp(ts: string | null | undefined): string {
 /** Label pendek buat sumbu chart (mis. "21 Sep") — tanpa tahun, dari YYYY-MM-DD. */
 export function formatShortDate(dateStr: string): string {
   const [, month, day] = dateStr.split('-')
-  const monthName = MONTHS_ID[Number(month) - 1] ?? month
+  const monthName = monthNames()[Number(month) - 1] ?? month
   return `${Number(day)} ${monthName}`
 }
 

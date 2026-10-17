@@ -21,6 +21,7 @@ import { getItemByBarcode } from '../../api/items'
 import type { Item } from '../../types/item'
 import { ItemFormModal } from '../items/ItemFormModal'
 import { usePermissions } from '../../auth/permissions'
+import { useI18n } from '../../i18n/useI18n'
 
 interface DetailRow {
   key: number
@@ -40,6 +41,7 @@ interface InventoryTransactionFormPageProps {
 }
 
 export default function InventoryTransactionFormPage({ kind, title }: InventoryTransactionFormPageProps) {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const isEdit = !!id
   const transactionId = isEdit ? Number(id) : null
@@ -117,7 +119,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: [listQueryKey] })
-      toast.show(isEdit ? `${title} berhasil diupdate.` : `${title} berhasil dibuat.`, 'success')
+      toast.show(isEdit ? t('{title} berhasil diupdate.', { title }) : t('{title} berhasil dibuat.', { title }), 'success')
       navigate(`${basePath}/${res.data.id}`)
     },
     onError: (err) => {
@@ -153,7 +155,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
       }
       return [...prev, filledRow]
     })
-    toast.show(`${item.sku} — ${item.name} ditambahkan.`, 'success')
+    toast.show(t('{sku} — {name} ditambahkan.', { sku: item.sku, name: item.name }), 'success')
   }
 
   const scanMutation = useMutation({
@@ -168,7 +170,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
         if (canCreateItem) {
           setNotFoundBarcode(barcode)
         } else {
-          toast.show('Barcode belum terdaftar. Minta admin-bu/purchasing daftarkan item ini.', 'error')
+          toast.show(t('Barcode belum terdaftar. Minta admin-bu/purchasing daftarkan item ini.'), 'error')
         }
       } else {
         toast.show(getErrorMessage(err), 'error')
@@ -183,7 +185,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
     const code = barcodeInput.trim()
     if (!code) return
     if (!warehouseId) {
-      toast.show('Pilih warehouse dulu sebelum scan barcode.', 'error')
+      toast.show(t('Pilih warehouse dulu sebelum scan barcode.'), 'error')
       return
     }
     scanMutation.mutate(code)
@@ -192,16 +194,16 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!warehouseId) {
-      toast.show('Warehouse wajib dipilih.', 'error')
+      toast.show(t('Warehouse wajib dipilih.'), 'error')
       return
     }
     const validRows = rows.filter((r) => r.item_id !== null && Number(r.quantity) > 0)
     if (validRows.length === 0) {
-      toast.show('Minimal 1 baris item dengan quantity valid.', 'error')
+      toast.show(t('Minimal 1 baris item dengan quantity valid.'), 'error')
       return
     }
     if (isReversal && !reversalReason.trim()) {
-      toast.show('Alasan reversal wajib diisi.', 'error')
+      toast.show(t('Alasan reversal wajib diisi.'), 'error')
       return
     }
     mutation.mutate()
@@ -216,17 +218,17 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
   }
 
   if (isEdit && loadingExisting) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   if (isEdit && existing && existing.data.status !== 'DRAFT') {
     return (
       <div>
         <p className="text-sm text-red-600">
-          Dokumen ini berstatus <strong>{existing.data.status}</strong> dan tidak bisa diedit lagi.
+          {t('Dokumen ini berstatus')} <strong>{existing.data.status}</strong> {t('dan tidak bisa diedit lagi.')}
         </p>
         <Link to={`${basePath}/${transactionId}`} className="mt-2 inline-block text-sm text-blue-600 hover:underline">
-          &larr; Kembali ke detail
+          {t('← Kembali ke detail')}
         </Link>
       </div>
     )
@@ -235,24 +237,24 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
   return (
     <div>
       <Link to={basePath} className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar {title.toLowerCase()}
+        {t('← Kembali ke daftar {title}', { title: title.toLowerCase() })}
       </Link>
       <h1 className="mt-2 mb-6 text-xl font-semibold text-slate-900">
-        {isEdit ? `Edit ${title}` : `Tambah ${title}`}
+        {isEdit ? t('Edit {title}', { title }) : t('Tambah {title}', { title })}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <WarehouseSelect
-            label="Warehouse"
+            label={t('Warehouse')}
             required
-            placeholder="-- pilih warehouse --"
+            placeholder={t('-- pilih warehouse --')}
             value={warehouseId}
             onChange={setWarehouseId}
           />
-          <ContactSelect label="Kontak (opsional)" value={contactId} onChange={setContactId} />
+          <ContactSelect label={t('Kontak (opsional)')} value={contactId} onChange={setContactId} />
           <TextField
-            label="Tanggal Transaksi"
+            label={t('Tanggal Transaksi')}
             type="date"
             required
             value={transactionDate}
@@ -260,7 +262,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
           />
         </div>
 
-        <TextareaField label="Catatan" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextareaField label={t('Catatan')} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
@@ -270,12 +272,12 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
               onChange={(e) => setIsReversal(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             />
-            Ini adalah dokumen reversal/koreksi
+            {t('Ini adalah dokumen reversal/koreksi')}
           </label>
           {isReversal && (
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextField
-                label="ID Transaksi Asal"
+                label={t('ID Transaksi Asal')}
                 type="number"
                 min={1}
                 required
@@ -283,7 +285,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
                 onChange={(e) => setReversalOfId(e.target.value)}
               />
               <TextField
-                label="Alasan Reversal"
+                label={t('Alasan Reversal')}
                 required
                 value={reversalReason}
                 onChange={(e) => setReversalReason(e.target.value)}
@@ -293,7 +295,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
         </div>
 
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <label className="block text-sm font-medium text-blue-900">Scan Barcode</label>
+          <label className="block text-sm font-medium text-blue-900">{t('Scan Barcode')}</label>
           <input
             type="text"
             value={barcodeInput}
@@ -305,25 +307,23 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
               }
             }}
             disabled={scanMutation.isPending}
-            placeholder="Arahkan scanner ke sini, atau ketik manual lalu Enter"
+            placeholder={t('Arahkan scanner ke sini, atau ketik manual lalu Enter')}
             className="mt-1 block w-full rounded-md border border-blue-300 px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-100"
           />
           <p className="mt-1 text-xs text-blue-700">
-            Item ketemu langsung nambah baris (atau nambah qty kalau item-nya sudah ada di daftar
-            di bawah). Belum ada warehouse dipilih? Pilih dulu — stok yang divalidasi khusus
-            warehouse itu.
+            {t('Item ketemu langsung nambah baris (atau nambah qty kalau item-nya sudah ada di daftar di bawah). Belum ada warehouse dipilih? Pilih dulu — stok yang divalidasi khusus warehouse itu.')}
           </p>
         </div>
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Detail Item</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
             <button
               type="button"
               onClick={() => setRows((prev) => [...prev, emptyRow()])}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
-              + Tambah Baris
+              {t('+ Tambah Baris')}
             </button>
           </div>
 
@@ -339,7 +339,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
                 </div>
                 <div className={kind === 'inbound' ? 'col-span-2' : 'col-span-3'}>
                   <TextField
-                    label="Qty"
+                    label={t('Qty')}
                     type="number"
                     min={0}
                     value={row.quantity}
@@ -350,7 +350,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
                   <>
                     <div className="col-span-3">
                       <TextField
-                        label="Unit Price"
+                        label={t('Unit Price')}
                         type="number"
                         min={0}
                         value={row.unit_price}
@@ -369,7 +369,7 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
                     disabled={rows.length === 1}
                     className="text-sm text-red-600 hover:underline disabled:opacity-30"
                   >
-                    Hapus
+                    {t('Hapus')}
                   </button>
                 </div>
               </div>
@@ -382,14 +382,14 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
             to={basePath}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </Link>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

@@ -14,11 +14,13 @@ import { listCashSessions } from '../../api/cashSessions'
 import { listUsers } from '../../api/users'
 import { CashSessionDetailModal } from './CashSessionDetailModal'
 import type { CashSession, CashSessionStatus } from '../../types/cashSession'
+import { useI18n } from '../../i18n/useI18n'
 
 // Riwayat Sesi Kasir — browse lintas user (§20 frontend-integration-guide.md), beda dari
 // /cash-session yang self-scoped ke sesi milik user login sendiri. Endpoint list ini sudah ada
 // dari Fase 22 tapi belum pernah dipakai UI-nya sampai sekarang (lihat progress-log.md).
 export default function CashSessionHistoryPage() {
+  const { t } = useI18n()
   const [page, setPage] = useState(1)
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
   const [userId, setUserId] = useState('')
@@ -58,16 +60,16 @@ export default function CashSessionHistoryPage() {
   }
 
   const columns: DataTableColumn<CashSession>[] = [
-    { key: 'id', header: 'ID', render: (row) => `#${row.id}` },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-    { key: 'warehouse_id', header: 'Warehouse', render: (row) => `#${row.warehouse_id}` },
-    { key: 'user_id', header: 'Kasir', render: (row) => kasirLabel(row.user_id) },
-    { key: 'opened_at', header: 'Dibuka', render: (row) => formatTimestamp(row.opened_at) },
-    { key: 'closed_at', header: 'Ditutup', render: (row) => (row.closed_at ? formatTimestamp(row.closed_at) : '—') },
-    { key: 'opening_amount', header: 'Modal Awal', className: 'text-right', render: (row) => formatRupiah(row.opening_amount) },
+    { key: 'id', header: t('ID'), render: (row) => `#${row.id}` },
+    { key: 'status', header: t('Status'), render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'warehouse_id', header: t('Warehouse'), render: (row) => `#${row.warehouse_id}` },
+    { key: 'user_id', header: t('Kasir'), render: (row) => kasirLabel(row.user_id) },
+    { key: 'opened_at', header: t('Dibuka'), render: (row) => formatTimestamp(row.opened_at) },
+    { key: 'closed_at', header: t('Ditutup'), render: (row) => (row.closed_at ? formatTimestamp(row.closed_at) : '—') },
+    { key: 'opening_amount', header: t('Modal Awal'), className: 'text-right', render: (row) => formatRupiah(row.opening_amount) },
     {
       key: 'cash_difference',
-      header: 'Selisih',
+      header: t('Selisih'),
       className: 'text-right',
       render: (row) =>
         row.cash_difference == null ? (
@@ -82,24 +84,24 @@ export default function CashSessionHistoryPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-slate-900">Riwayat Sesi Kasir</h1>
+      <h1 className="mb-6 text-xl font-semibold text-slate-900">{t('Riwayat Sesi Kasir')}</h1>
 
       <FilterBar>
         <div className="w-56">
           <WarehouseSelect value={warehouseId} onChange={resetPage(setWarehouseId)} />
         </div>
         <div className="w-32">
-          <TextField label="User ID" type="number" min={1} value={userId} onChange={(e) => resetPage(setUserId)(e.target.value)} />
+          <TextField label={t('User ID')} type="number" min={1} value={userId} onChange={(e) => resetPage(setUserId)(e.target.value)} />
         </div>
         <div className="w-36">
           <SelectField
-            label="Status"
+            label={t('Status')}
             value={status}
             onChange={(e) => resetPage(setStatus)(e.target.value as CashSessionStatus | '')}
           >
-            <option value="">Semua</option>
-            <option value="OPEN">OPEN</option>
-            <option value="CLOSED">CLOSED</option>
+            <option value="">{t('Semua')}</option>
+            <option value="OPEN">{t('OPEN')}</option>
+            <option value="CLOSED">{t('CLOSED')}</option>
           </SelectField>
         </div>
       </FilterBar>
@@ -114,7 +116,7 @@ export default function CashSessionHistoryPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Tidak ada sesi kasir."
+              emptyMessage={t('Tidak ada sesi kasir.')}
               onRowClick={(row) => setDetailId(row.id)}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}

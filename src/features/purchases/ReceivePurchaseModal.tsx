@@ -8,6 +8,7 @@ import { getErrorMessage } from '../../api/errors'
 import { receivePurchase } from '../../api/purchases'
 import { formatRupiah, parseMoney } from '../../utils/money'
 import type { Invoice } from '../../types/invoice'
+import { useI18n } from '../../i18n/useI18n'
 
 interface ReceivePurchaseModalProps {
   open: boolean
@@ -25,6 +26,7 @@ function outstandingOf(d: { quantity: number; received_quantity?: number; closed
 // benar-benar datang dan layak; hanya itu yang masuk stok. Sisanya: ditunggu penggantinya dari
 // supplier (retur/penggantian), atau ditutup dan dananya diminta kembali.
 export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchaseModalProps) {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const toast = useToast()
   const { getKey, reset } = useIdempotencyKey()
@@ -77,7 +79,7 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
       queryClient.invalidateQueries({ queryKey: ['cost-layers'] })
       queryClient.invalidateQueries({ queryKey: ['cost-summary'] })
       queryClient.invalidateQueries({ queryKey: ['inbounds'] })
-      toast.show('Penerimaan barang disetujui dan stok bertambah.', 'success')
+      toast.show(t('Penerimaan barang disetujui dan stok bertambah.'), 'success')
       onClose()
     },
     onError: (err) => toast.show(getErrorMessage(err), 'error'),
@@ -86,18 +88,18 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
   const canSubmit = allValid && totalReceived > 0 && !mutation.isPending
 
   return (
-    <Modal open={open} onClose={onClose} title="Terima Barang">
+    <Modal open={open} onClose={onClose} title={t('Terima Barang')}>
       <p className="text-sm text-slate-600">
-        Isi jumlah yang benar-benar diterima dan layak. Hanya jumlah ini yang masuk ke stok gudang.
+        {t('Isi jumlah yang benar-benar diterima dan layak. Hanya jumlah ini yang masuk ke stok gudang.')}
       </p>
 
       <div className="mt-4 max-h-72 overflow-auto rounded-md border border-slate-200">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-xs text-slate-500">
             <tr>
-              <th className="px-3 py-2 text-left">Item</th>
-              <th className="px-3 py-2 text-right">Sisa</th>
-              <th className="px-3 py-2 text-right">Diterima</th>
+              <th className="px-3 py-2 text-left">{t('Item')}</th>
+              <th className="px-3 py-2 text-right">{t('Sisa')}</th>
+              <th className="px-3 py-2 text-right">{t('Diterima')}</th>
             </tr>
           </thead>
           <tbody>
@@ -126,7 +128,7 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
 
       {hasShortfall && (
         <fieldset className="mt-4 space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
-          <legend className="px-1 text-xs font-semibold text-amber-800">Ada yang belum diterima — pilih tindak lanjut</legend>
+          <legend className="px-1 text-xs font-semibold text-amber-800">{t('Ada yang belum diterima — pilih tindak lanjut')}</legend>
           <label className="flex items-start gap-2">
             <input
               type="radio"
@@ -136,8 +138,7 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
               className="mt-1"
             />
             <span>
-              <strong>Tunggu pengganti dari supplier</strong> (retur/penggantian). Pembelian tetap terbuka dan bisa
-              diterima lagi nanti.
+              <strong>{t('Tunggu pengganti dari supplier')}</strong> {t('(retur/penggantian). Pembelian tetap terbuka dan bisa diterima lagi nanti.')}
             </span>
           </label>
           <label className="flex items-start gap-2">
@@ -149,9 +150,8 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
               className="mt-1"
             />
             <span>
-              <strong>Tutup kekurangan dan minta dana dikembalikan</strong> — senilai sekitar{' '}
-              <strong>{formatRupiah(shortfallValue)}</strong>. Pembelian ditandai selesai dengan jumlah yang
-              diterima.
+              <strong>{t('Tutup kekurangan dan minta dana dikembalikan')}</strong> {t('— senilai sekitar')}{' '}
+              <strong>{formatRupiah(shortfallValue)}</strong>{t('. Pembelian ditandai selesai dengan jumlah yang diterima.')}
             </span>
           </label>
         </fieldset>
@@ -159,16 +159,16 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
 
       <div className="mt-4">
         <TextareaField
-          label="Catatan (opsional)"
+          label={t('Catatan (opsional)')}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="mis. 4 dus rusak, supplier kirim ulang minggu depan"
+          placeholder={t('mis. 4 dus rusak, supplier kirim ulang minggu depan')}
         />
       </div>
 
       {totalReceived === 0 && allValid && (
         <p className="mt-3 text-sm text-red-600">
-          Minimal satu item harus diterima. Untuk menolak seluruh kiriman, batalkan pembelian ini.
+          {t('Minimal satu item harus diterima. Untuk menolak seluruh kiriman, batalkan pembelian ini.')}
         </p>
       )}
 
@@ -179,7 +179,7 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
           disabled={mutation.isPending}
           className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
         >
-          Batal
+          {t('Batal')}
         </button>
         <button
           type="button"
@@ -187,7 +187,7 @@ export function ReceivePurchaseModal({ open, onClose, purchase }: ReceivePurchas
           disabled={!canSubmit}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {mutation.isPending ? 'Memproses...' : 'Setujui & Masukkan ke Stok'}
+          {mutation.isPending ? t('Memproses...') : t('Setujui & Masukkan ke Stok')}
         </button>
       </div>
     </Modal>

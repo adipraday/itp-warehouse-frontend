@@ -10,6 +10,8 @@ import { getInvoiceByKind } from '../../api/invoices'
 import type { InvoiceKind } from '../../api/invoices'
 import type { PaymentStatus } from '../../types/invoice'
 import { PrintLetterhead } from '../../components/PrintLetterhead'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 interface InvoicePrintPageProps {
   kind: InvoiceKind
@@ -29,11 +31,12 @@ const WATERMARK_LABEL: Record<PaymentStatus, string> = {
 }
 
 export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const invoiceId = Number(id)
   const basePath = kind === 'sales' ? '/sales' : '/purchases'
-  const contactLabel = kind === 'sales' ? 'Customer' : 'Supplier'
-  const docLabel = kind === 'sales' ? 'Invoice Penjualan' : 'Invoice Pembelian'
+  const contactLabel = kind === 'sales' ? translate('Customer') : translate('Supplier')
+  const docLabel = kind === 'sales' ? translate('Invoice Penjualan') : translate('Invoice Pembelian')
 
   const { data: doc, isLoading, isError, error } = useQuery({
     queryKey: [kind, invoiceId],
@@ -68,19 +71,19 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
   }, [ready])
 
   if (isLoading) {
-    return <p className="p-8 text-sm text-slate-400">Memuat invoice...</p>
+    return <p className="p-8 text-sm text-slate-400">{t('Memuat invoice...')}</p>
   }
 
   if (isError || !doc) {
     return (
       <div className="p-8 text-sm text-red-600">
-        Gagal memuat invoice: {getErrorMessage(error)}
+        {t('Gagal memuat invoice:')} {getErrorMessage(error)}
       </div>
     )
   }
 
   const d = doc.data
-  const watermarkLabel = WATERMARK_LABEL[d.payment_status]
+  const watermarkLabel = t(WATERMARK_LABEL[d.payment_status])
   const watermarkStyle = WATERMARK_STYLE[d.payment_status]
 
   return (
@@ -90,14 +93,14 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
           to={`${basePath}/${invoiceId}`}
           className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
-          &larr; Kembali
+          {t('← Kembali')}
         </Link>
         <button
           type="button"
           onClick={() => window.print()}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
-          Cetak / Simpan PDF
+          {t('Cetak / Simpan PDF')}
         </button>
       </div>
 
@@ -121,7 +124,7 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
             <div className="text-right">
               <h2 className="text-base font-semibold uppercase tracking-wide text-slate-700">{docLabel}</h2>
               <p className="mt-1 font-mono text-sm text-slate-900">{d.invoice_number}</p>
-              <p className="text-xs text-slate-400">Status Dokumen: {d.status}</p>
+              <p className="text-xs text-slate-400">{t('Status Dokumen:')} {d.status}</p>
             </div>
           </div>
 
@@ -134,17 +137,17 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
             </div>
             <div className="text-right">
               <p>
-                <span className="text-slate-400">Tanggal Invoice: </span>
+                <span className="text-slate-400">{t('Tanggal Invoice:')} </span>
                 {formatDate(d.invoice_date)}
               </p>
               {d.due_date && (
                 <p>
-                  <span className="text-slate-400">Jatuh Tempo: </span>
+                  <span className="text-slate-400">{t('Jatuh Tempo:')} </span>
                   {formatDate(d.due_date)}
                 </p>
               )}
               <p>
-                <span className="text-slate-400">Status Pembayaran: </span>
+                <span className="text-slate-400">{t('Status Pembayaran:')} </span>
                 <strong>{d.payment_status}</strong>
               </p>
             </div>
@@ -153,11 +156,11 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
           <table className="mt-6 w-full border-collapse text-sm">
             <thead>
               <tr className="border-b-2 border-slate-300 text-left text-xs uppercase tracking-wide text-slate-500">
-                <th className="py-2">SKU</th>
-                <th className="py-2">Nama Item</th>
-                <th className="py-2 text-right">Qty</th>
-                <th className="py-2 text-right">Harga</th>
-                <th className="py-2 text-right">Subtotal</th>
+                <th className="py-2">{t('SKU')}</th>
+                <th className="py-2">{t('Nama Item')}</th>
+                <th className="py-2 text-right">{t('Qty')}</th>
+                <th className="py-2 text-right">{t('Harga')}</th>
+                <th className="py-2 text-right">{t('Subtotal')}</th>
               </tr>
             </thead>
             <tbody>
@@ -175,35 +178,34 @@ export default function InvoicePrintPage({ kind }: InvoicePrintPageProps) {
 
           <div className="ml-auto mt-4 max-w-xs space-y-1 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-500">Subtotal</span>
+              <span className="text-slate-500">{t('Subtotal')}</span>
               <span>{formatRupiah(d.subtotal)}</span>
             </div>
             {parseMoney(d.discount_amount) > 0 && (
               <div className="flex justify-between">
-                <span className="text-slate-500">Diskon</span>
+                <span className="text-slate-500">{t('Diskon')}</span>
                 <span>-{formatRupiah(d.discount_amount)}</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-slate-500">Pajak</span>
+              <span className="text-slate-500">{t('Pajak')}</span>
               <span>{formatRupiah(d.tax)}</span>
             </div>
             <div className="flex justify-between border-t border-slate-300 pt-1 text-base font-bold">
-              <span>Total</span>
+              <span>{t('Total')}</span>
               <span>{formatRupiah(d.total_amount)}</span>
             </div>
           </div>
 
           {d.notes && (
             <p className="mt-6 text-sm text-slate-500">
-              <span className="text-slate-400">Catatan: </span>
+              <span className="text-slate-400">{t('Catatan:')} </span>
               {d.notes}
             </p>
           )}
 
           <p className="mt-10 text-xs text-slate-400">
-            Dicetak {formatDate(todayISO())} &middot; Dokumen ini dihasilkan
-            otomatis oleh Warehouse System.
+            {t('Dicetak')} {formatDate(todayISO())} {t('· Dokumen ini dihasilkan otomatis oleh Warehouse System.')}
           </p>
         </div>
       </div>

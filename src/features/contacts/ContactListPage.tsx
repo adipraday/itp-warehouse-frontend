@@ -12,14 +12,17 @@ import { ContactFormModal } from './ContactFormModal'
 import { usePermissions } from '../../auth/permissions'
 import { BuLabel } from '../../components/BuLabel'
 import { hasMultipleBuIds } from '../../utils/bu'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 const TYPE_LABEL: Record<ContactType, string> = {
-  customer: 'Customer',
-  supplier: 'Supplier',
-  both: 'Keduanya',
+  customer: tk('Customer'),
+  supplier: tk('Supplier'),
+  both: tk('Keduanya'),
 }
 
 export default function ContactListPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const canManage = canWrite('contacts')
   const [page, setPage] = useState(1)
@@ -37,12 +40,12 @@ export default function ContactListPage() {
   const showBuColumn = hasMultipleBuIds(data?.data ?? [])
 
   const columns: DataTableColumn<Contact>[] = [
-    { key: 'name', header: 'Nama', render: (row) => row.name },
-    { key: 'type', header: 'Tipe', render: (row) => TYPE_LABEL[row.type] },
-    { key: 'phone', header: 'Telepon', render: (row) => row.phone ?? '-' },
-    { key: 'email', header: 'Email', render: (row) => row.email ?? '-' },
+    { key: 'name', header: t('Nama'), render: (row) => row.name },
+    { key: 'type', header: t('Tipe'), render: (row) => t(TYPE_LABEL[row.type]) },
+    { key: 'phone', header: t('Telepon'), render: (row) => row.phone ?? '-' },
+    { key: 'email', header: t('Email'), render: (row) => row.email ?? '-' },
     ...(showBuColumn
-      ? ([{ key: 'bu', header: 'BU', render: (row: Contact) => <BuLabel buId={row.bu_id} /> }] as DataTableColumn<Contact>[])
+      ? ([{ key: 'bu', header: t('BU'), render: (row: Contact) => <BuLabel buId={row.bu_id} /> }] as DataTableColumn<Contact>[])
       : []),
     ...(canManage
       ? ([
@@ -59,7 +62,7 @@ export default function ContactListPage() {
                 }}
                 className="text-sm font-medium text-blue-600 hover:underline"
               >
-                Edit
+                {t('Edit')}
               </button>
             ),
           },
@@ -70,7 +73,7 @@ export default function ContactListPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Contacts</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Contacts')}</h1>
         {canManage && (
           <button
             type="button"
@@ -80,7 +83,7 @@ export default function ContactListPage() {
             }}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            + Tambah Kontak
+            {t('+ Tambah Kontak')}
           </button>
         )}
       </div>
@@ -88,17 +91,17 @@ export default function ContactListPage() {
       <FilterBar>
         <div className="w-48">
           <SelectField
-            label="Tipe"
+            label={t('Tipe')}
             value={typeFilter}
             onChange={(e) => {
               setTypeFilter(e.target.value as ContactType | '')
               setPage(1)
             }}
           >
-            <option value="">Semua</option>
-            <option value="customer">Customer</option>
-            <option value="supplier">Supplier</option>
-            <option value="both">Keduanya</option>
+            <option value="">{t('Semua')}</option>
+            <option value="customer">{t('Customer')}</option>
+            <option value="supplier">{t('Supplier')}</option>
+            <option value="both">{t('Keduanya')}</option>
           </SelectField>
         </div>
       </FilterBar>
@@ -113,7 +116,7 @@ export default function ContactListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Belum ada kontak."
+              emptyMessage={t('Belum ada kontak.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

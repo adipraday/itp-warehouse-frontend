@@ -15,8 +15,10 @@ import { usePermissions } from '../../auth/permissions'
 import { BuLabel } from '../../components/BuLabel'
 import { hasMultipleBuIds } from '../../utils/bu'
 import { DeleteItemDialog } from './DeleteItemDialog'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function ItemListPage() {
+  const { t } = useI18n()
   const { canWrite, canExportItems } = usePermissions()
   // Menambah dan mengubah item: hanya admin-bu dan purchasing (backend 2026-10-12).
   const canManage = canWrite('items')
@@ -42,29 +44,29 @@ export default function ItemListPage() {
   const columns: DataTableColumn<Item>[] = [
     {
       key: 'sku',
-      header: 'SKU',
+      header: t('SKU'),
       render: (row) => (
         <Link to={`/items/${row.id}`} className="font-medium text-blue-600 hover:underline">
           {row.sku}
         </Link>
       ),
     },
-    { key: 'name', header: 'Nama', render: (row) => row.name },
+    { key: 'name', header: t('Nama'), render: (row) => row.name },
     {
       key: 'barcode',
-      header: 'Barcode',
+      header: t('Barcode'),
       render: (row) => row.barcode || <span className="text-slate-300">-</span>,
     },
-    { key: 'unit', header: 'Satuan', render: (row) => row.unit },
-    { key: 'min_stock', header: 'Min. Stok', className: 'text-right', render: (row) => row.min_stock },
+    { key: 'unit', header: t('Satuan'), render: (row) => row.unit },
+    { key: 'min_stock', header: t('Min. Stok'), className: 'text-right', render: (row) => row.min_stock },
     {
       key: 'selling_price',
-      header: 'Harga Jual',
+      header: t('Harga Jual'),
       className: 'text-right',
       render: (row) => formatRupiah(row.selling_price),
     },
     ...(showBuColumn
-      ? ([{ key: 'bu', header: 'BU', render: (row: Item) => <BuLabel buId={row.bu_id} /> }] as DataTableColumn<Item>[])
+      ? ([{ key: 'bu', header: t('BU'), render: (row: Item) => <BuLabel buId={row.bu_id} /> }] as DataTableColumn<Item>[])
       : []),
     ...(canManage
       ? ([
@@ -82,14 +84,14 @@ export default function ItemListPage() {
                   }}
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
-                  Edit
+                  {t('Edit')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDeleting(row)}
                   className="text-sm font-medium text-red-600 hover:underline"
                 >
-                  Hapus
+                  {t('Hapus')}
                 </button>
               </div>
             ),
@@ -101,7 +103,7 @@ export default function ItemListPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Items</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Items')}</h1>
         {(canExportItems() || canManage) && (
           <div className="flex gap-2">
             {canExportItems() && (
@@ -109,7 +111,7 @@ export default function ItemListPage() {
                 to="/items/import"
                 className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                {canManage ? 'Import / Export' : 'Export'}
+                {canManage ? t('Import / Export') : t('Export')}
               </Link>
             )}
             {canManage && (
@@ -121,7 +123,7 @@ export default function ItemListPage() {
                 }}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
               >
-                + Tambah Item
+                {t('+ Tambah Item')}
               </button>
             )}
           </div>
@@ -130,13 +132,13 @@ export default function ItemListPage() {
 
       <div className="mb-4 max-w-sm">
         <TextField
-          label="Cari SKU / Nama"
+          label={t('Cari SKU / Nama')}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
             setPage(1)
           }}
-          placeholder="Ketik untuk mencari..."
+          placeholder={t('Ketik untuk mencari...')}
         />
       </div>
 
@@ -149,7 +151,7 @@ export default function ItemListPage() {
             data={data?.data ?? []}
             getRowKey={(row) => row.id}
             loading={isLoading}
-            emptyMessage={isSearching ? 'Tidak ada item yang cocok.' : 'Belum ada item.'}
+            emptyMessage={isSearching ? t('Tidak ada item yang cocok.') : t('Belum ada item.')}
           />
           {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
         </>

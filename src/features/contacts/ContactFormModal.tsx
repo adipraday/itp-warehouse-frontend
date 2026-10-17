@@ -7,6 +7,7 @@ import { useToast } from '../../hooks/useToast'
 import { getErrorMessage } from '../../api/errors'
 import { createContact, updateContact } from '../../api/contacts'
 import type { Contact, ContactInput, ContactType } from '../../types/contact'
+import { useI18n } from '../../i18n/useI18n'
 
 interface ContactFormModalProps {
   open: boolean
@@ -17,6 +18,7 @@ interface ContactFormModalProps {
 const EMPTY_FORM: ContactInput = { type: 'customer', name: '', phone: '', email: '', address: '' }
 
 export function ContactFormModal({ open, onClose, contact }: ContactFormModalProps) {
+  const { t } = useI18n()
   const [form, setForm] = useState<ContactInput>(EMPTY_FORM)
   const queryClient = useQueryClient()
   const toast = useToast()
@@ -41,7 +43,7 @@ export function ContactFormModal({ open, onClose, contact }: ContactFormModalPro
     mutationFn: (input: ContactInput) => (contact ? updateContact(contact.id, input) : createContact(input)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] })
-      toast.show(contact ? 'Kontak berhasil diupdate.' : 'Kontak berhasil dibuat.', 'success')
+      toast.show(contact ? t('Kontak berhasil diupdate.') : t('Kontak berhasil dibuat.'), 'success')
       onClose()
     },
     onError: (err) => {
@@ -61,40 +63,40 @@ export function ContactFormModal({ open, onClose, contact }: ContactFormModalPro
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={contact ? 'Edit Kontak' : 'Tambah Kontak'}>
+    <Modal open={open} onClose={onClose} title={contact ? t('Edit Kontak') : t('Tambah Kontak')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <SelectField
-          label="Tipe"
+          label={t('Tipe')}
           required
           value={form.type}
           onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as ContactType }))}
         >
-          <option value="customer">Customer</option>
-          <option value="supplier">Supplier</option>
-          <option value="both">Keduanya</option>
+          <option value="customer">{t('Customer')}</option>
+          <option value="supplier">{t('Supplier')}</option>
+          <option value="both">{t('Keduanya')}</option>
         </SelectField>
         <TextField
-          label="Nama"
+          label={t('Nama')}
           required
           maxLength={150}
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder="Budi Santoso"
+          placeholder={t('Budi Santoso')}
         />
         <TextField
-          label="Telepon"
+          label={t('Telepon')}
           value={form.phone ?? ''}
           onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
           placeholder="08123456789"
         />
         <TextField
-          label="Email"
+          label={t('Email')}
           type="email"
           value={form.email ?? ''}
           onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
         />
         <TextField
-          label="Alamat"
+          label={t('Alamat')}
           value={form.address ?? ''}
           onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
         />
@@ -104,14 +106,14 @@ export function ContactFormModal({ open, onClose, contact }: ContactFormModalPro
             onClick={onClose}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

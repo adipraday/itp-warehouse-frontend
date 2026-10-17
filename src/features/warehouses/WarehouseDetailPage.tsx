@@ -7,14 +7,16 @@ import { Pagination } from '../../components/Pagination'
 import { formatNumber } from '../../utils/money'
 import { getWarehouse, getWarehouseStockSummary, listWarehouseStocks } from '../../api/warehouses'
 import type { WarehouseStock } from '../../types/warehouse'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 const columns: DataTableColumn<WarehouseStock>[] = [
   { key: 'sku', header: 'SKU', render: (row) => row.sku },
-  { key: 'name', header: 'Nama Item', render: (row) => row.name },
-  { key: 'unit', header: 'Satuan', render: (row) => row.unit },
+  { key: 'name', header: tk('Nama Item'), render: (row) => row.name },
+  { key: 'unit', header: tk('Satuan'), render: (row) => row.unit },
   {
     key: 'quantity',
-    header: 'Qty',
+    header: tk('Qty'),
     className: 'text-right',
     render: (row) => (
       <span className={row.quantity <= row.min_stock ? 'font-medium text-red-600' : ''}>
@@ -22,10 +24,11 @@ const columns: DataTableColumn<WarehouseStock>[] = [
       </span>
     ),
   },
-  { key: 'min_stock', header: 'Min. Stok', className: 'text-right', render: (row) => formatNumber(row.min_stock) },
+  { key: 'min_stock', header: tk('Min. Stok'), className: 'text-right', render: (row) => formatNumber(row.min_stock) },
 ]
 
 export default function WarehouseDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const warehouseId = Number(id)
   const [page, setPage] = useState(1)
@@ -55,7 +58,7 @@ export default function WarehouseDetailPage() {
   return (
     <div>
       <Link to="/warehouses" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar warehouse
+        {t('← Kembali ke daftar warehouse')}
       </Link>
 
       <h1 className="mt-2 text-xl font-semibold text-slate-900">
@@ -65,7 +68,7 @@ export default function WarehouseDetailPage() {
       {warehouse?.data.address && <p className="mt-1 text-sm text-slate-500">{warehouse.data.address}</p>}
       {parentId != null && (
         <p className="mt-1 text-sm text-slate-500">
-          Cabang dari:{' '}
+          {t('Cabang dari:')}{' '}
           <Link to={`/warehouses/${parentId}`} className="text-blue-600 hover:underline">
             {parentWarehouse ? `${parentWarehouse.data.code} — ${parentWarehouse.data.name}` : `#${parentId}`}
           </Link>
@@ -74,20 +77,20 @@ export default function WarehouseDetailPage() {
 
       {summary && (
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <SummaryCard label="Total Item" value={formatNumber(summary.data.total_items)} />
-          <SummaryCard label="Total Qty" value={formatNumber(summary.data.total_quantity)} />
-          <SummaryCard label="Low Stock" value={formatNumber(summary.data.low_stock_count)} warn />
-          <SummaryCard label="Out of Stock" value={formatNumber(summary.data.out_of_stock_count)} warn />
+          <SummaryCard label={t('Total Item')} value={formatNumber(summary.data.total_items)} />
+          <SummaryCard label={t('Total Qty')} value={formatNumber(summary.data.total_quantity)} />
+          <SummaryCard label={t('Low Stock')} value={formatNumber(summary.data.low_stock_count)} warn />
+          <SummaryCard label={t('Out of Stock')} value={formatNumber(summary.data.out_of_stock_count)} warn />
         </div>
       )}
 
-      <h2 className="mt-8 mb-3 text-sm font-semibold text-slate-700">Stok per Item</h2>
+      <h2 className="mt-8 mb-3 text-sm font-semibold text-slate-700">{t('Stok per Item')}</h2>
       <DataTable
         columns={columns}
         data={stocks?.data ?? []}
         getRowKey={(row) => row.item_id}
         loading={isLoading}
-        emptyMessage="Belum ada stok di warehouse ini."
+        emptyMessage={t('Belum ada stok di warehouse ini.')}
       />
       {stocks?.meta && <Pagination meta={stocks.meta} onPageChange={setPage} />}
     </div>

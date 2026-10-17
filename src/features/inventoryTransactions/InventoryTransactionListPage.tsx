@@ -15,6 +15,7 @@ import type { InventoryTransactionKind } from '../../api/inventoryTransactions'
 import { listWarehouses } from '../../api/warehouses'
 import type { InventoryTransaction, InventoryTransactionStatus } from '../../types/inventoryTransaction'
 import { usePermissions } from '../../auth/permissions'
+import { useI18n } from '../../i18n/useI18n'
 
 const STATUS_OPTIONS: InventoryTransactionStatus[] = ['DRAFT', 'COMPLETED', 'CANCELLED']
 
@@ -24,6 +25,7 @@ interface InventoryTransactionListPageProps {
 }
 
 export default function InventoryTransactionListPage({ kind, title }: InventoryTransactionListPageProps) {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const canCreate = canWrite(kind === 'inbound' ? 'inbounds' : 'outbounds')
   const [page, setPage] = useState(1)
@@ -65,17 +67,17 @@ export default function InventoryTransactionListPage({ kind, title }: InventoryT
   const columns: DataTableColumn<InventoryTransaction>[] = [
     {
       key: 'transaction_number',
-      header: 'No. Transaksi',
+      header: t('No. Transaksi'),
       render: (row) => (
         <Link to={`${basePath}/${row.id}`} className="font-medium text-blue-600 hover:underline">
           {row.transaction_number}
         </Link>
       ),
     },
-    { key: 'warehouse', header: 'Warehouse', render: (row) => warehouseLabel(row.warehouse_id) },
-    { key: 'transaction_date', header: 'Tanggal', render: (row) => formatDate(row.transaction_date) },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-    { key: 'notes', header: 'Catatan', render: (row) => row.notes ?? '-' },
+    { key: 'warehouse', header: t('Warehouse'), render: (row) => warehouseLabel(row.warehouse_id) },
+    { key: 'transaction_date', header: t('Tanggal'), render: (row) => formatDate(row.transaction_date) },
+    { key: 'status', header: t('Status'), render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'notes', header: t('Catatan'), render: (row) => row.notes ?? '-' },
   ]
 
   return (
@@ -87,7 +89,7 @@ export default function InventoryTransactionListPage({ kind, title }: InventoryT
             to={`${basePath}/new`}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
-            + Tambah {title}
+            {t('+ Tambah')} {title}
           </Link>
         )}
       </div>
@@ -98,11 +100,11 @@ export default function InventoryTransactionListPage({ kind, title }: InventoryT
         </div>
         <div className="w-40">
           <SelectField
-            label="Status"
+            label={t('Status')}
             value={status}
             onChange={(e) => resetPage(setStatus)(e.target.value as InventoryTransactionStatus | '')}
           >
-            <option value="">Semua</option>
+            <option value="">{t('Semua')}</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -111,10 +113,10 @@ export default function InventoryTransactionListPage({ kind, title }: InventoryT
           </SelectField>
         </div>
         <div className="w-40">
-          <TextField label="Dari Tanggal" type="date" value={from} onChange={(e) => resetPage(setFrom)(e.target.value)} />
+          <TextField label={t('Dari Tanggal')} type="date" value={from} onChange={(e) => resetPage(setFrom)(e.target.value)} />
         </div>
         <div className="w-40">
-          <TextField label="Sampai Tanggal" type="date" value={to} onChange={(e) => resetPage(setTo)(e.target.value)} />
+          <TextField label={t('Sampai Tanggal')} type="date" value={to} onChange={(e) => resetPage(setTo)(e.target.value)} />
         </div>
       </FilterBar>
 
@@ -128,7 +130,7 @@ export default function InventoryTransactionListPage({ kind, title }: InventoryT
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage={`Belum ada ${title.toLowerCase()}.`}
+              emptyMessage={t('Belum ada {v1}.', { v1: title.toLowerCase() })}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

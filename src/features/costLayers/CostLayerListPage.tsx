@@ -12,8 +12,11 @@ import { formatNumber, formatRupiah } from '../../utils/money'
 import { formatTimestamp } from '../../utils/date'
 import { getCostSummary, listCostLayers } from '../../api/costLayers'
 import type { CostLayer } from '../../types/costLayer'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 export default function CostLayerListPage() {
+  const { t } = useI18n()
   const [page, setPage] = useState(1)
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
   const [itemId, setItemId] = useState<number | null>(null)
@@ -38,27 +41,27 @@ export default function CostLayerListPage() {
   })
 
   const columns: DataTableColumn<CostLayer>[] = [
-    { key: 'created_at', header: 'Tanggal', render: (row) => formatTimestamp(row.created_at) },
-    { key: 'warehouse_id', header: 'Warehouse ID', render: (row) => row.warehouse_id },
-    { key: 'sku', header: 'SKU', render: (row) => row.sku ?? `#${row.item_id}` },
-    { key: 'item_name', header: 'Nama Item', render: (row) => row.item_name ?? '-' },
+    { key: 'created_at', header: t('Tanggal'), render: (row) => formatTimestamp(row.created_at) },
+    { key: 'warehouse_id', header: t('Warehouse ID'), render: (row) => row.warehouse_id },
+    { key: 'sku', header: t('SKU'), render: (row) => row.sku ?? `#${row.item_id}` },
+    { key: 'item_name', header: t('Nama Item'), render: (row) => row.item_name ?? '-' },
     {
       key: 'quantity_received',
-      header: 'Qty Masuk',
+      header: t('Qty Masuk'),
       className: 'text-right',
       render: (row) => formatNumber(row.quantity_received),
     },
     {
       key: 'quantity_remaining',
-      header: 'Qty Tersisa',
+      header: t('Qty Tersisa'),
       className: 'text-right',
       render: (row) => formatNumber(row.quantity_remaining),
     },
-    { key: 'unit_cost', header: 'Unit Cost', className: 'text-right', render: (row) => formatRupiah(row.unit_cost) },
+    { key: 'unit_cost', header: t('Unit Cost'), className: 'text-right', render: (row) => formatRupiah(row.unit_cost) },
     {
       key: 'origin',
-      header: 'Asal',
-      render: (row) => (row.origin_cost_layer_id ? `Transfer dari layer #${row.origin_cost_layer_id}` : '-'),
+      header: t('Asal'),
+      render: (row) => (row.origin_cost_layer_id ? translate('Transfer dari layer #{origin_cost_layer_id}', { origin_cost_layer_id: row.origin_cost_layer_id }) : '-'),
     },
   ]
 
@@ -71,28 +74,28 @@ export default function CostLayerListPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-slate-900">Cost Layers / HPP (FIFO)</h1>
+      <h1 className="mb-6 text-xl font-semibold text-slate-900">{t('Cost Layers / HPP (FIFO)')}</h1>
 
       <FilterBar>
         <div className="w-56">
           <WarehouseSelect value={warehouseId} onChange={resetPage(setWarehouseId)} />
         </div>
         <div className="w-40">
-          <TextField label="Dari Tanggal" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <TextField label={t('Dari Tanggal')} type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
         </div>
         <div className="w-40">
-          <TextField label="Sampai Tanggal" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          <TextField label={t('Sampai Tanggal')} type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         </div>
       </FilterBar>
 
       {summary && (
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-slate-200 bg-white p-4">
-            <p className="text-xs text-slate-500">Qty Tersisa</p>
+            <p className="text-xs text-slate-500">{t('Qty Tersisa')}</p>
             <p className="mt-1 text-lg font-semibold text-slate-900">{formatNumber(summary.data.quantity_remaining)}</p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-4">
-            <p className="text-xs text-slate-500">Total Nilai Persediaan</p>
+            <p className="text-xs text-slate-500">{t('Total Nilai Persediaan')}</p>
             <p className="mt-1 text-lg font-semibold text-slate-900">{formatRupiah(summary.data.total_value)}</p>
           </div>
         </div>
@@ -109,7 +112,7 @@ export default function CostLayerListPage() {
             onChange={(e) => resetPage(setRemainingOnly)(e.target.checked)}
             className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
           />
-          Hanya yang masih tersisa
+          {t('Hanya yang masih tersisa')}
         </label>
       </FilterBar>
 
@@ -123,7 +126,7 @@ export default function CostLayerListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Tidak ada cost layer."
+              emptyMessage={t('Tidak ada cost layer.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

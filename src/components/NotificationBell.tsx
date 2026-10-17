@@ -4,8 +4,10 @@ import { useQuery } from '@tanstack/react-query'
 import { getUnreadNotificationCount, listNotifications } from '../api/notifications'
 import { useNotificationActions } from '../hooks/useNotificationActions'
 import { NotificationItem } from './NotificationItem'
+import { useI18n } from '../i18n/useI18n'
 
 export function NotificationBell() {
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const { openNotification, markAllRead, markingAll } = useNotificationActions(() => setOpen(false))
@@ -47,7 +49,7 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label={unreadCount > 0 ? `Notifikasi, ${unreadCount} belum dibaca` : 'Notifikasi'}
+        aria-label={unreadCount > 0 ? t('Notifikasi, {unreadCount} belum dibaca', { unreadCount }) : t('Notifikasi')}
         aria-expanded={open}
         className="relative rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
       >
@@ -70,21 +72,21 @@ export function NotificationBell() {
       {open && (
         <div className="absolute right-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg sm:w-96">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
-            <span className="text-sm font-semibold text-slate-900">Notifikasi</span>
+            <span className="text-sm font-semibold text-slate-900">{t('Notifikasi')}</span>
             <button
               type="button"
               onClick={markAllRead}
               disabled={markingAll || unreadCount === 0}
               className="text-xs font-medium text-blue-600 hover:underline disabled:text-slate-300 disabled:no-underline"
             >
-              Tandai semua dibaca
+              {t('Tandai semua dibaca')}
             </button>
           </div>
 
           <div className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
-            {isLoading && <p className="px-4 py-6 text-center text-sm text-slate-400">Memuat...</p>}
+            {isLoading && <p className="px-4 py-6 text-center text-sm text-slate-400">{t('Memuat...')}</p>}
             {!isLoading && (latest?.data.length ?? 0) === 0 && (
-              <p className="px-4 py-6 text-center text-sm text-slate-400">Belum ada notifikasi.</p>
+              <p className="px-4 py-6 text-center text-sm text-slate-400">{t('Belum ada notifikasi.')}</p>
             )}
             {latest?.data.map((n) => (
               <NotificationItem key={n.id} notification={n} onOpen={openNotification} />
@@ -96,7 +98,7 @@ export function NotificationBell() {
             onClick={() => setOpen(false)}
             className="block border-t border-slate-100 px-4 py-2.5 text-center text-sm font-medium text-blue-600 hover:bg-slate-50"
           >
-            Lihat semua notifikasi
+            {t('Lihat semua notifikasi')}
           </Link>
         </div>
       )}

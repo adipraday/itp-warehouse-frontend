@@ -7,6 +7,7 @@ import { useToast } from '../../hooks/useToast'
 import { getErrorMessage } from '../../api/errors'
 import { createWarehouse, listWarehouses, updateWarehouse } from '../../api/warehouses'
 import type { Warehouse, WarehouseInput } from '../../types/warehouse'
+import { useI18n } from '../../i18n/useI18n'
 
 interface WarehouseFormModalProps {
   open: boolean
@@ -17,6 +18,7 @@ interface WarehouseFormModalProps {
 const EMPTY_FORM = { code: '', name: '', address: '', parent_warehouse_id: '' as number | '' }
 
 export function WarehouseFormModal({ open, onClose, warehouse }: WarehouseFormModalProps) {
+  const { t } = useI18n()
   const [form, setForm] = useState(EMPTY_FORM)
   const queryClient = useQueryClient()
   const toast = useToast()
@@ -54,7 +56,7 @@ export function WarehouseFormModal({ open, onClose, warehouse }: WarehouseFormMo
       warehouse ? updateWarehouse(warehouse.id, input) : createWarehouse(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['warehouses'] })
-      toast.show(warehouse ? 'Warehouse berhasil diupdate.' : 'Warehouse berhasil dibuat.', 'success')
+      toast.show(warehouse ? t('Warehouse berhasil diupdate.') : t('Warehouse berhasil dibuat.'), 'success')
       onClose()
     },
     onError: (err) => {
@@ -73,32 +75,32 @@ export function WarehouseFormModal({ open, onClose, warehouse }: WarehouseFormMo
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={warehouse ? 'Edit Warehouse' : 'Tambah Warehouse'}>
+    <Modal open={open} onClose={onClose} title={warehouse ? t('Edit Warehouse') : t('Tambah Warehouse')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label="Kode"
+          label={t('Kode')}
           required
           maxLength={50}
           value={form.code}
           onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-          placeholder="WH-01"
+          placeholder={t('WH-01')}
         />
         <TextField
-          label="Nama"
+          label={t('Nama')}
           required
           maxLength={100}
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder="Gudang Utama"
+          placeholder={t('Gudang Utama')}
         />
         <TextField
-          label="Alamat"
+          label={t('Alamat')}
           value={form.address ?? ''}
           onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-          placeholder="Jl. Sudirman No. 1"
+          placeholder={t('Jl. Sudirman No. 1')}
         />
         <SelectField
-          label="Warehouse Utama (kosongkan kalau ini warehouse utama)"
+          label={t('Warehouse Utama (kosongkan kalau ini warehouse utama)')}
           value={form.parent_warehouse_id}
           onChange={(e) =>
             setForm((f) => ({
@@ -107,7 +109,7 @@ export function WarehouseFormModal({ open, onClose, warehouse }: WarehouseFormMo
             }))
           }
         >
-          <option value="">-- Ini warehouse utama --</option>
+          <option value="">{t('-- Ini warehouse utama --')}</option>
           {mainWarehouseOptions.map((w) => (
             <option key={w.id} value={w.id}>
               {w.code} — {w.name}
@@ -116,8 +118,7 @@ export function WarehouseFormModal({ open, onClose, warehouse }: WarehouseFormMo
         </SelectField>
         {form.parent_warehouse_id !== '' && (
           <p className="text-xs text-slate-500">
-            Warehouse ini akan jadi cabang dari warehouse yang dipilih. Satu business unit cuma
-            boleh punya 1 warehouse utama, tapi boleh punya banyak cabang.
+            {t('Warehouse ini akan jadi cabang dari warehouse yang dipilih. Satu business unit cuma boleh punya 1 warehouse utama, tapi boleh punya banyak cabang.')}
           </p>
         )}
 
@@ -127,14 +128,14 @@ export function WarehouseFormModal({ open, onClose, warehouse }: WarehouseFormMo
             onClick={onClose}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

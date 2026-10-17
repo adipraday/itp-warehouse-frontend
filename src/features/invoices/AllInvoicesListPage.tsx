@@ -14,12 +14,14 @@ import { formatRupiah } from '../../utils/money'
 import { listAllInvoices } from '../../api/invoicesCombined'
 import { listWarehouses } from '../../api/warehouses'
 import type { Invoice, InvoiceStatus, InvoiceType, PaymentStatus } from '../../types/invoice'
+import { useI18n } from '../../i18n/useI18n'
 
 const TYPE_OPTIONS: InvoiceType[] = ['SALES', 'PURCHASE']
 const PAYMENT_STATUS_OPTIONS: PaymentStatus[] = ['UNPAID', 'PARTIAL', 'PAID']
 const STATUS_OPTIONS: InvoiceStatus[] = ['DRAFT', 'COMPLETED', 'CANCELLED']
 
 export default function AllInvoicesListPage() {
+  const { t } = useI18n()
   const [page, setPage] = useState(1)
   const [type, setType] = useState<InvoiceType | ''>('')
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | ''>('')
@@ -57,7 +59,7 @@ export default function AllInvoicesListPage() {
   const columns: DataTableColumn<Invoice>[] = [
     {
       key: 'invoice_number',
-      header: 'No. Invoice',
+      header: t('No. Invoice'),
       render: (row) => (
         <Link
           to={row.type === 'SALES' ? `/sales/${row.id}` : `/purchases/${row.id}`}
@@ -67,38 +69,38 @@ export default function AllInvoicesListPage() {
         </Link>
       ),
     },
-    { key: 'type', header: 'Tipe', render: (row) => row.type },
-    { key: 'warehouse', header: 'Warehouse', render: (row) => warehouseLabel(row.warehouse_id) },
-    { key: 'invoice_date', header: 'Tanggal', render: (row) => formatDate(row.invoice_date) },
+    { key: 'type', header: t('Tipe'), render: (row) => row.type },
+    { key: 'warehouse', header: t('Warehouse'), render: (row) => warehouseLabel(row.warehouse_id) },
+    { key: 'invoice_date', header: t('Tanggal'), render: (row) => formatDate(row.invoice_date) },
     {
       key: 'total_amount',
-      header: 'Total',
+      header: t('Total'),
       className: 'text-right',
       render: (row) => formatRupiah(row.total_amount),
     },
-    { key: 'payment_status', header: 'Pembayaran', render: (row) => <StatusBadge status={row.payment_status} /> },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'payment_status', header: t('Pembayaran'), render: (row) => <StatusBadge status={row.payment_status} /> },
+    { key: 'status', header: t('Status'), render: (row) => <StatusBadge status={row.status} /> },
   ]
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-slate-900">Semua Invoice</h1>
+      <h1 className="mb-6 text-xl font-semibold text-slate-900">{t('Semua Invoice')}</h1>
       <p className="mb-6 text-sm text-slate-500">
-        Gabungan Sales + Purchase, read-only. Untuk membuat atau mengubah invoice, buka halaman{' '}
+        {t('Gabungan Sales + Purchase, read-only. Untuk membuat atau mengubah invoice, buka halaman')}{' '}
         <Link to="/sales" className="text-blue-600 hover:underline">
-          Sales
+          {t('Sales')}
         </Link>{' '}
-        atau{' '}
+        {t('atau')}{' '}
         <Link to="/purchases" className="text-blue-600 hover:underline">
-          Purchases
+          {t('Purchases')}
         </Link>{' '}
-        sesuai tipenya.
+        {t('sesuai tipenya.')}
       </p>
 
       <FilterBar>
         <div className="w-36">
-          <SelectField label="Tipe" value={type} onChange={(e) => resetPage(setType)(e.target.value as InvoiceType | '')}>
-            <option value="">Semua</option>
+          <SelectField label={t('Tipe')} value={type} onChange={(e) => resetPage(setType)(e.target.value as InvoiceType | '')}>
+            <option value="">{t('Semua')}</option>
             {TYPE_OPTIONS.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -111,11 +113,11 @@ export default function AllInvoicesListPage() {
         </div>
         <div className="w-40">
           <SelectField
-            label="Status"
+            label={t('Status')}
             value={status}
             onChange={(e) => resetPage(setStatus)(e.target.value as InvoiceStatus | '')}
           >
-            <option value="">Semua</option>
+            <option value="">{t('Semua')}</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -125,11 +127,11 @@ export default function AllInvoicesListPage() {
         </div>
         <div className="w-40">
           <SelectField
-            label="Pembayaran"
+            label={t('Pembayaran')}
             value={paymentStatus}
             onChange={(e) => resetPage(setPaymentStatus)(e.target.value as PaymentStatus | '')}
           >
-            <option value="">Semua</option>
+            <option value="">{t('Semua')}</option>
             {PAYMENT_STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -149,7 +151,7 @@ export default function AllInvoicesListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => `${row.type}-${row.id}`}
               loading={isLoading}
-              emptyMessage="Belum ada invoice."
+              emptyMessage={t('Belum ada invoice.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

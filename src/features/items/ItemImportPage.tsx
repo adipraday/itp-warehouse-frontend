@@ -11,6 +11,7 @@ import { downloadBlob } from '../../utils/download'
 import { downloadItemsImportTemplate, exportItems, importItems } from '../../api/items'
 import type { ExportFormat } from '../../api/items'
 import type { ImportValidationDetail, ItemImportResult } from '../../types/item'
+import { useI18n } from '../../i18n/useI18n'
 
 /**
  * Import + export item (§25/§26 frontend-integration-guide.md, 2026-09-14). Halaman terpisah
@@ -19,6 +20,7 @@ import type { ImportValidationDetail, ItemImportResult } from '../../types/item'
  * sekali klik seperti modal-modal lain di app ini.
  */
 export default function ItemImportPage() {
+  const { t } = useI18n()
   const toast = useToast()
   const queryClient = useQueryClient()
   const { role, canWrite } = usePermissions()
@@ -45,7 +47,7 @@ export default function ItemImportPage() {
       setValidationErrors(null)
       setSelectedFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
-      toast.show('Import berhasil.', 'success')
+      toast.show(t('Import berhasil.'), 'success')
     },
     onError: (err) => {
       setImportResult(null)
@@ -72,7 +74,7 @@ export default function ItemImportPage() {
     mutationFn: () => exportItems({ format: exportFormat, warehouse_id: exportWarehouseId ?? undefined }),
     onSuccess: ({ blob, filename }) => {
       downloadBlob(blob, filename ?? `items-export.${exportFormat}`)
-      toast.show('Export berhasil diunduh.', 'success')
+      toast.show(t('Export berhasil diunduh.'), 'success')
     },
     onError: (err) => toast.show(getErrorMessage(err), 'error'),
   })
@@ -85,7 +87,7 @@ export default function ItemImportPage() {
 
   function handleImportSubmit() {
     if (!selectedFile) {
-      toast.show('Pilih file CSV/.xlsx dulu.', 'error')
+      toast.show(t('Pilih file CSV/.xlsx dulu.'), 'error')
       return
     }
     importMutation.mutate(selectedFile)
@@ -94,26 +96,24 @@ export default function ItemImportPage() {
   return (
     <div>
       <Link to="/items" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar item
+        {t('← Kembali ke daftar item')}
       </Link>
-      <h1 className="mt-2 mb-6 text-xl font-semibold text-slate-900">Import & Export Item</h1>
+      <h1 className="mt-2 mb-6 text-xl font-semibold text-slate-900">{t('Import & Export Item')}</h1>
 
       {!canImport && (
         <div className="mb-6 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
           {role === 'super-admin'
-            ? 'Import butuh akun dengan BU tunggal (admin-bu/purchasing) — super-admin lintas semua BU jadi tidak ada tujuan import yang jelas.'
-            : 'Hanya admin-bu dan purchasing yang boleh menambah atau mengubah item, termasuk lewat import.'}{' '}
-          Bagian Export di bawah tetap bisa dipakai.
+            ? t('Import butuh akun dengan BU tunggal (admin-bu/purchasing) — super-admin lintas semua BU jadi tidak ada tujuan import yang jelas.')
+            : t('Hanya admin-bu dan purchasing yang boleh menambah atau mengubah item, termasuk lewat import.')}{' '}
+          {t('Bagian Export di bawah tetap bisa dipakai.')}
         </div>
       )}
 
       {canImport && (
       <div className="rounded-lg border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-semibold text-slate-700">Import Item + Stok Awal</h2>
+        <h2 className="text-sm font-semibold text-slate-700">{t('Import Item + Stok Awal')}</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Upload file CSV/.xlsx buat bikin atau update banyak item sekaligus — opsional langsung
-          isi stok awal per warehouse (otomatis jadi dokumen Inbound COMPLETED, bukan angka yang
-          muncul tanpa jejak). Maks 5000 baris, 10MB.
+          {t('Upload file CSV/.xlsx buat bikin atau update banyak item sekaligus — opsional langsung isi stok awal per warehouse (otomatis jadi dokumen Inbound COMPLETED, bukan angka yang muncul tanpa jejak). Maks 5000 baris, 10MB.')}
         </p>
 
         <div className="mt-3 flex gap-2">
@@ -123,7 +123,7 @@ export default function ItemImportPage() {
             disabled={templateMutation.isPending}
             className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            Download Template CSV
+            {t('Download Template CSV')}
           </button>
           <button
             type="button"
@@ -131,19 +131,18 @@ export default function ItemImportPage() {
             disabled={templateMutation.isPending}
             className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            Download Template XLSX
+            {t('Download Template XLSX')}
           </button>
         </div>
 
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          <p className="font-medium">Penting sebelum upload:</p>
+          <p className="font-medium">{t('Penting sebelum upload:')}</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5">
-            <li>Ada 1 baris aja yang salah → SELURUH file ditolak, tidak ada yang ke-import sebagian.</li>
+            <li>{t('Ada 1 baris aja yang salah → SELURUH file ditolak, tidak ada yang ke-import sebagian.')}</li>
             <li>
-              Update ke item yang sudah ada itu <strong>full replace</strong> — kolom yang
-              dikosongkan di file akan ikut ter-reset ke default, bukan dibiarkan seperti semula.
+              {t('Update ke item yang sudah ada itu')} <strong>{t('full replace')}</strong> {t('— kolom yang dikosongkan di file akan ikut ter-reset ke default, bukan dibiarkan seperti semula.')}
             </li>
-            <li>Satu SKU cuma boleh muncul sekali per file.</li>
+            <li>{t('Satu SKU cuma boleh muncul sekali per file.')}</li>
           </ul>
         </div>
 
@@ -161,22 +160,22 @@ export default function ItemImportPage() {
             disabled={!selectedFile || importMutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {importMutation.isPending ? 'Mengimpor...' : 'Upload & Import'}
+            {importMutation.isPending ? t('Mengimpor...') : t('Upload & Import')}
           </button>
         </div>
 
         {importResult && (
           <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-            <p className="font-medium">Import berhasil:</p>
+            <p className="font-medium">{t('Import berhasil:')}</p>
             <ul className="mt-1 space-y-0.5">
-              <li>{importResult.rows_processed} baris diproses</li>
-              <li>{importResult.items_created} item baru dibuat</li>
-              <li>{importResult.items_updated} item di-update</li>
-              <li>{importResult.warehouses_stocked} warehouse ke-isi stok</li>
+              <li>{importResult.rows_processed} {t('baris diproses')}</li>
+              <li>{importResult.items_created} {t('item baru dibuat')}</li>
+              <li>{importResult.items_updated} {t('item di-update')}</li>
+              <li>{importResult.warehouses_stocked} {t('warehouse ke-isi stok')}</li>
             </ul>
             {importResult.inbound_ids.length > 0 && (
               <p className="mt-2">
-                Dokumen inbound yang otomatis dibuat:{' '}
+                {t('Dokumen inbound yang otomatis dibuat:')}{' '}
                 {importResult.inbound_ids.map((id, i) => (
                   <span key={id}>
                     {i > 0 && ', '}
@@ -193,18 +192,17 @@ export default function ItemImportPage() {
         {validationErrors && validationErrors.length > 0 && (
           <div className="mt-4">
             <p className="text-sm font-medium text-red-700">
-              {validationErrors.length} baris gagal validasi — perbaiki file lalu upload ulang
-              dari awal (tidak ada yang ke-import sebagian).
+              {validationErrors.length} {t('baris gagal validasi — perbaiki file lalu upload ulang dari awal (tidak ada yang ke-import sebagian).')}
             </p>
             <div className="mt-2 overflow-x-auto rounded-md border border-slate-200">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      No. Baris
+                      {t('No. Baris')}
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Pesan Error
+                      {t('Pesan Error')}
                     </th>
                   </tr>
                 </thead>
@@ -224,25 +222,25 @@ export default function ItemImportPage() {
       )}
 
       <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-semibold text-slate-700">Export Item</h2>
+        <h2 className="text-sm font-semibold text-slate-700">{t('Export Item')}</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Unduh data item saat ini — kolom-nya sengaja beda dari kolom Import (tidak ada{' '}
-          <code>quantity</code>/<code>unit_cost</code>), jadi export-lalu-reimport-langsung
-          <strong> aman</strong>, tidak bikin stok dobel keitung.
+          {t('Unduh data item saat ini — kolom-nya sengaja beda dari kolom Import (tidak ada')}{' '}
+          <code>{t('quantity')}</code>/<code>{t('unit_cost')}</code>{t('), jadi export-lalu-reimport-langsung')}
+          <strong> {t('aman')}</strong>{t(', tidak bikin stok dobel keitung.')}
         </p>
 
         <div className="mt-3 grid grid-cols-1 gap-4 sm:max-w-md sm:grid-cols-2">
           <SelectField
-            label="Format"
+            label={t('Format')}
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
           >
-            <option value="csv">CSV</option>
-            <option value="xlsx">XLSX</option>
+            <option value="csv">{t('CSV')}</option>
+            <option value="xlsx">{t('XLSX')}</option>
           </SelectField>
           <WarehouseSelect
-            label="Warehouse (opsional)"
-            placeholder="Semua warehouse"
+            label={t('Warehouse (opsional)')}
+            placeholder={t('Semua warehouse')}
             value={exportWarehouseId}
             onChange={setExportWarehouseId}
           />
@@ -254,14 +252,12 @@ export default function ItemImportPage() {
           disabled={exportMutation.isPending}
           className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {exportMutation.isPending ? 'Mengunduh...' : 'Export'}
+          {exportMutation.isPending ? t('Mengunduh...') : t('Export')}
         </button>
 
         {exportWarehouseId != null && (
           <p className="mt-2 text-xs text-slate-400">
-            Kolom stok di file ini ("Stok Saat Ini") cuma buat referensi — namanya sengaja beda
-            dari kolom yang dikenali Import, jadi tetap aman kalau file ini di-upload balik tanpa
-            diedit.
+            {t('Kolom stok di file ini ("Stok Saat Ini") cuma buat referensi — namanya sengaja beda dari kolom yang dikenali Import, jadi tetap aman kalau file ini di-upload balik tanpa diedit.')}
           </p>
         )}
       </div>

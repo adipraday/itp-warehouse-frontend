@@ -13,8 +13,11 @@ import { listUsers, sendPasswordReset } from '../../api/users'
 import type { AuthUser } from '../../auth/authApi'
 import { UserFormModal } from './UserFormModal'
 import { UserSessionsModal } from './UserSessionsModal'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 export default function UserListPage() {
+  const { t } = useI18n()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 300)
@@ -33,8 +36,8 @@ export default function UserListPage() {
     onSuccess: (result) => {
       toast.show(
         result.set_password_token
-          ? `Link aktivasi terkirim. Token (dev-only): ${result.set_password_token}`
-          : 'Link set-password telah dikirim ke email user.',
+          ? t('Link aktivasi terkirim. Token (dev-only): {set_password_token}', { set_password_token: result.set_password_token })
+          : t('Link set-password telah dikirim ke email user.'),
         'success',
       )
     },
@@ -42,11 +45,11 @@ export default function UserListPage() {
   })
 
   const columns: DataTableColumn<AuthUser>[] = [
-    { key: 'name', header: 'Nama', render: (row) => row.name },
-    { key: 'email', header: 'Email', render: (row) => row.email },
-    { key: 'role', header: 'Role', render: (row) => row.role },
-    { key: 'bu_name', header: 'Business Unit', render: (row) => row.bu_name ?? '— (semua BU)' },
-    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'name', header: t('Nama'), render: (row) => row.name },
+    { key: 'email', header: t('Email'), render: (row) => row.email },
+    { key: 'role', header: t('Role'), render: (row) => row.role },
+    { key: 'bu_name', header: t('Business Unit'), render: (row) => row.bu_name ?? translate('— (semua BU)') },
+    { key: 'status', header: t('Status'), render: (row) => <StatusBadge status={row.status} /> },
     {
       key: 'actions',
       header: '',
@@ -59,14 +62,14 @@ export default function UserListPage() {
             disabled={resetPasswordMutation.isPending}
             className="text-sm font-medium text-slate-600 hover:underline disabled:opacity-50"
           >
-            Reset Password
+            {t('Reset Password')}
           </button>
           <button
             type="button"
             onClick={() => setSessionsFor(row)}
             className="text-sm font-medium text-slate-600 hover:underline"
           >
-            Sesi
+            {t('Sesi')}
           </button>
           <button
             type="button"
@@ -76,7 +79,7 @@ export default function UserListPage() {
             }}
             className="text-sm font-medium text-blue-600 hover:underline"
           >
-            Edit
+            {t('Edit')}
           </button>
         </div>
       ),
@@ -86,7 +89,7 @@ export default function UserListPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Users</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Users')}</h1>
         <button
           type="button"
           onClick={() => {
@@ -95,19 +98,19 @@ export default function UserListPage() {
           }}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
-          + Tambah User
+          {t('+ Tambah User')}
         </button>
       </div>
 
       <div className="mb-4 max-w-sm">
         <TextField
-          label="Cari nama / email"
+          label={t('Cari nama / email')}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
             setPage(1)
           }}
-          placeholder="Ketik untuk mencari..."
+          placeholder={t('Ketik untuk mencari...')}
         />
       </div>
 
@@ -120,7 +123,7 @@ export default function UserListPage() {
             data={data?.users ?? []}
             getRowKey={(row) => row.id}
             loading={isLoading}
-            emptyMessage="Belum ada user."
+            emptyMessage={t('Belum ada user.')}
           />
           {data?.pagination && <Pagination meta={data.pagination} onPageChange={setPage} />}
         </>

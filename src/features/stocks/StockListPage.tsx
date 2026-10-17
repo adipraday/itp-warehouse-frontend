@@ -15,16 +15,19 @@ import { getErrorMessage } from '../../api/errors'
 import { useToast } from '../../hooks/useToast'
 import { downloadBlob } from '../../utils/download'
 import type { Stock } from '../../types/stock'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 type Tab = 'all' | 'low' | 'out'
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'all', label: 'Semua Stok' },
-  { key: 'low', label: 'Low Stock' },
-  { key: 'out', label: 'Out of Stock' },
+  { key: 'all', label: tk('Semua Stok') },
+  { key: 'low', label: tk('Low Stock') },
+  { key: 'out', label: tk('Out of Stock') },
 ]
 
 export default function StockListPage() {
+  const { t } = useI18n()
   const [tab, setTab] = useState<Tab>('all')
   const [page, setPage] = useState(1)
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
@@ -38,7 +41,7 @@ export default function StockListPage() {
     mutationFn: () => exportStocks({ status: tab, format: exportFormat, warehouse_id: warehouseId ?? undefined }),
     onSuccess: ({ blob, filename }) => {
       downloadBlob(blob, filename ?? `stocks-export${tab === 'all' ? '' : `-${tab}`}.${exportFormat}`)
-      toast.show('Export berhasil diunduh.', 'success')
+      toast.show(t('Export berhasil diunduh.'), 'success')
     },
     onError: (err) => toast.show(getErrorMessage(err), 'error'),
   })
@@ -53,13 +56,13 @@ export default function StockListPage() {
   })
 
   const columns: DataTableColumn<Stock>[] = [
-    { key: 'warehouse_code', header: 'Gudang', render: (row) => `${row.warehouse_code} — ${row.warehouse_name}` },
-    { key: 'sku', header: 'SKU', render: (row) => row.sku },
-    { key: 'item_name', header: 'Nama Item', render: (row) => row.item_name },
-    { key: 'unit', header: 'Satuan', render: (row) => row.unit },
+    { key: 'warehouse_code', header: t('Gudang'), render: (row) => `${row.warehouse_code} — ${row.warehouse_name}` },
+    { key: 'sku', header: t('SKU'), render: (row) => row.sku },
+    { key: 'item_name', header: t('Nama Item'), render: (row) => row.item_name },
+    { key: 'unit', header: t('Satuan'), render: (row) => row.unit },
     {
       key: 'quantity',
-      header: 'Qty',
+      header: t('Qty'),
       className: 'text-right',
       render: (row) => (
         <span className={row.quantity <= row.min_stock ? 'font-medium text-amber-600' : ''}>
@@ -67,8 +70,8 @@ export default function StockListPage() {
         </span>
       ),
     },
-    { key: 'min_stock', header: 'Min. Stok', className: 'text-right', render: (row) => formatNumber(row.min_stock) },
-    { key: 'updated_at', header: 'Update Terakhir', render: (row) => formatTimestamp(row.updated_at) },
+    { key: 'min_stock', header: t('Min. Stok'), className: 'text-right', render: (row) => formatNumber(row.min_stock) },
+    { key: 'updated_at', header: t('Update Terakhir'), render: (row) => formatTimestamp(row.updated_at) },
   ]
 
   function switchTab(next: Tab) {
@@ -80,26 +83,26 @@ export default function StockListPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-slate-900">Stocks</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t('Stocks')}</h1>
         <div className="flex items-center gap-2">
           <select
-            aria-label="Format export"
+            aria-label={t('Format export')}
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as StockExportFormat)}
             className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
           >
-            <option value="pdf">PDF</option>
-            <option value="xlsx">XLSX</option>
-            <option value="csv">CSV</option>
+            <option value="pdf">{t('PDF')}</option>
+            <option value="xlsx">{t('XLSX')}</option>
+            <option value="csv">{t('CSV')}</option>
           </select>
           <button
             type="button"
             onClick={() => exportMutation.mutate()}
             disabled={exportMutation.isPending}
-            title="Export mengikuti tab dan filter warehouse yang aktif (filter item tidak ikut)"
+            title={t('Export mengikuti tab dan filter warehouse yang aktif (filter item tidak ikut)')}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {exportMutation.isPending ? 'Menyiapkan...' : `Export ${TABS.find((t) => t.key === tab)?.label}`}
+            {exportMutation.isPending ? t('Menyiapkan...') : t('Export {label}', { label: t(TABS.find((tabItem) => tabItem.key === tab)?.label ?? '') })}
           </button>
         </div>
       </div>
@@ -152,7 +155,7 @@ export default function StockListPage() {
               data={data?.data ?? []}
               getRowKey={(row) => row.id}
               loading={isLoading}
-              emptyMessage="Tidak ada data stok."
+              emptyMessage={t('Tidak ada data stok.')}
             />
             {data?.meta && <Pagination meta={data.meta} onPageChange={setPage} />}
           </>

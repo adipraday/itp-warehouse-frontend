@@ -1,6 +1,7 @@
 import type { ApiErrorBody } from '../types/common'
 import { ApiError } from './errors'
 import * as authStore from '../auth/authStore'
+import { translate } from '../i18n/i18n'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 const API_URL = `${BASE_URL}/api`
@@ -66,7 +67,7 @@ async function request<T>(
   if (!res.ok || json?.error) {
     const errorBody: ApiErrorBody = json?.error ?? {
       code: 'UNKNOWN_ERROR',
-      message: `Request gagal dengan status ${res.status}`,
+      message: translate('Request gagal dengan status {status}', { status: res.status }),
       details: [],
     }
 
@@ -140,7 +141,7 @@ export async function apiGetBlob(
     const json = await res.json().catch(() => null)
     const errorBody: ApiErrorBody = json?.error ?? {
       code: 'UNKNOWN_ERROR',
-      message: `Request gagal dengan status ${res.status}`,
+      message: translate('Request gagal dengan status {status}', { status: res.status }),
       details: [],
     }
 

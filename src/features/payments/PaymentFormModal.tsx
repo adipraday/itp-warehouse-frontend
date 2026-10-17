@@ -11,6 +11,7 @@ import { createPayment } from '../../api/payments'
 import { PAYMENT_METHODS } from '../../types/payment'
 import type { PaymentMethod } from '../../types/payment'
 import type { InvoiceKind } from '../../api/invoices'
+import { useI18n } from '../../i18n/useI18n'
 
 interface PaymentFormModalProps {
   open: boolean
@@ -23,6 +24,7 @@ interface PaymentFormModalProps {
 }
 
 export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance, kind = 'sales' }: PaymentFormModalProps) {
+  const { t } = useI18n()
   const isPurchase = kind === 'purchase'
   const [amount, setAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('')
@@ -74,8 +76,8 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance, k
       const change = parseMoney(res.data.change_amount)
       toast.show(
         change > 0
-          ? `Pembayaran berhasil dicatat. Kembalian: ${formatRupiah(change)}.`
-          : 'Pembayaran berhasil dicatat.',
+          ? t('Pembayaran berhasil dicatat. Kembalian: {v1}.', { v1: formatRupiah(change) })
+          : t('Pembayaran berhasil dicatat.'),
         'success',
       )
       onClose()
@@ -88,32 +90,32 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance, k
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (amountNum <= 0) {
-      toast.show('Jumlah pembayaran harus lebih dari 0.', 'error')
+      toast.show(t('Jumlah pembayaran harus lebih dari 0.'), 'error')
       return
     }
     if (amountNum > remainingBalance) {
-      toast.show(`Jumlah pembayaran melebihi sisa tagihan (${formatRupiah(remainingBalance)}).`, 'error')
+      toast.show(t('Jumlah pembayaran melebihi sisa tagihan ({v1}).', { v1: formatRupiah(remainingBalance) }), 'error')
       return
     }
     if (!paymentMethod) {
-      toast.show('Metode pembayaran wajib dipilih.', 'error')
+      toast.show(t('Metode pembayaran wajib dipilih.'), 'error')
       return
     }
     if (showTendered && amountTenderedNum < amountNum) {
-      toast.show('Uang diterima tidak boleh kurang dari jumlah pembayaran.', 'error')
+      toast.show(t('Uang diterima tidak boleh kurang dari jumlah pembayaran.'), 'error')
       return
     }
     mutation.mutate()
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Catat Pembayaran">
+    <Modal open={open} onClose={onClose} title={t('Catat Pembayaran')}>
       <p className="mb-4 text-sm text-slate-500">
-        Sisa tagihan: <strong>{formatRupiah(remainingBalance)}</strong>
+        {t('Sisa tagihan:')} <strong>{formatRupiah(remainingBalance)}</strong>
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label={isPurchase ? 'Uang Dikeluarkan' : 'Jumlah'}
+          label={isPurchase ? t('Uang Dikeluarkan') : t('Jumlah')}
           type="number"
           min={0}
           max={remainingBalance}
@@ -129,22 +131,22 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance, k
           }}
         />
         <SelectField
-          label="Metode Pembayaran"
+          label={t('Metode Pembayaran')}
           required
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
         >
-          <option value="">-- pilih metode --</option>
+          <option value="">{t('-- pilih metode --')}</option>
           {PAYMENT_METHODS.map((m) => (
             <option key={m.value} value={m.value}>
-              {m.label}
+              {t(m.label)}
             </option>
           ))}
         </SelectField>
         {showTendered && (
           <>
             <TextField
-              label="Uang Diterima"
+              label={t('Uang Diterima')}
               type="number"
               min={amountNum}
               value={amountTendered}
@@ -152,33 +154,33 @@ export function PaymentFormModal({ open, onClose, invoiceId, remainingBalance, k
             />
             {changePreview > 0 && (
               <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
-                Kembalian: {formatRupiah(changePreview)}
+                {t('Kembalian:')} {formatRupiah(changePreview)}
               </p>
             )}
           </>
         )}
         <TextField
-          label="Tanggal Pembayaran"
+          label={t('Tanggal Pembayaran')}
           type="date"
           required
           value={paymentDate}
           onChange={(e) => setPaymentDate(e.target.value)}
         />
-        <TextField label="Catatan" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextField label={t('Catatan')} value={notes} onChange={(e) => setNotes(e.target.value)} />
         <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onClose}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

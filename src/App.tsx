@@ -50,8 +50,10 @@ import StuckQueuePage from './features/ownerInsights/StuckQueuePage'
 import ReceivablesPage from './features/ownerInsights/ReceivablesPage'
 import UnusualActivityPage from './features/ownerInsights/UnusualActivityPage'
 import NotificationListPage from './features/notifications/NotificationListPage'
+import { useI18n } from './i18n/useI18n'
 
 export default function App() {
+  const { t } = useI18n()
   const { canManageUsers, canViewActivityLogs, canViewOwnerInsights, canExportItems } = usePermissions()
 
   return (
@@ -74,8 +76,8 @@ export default function App() {
           <Route element={<RequireWarehouseAccess />}>
             {/* Halaman cetak (invoice & surat jalan) sengaja di luar <Layout/> — tidak perlu
                 sidebar/header/footer nyampur pas di-print jadi PDF. */}
-            <Route path="/sales/:id/print" element={<InvoicePrintPage kind="sales" title="Sales" />} />
-            <Route path="/purchases/:id/print" element={<InvoicePrintPage kind="purchase" title="Purchase" />} />
+            <Route path="/sales/:id/print" element={<InvoicePrintPage kind="sales" title={t('Sales')} />} />
+            <Route path="/purchases/:id/print" element={<InvoicePrintPage kind="purchase" title={t('Purchase')} />} />
             <Route path="/inbounds/:id/print" element={<InventoryTransactionPrintPage kind="inbound" />} />
             <Route path="/outbounds/:id/print" element={<InventoryTransactionPrintPage kind="outbound" />} />
 
@@ -132,35 +134,35 @@ export default function App() {
                 <Route path="/activity-logs" element={<ActivityLogListPage />} />
               </Route>
 
-              <Route path="/inbounds" element={<InventoryTransactionListPage kind="inbound" title="Inbound" />} />
+              <Route path="/inbounds" element={<InventoryTransactionListPage kind="inbound" title={t('Inbound')} />} />
               <Route
                 path="/inbounds/new"
-                element={<InventoryTransactionFormPage kind="inbound" title="Inbound" />}
+                element={<InventoryTransactionFormPage kind="inbound" title={t('Inbound')} />}
               />
               <Route
                 path="/inbounds/:id"
-                element={<InventoryTransactionDetailPage kind="inbound" title="Inbound" />}
+                element={<InventoryTransactionDetailPage kind="inbound" title={t('Inbound')} />}
               />
               <Route
                 path="/inbounds/:id/edit"
-                element={<InventoryTransactionFormPage kind="inbound" title="Inbound" />}
+                element={<InventoryTransactionFormPage kind="inbound" title={t('Inbound')} />}
               />
 
               <Route
                 path="/outbounds"
-                element={<InventoryTransactionListPage kind="outbound" title="Outbound" />}
+                element={<InventoryTransactionListPage kind="outbound" title={t('Outbound')} />}
               />
               <Route
                 path="/outbounds/new"
-                element={<InventoryTransactionFormPage kind="outbound" title="Outbound" />}
+                element={<InventoryTransactionFormPage kind="outbound" title={t('Outbound')} />}
               />
               <Route
                 path="/outbounds/:id"
-                element={<InventoryTransactionDetailPage kind="outbound" title="Outbound" />}
+                element={<InventoryTransactionDetailPage kind="outbound" title={t('Outbound')} />}
               />
               <Route
                 path="/outbounds/:id/edit"
-                element={<InventoryTransactionFormPage kind="outbound" title="Outbound" />}
+                element={<InventoryTransactionFormPage kind="outbound" title={t('Outbound')} />}
               />
 
               <Route path="/stock-transfers" element={<StockTransferListPage />} />
@@ -173,15 +175,15 @@ export default function App() {
               <Route path="/stock-opnames/:id" element={<StockOpnameDetailPage />} />
               <Route path="/stock-opnames/:id/edit" element={<StockOpnameFormPage />} />
 
-              <Route path="/sales" element={<InvoiceListPage kind="sales" title="Sales" />} />
-              <Route path="/sales/new" element={<InvoiceFormPage kind="sales" title="Sales" />} />
-              <Route path="/sales/:id" element={<InvoiceDetailPage kind="sales" title="Sales" />} />
-              <Route path="/sales/:id/edit" element={<InvoiceFormPage kind="sales" title="Sales" />} />
+              <Route path="/sales" element={<InvoiceListPage kind="sales" title={t('Sales')} />} />
+              <Route path="/sales/new" element={<InvoiceFormPage kind="sales" title={t('Sales')} />} />
+              <Route path="/sales/:id" element={<InvoiceDetailPage kind="sales" title={t('Sales')} />} />
+              <Route path="/sales/:id/edit" element={<InvoiceFormPage kind="sales" title={t('Sales')} />} />
 
-              <Route path="/purchases" element={<InvoiceListPage kind="purchase" title="Purchase" />} />
-              <Route path="/purchases/new" element={<InvoiceFormPage kind="purchase" title="Purchase" />} />
+              <Route path="/purchases" element={<InvoiceListPage kind="purchase" title={t('Purchase')} />} />
+              <Route path="/purchases/new" element={<InvoiceFormPage kind="purchase" title={t('Purchase')} />} />
               <Route path="/purchases/:id" element={<PurchaseDetailPage />} />
-              <Route path="/purchases/:id/edit" element={<InvoiceFormPage kind="purchase" title="Purchase" />} />
+              <Route path="/purchases/:id/edit" element={<InvoiceFormPage kind="purchase" title={t('Purchase')} />} />
 
               <Route path="/invoices" element={<AllInvoicesListPage />} />
 

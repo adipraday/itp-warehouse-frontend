@@ -23,6 +23,7 @@ import { CancelPurchaseModal } from './CancelPurchaseModal'
 import { PurchaseRefundModal } from './PurchaseRefundModal'
 import { SupplierInvoiceCard } from './SupplierInvoiceCard'
 import { isAwaitingGoods, purchaseStage } from './purchaseStage'
+import { useI18n } from '../../i18n/useI18n'
 
 type ActiveDialog = 'submit' | 'delete' | null
 
@@ -31,6 +32,7 @@ type ActiveDialog = 'submit' | 'delete' | null
 // Kekurangan barang bisa ditunggu penggantinya atau ditutup dengan pengembalian dana; pembatalan
 // juga menghasilkan pengembalian dana bila sudah dibayar.
 export default function PurchaseDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const purchaseId = Number(id)
   const navigate = useNavigate()
@@ -72,7 +74,7 @@ export default function PurchaseDetailPage() {
     mutationFn: () => submitPurchase(purchaseId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchase'] })
-      toast.show('Pembelian diajukan ke gudang untuk persetujuan.', 'success')
+      toast.show(t('Pembelian diajukan ke gudang untuk persetujuan.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -86,7 +88,7 @@ export default function PurchaseDetailPage() {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: ['purchase', purchaseId] })
       queryClient.invalidateQueries({ queryKey: ['purchase'] })
-      toast.show('Purchase dihapus.', 'success')
+      toast.show(t('Purchase dihapus.'), 'success')
       navigate('/purchases')
     },
     onError: (err) => {
@@ -96,7 +98,7 @@ export default function PurchaseDetailPage() {
   })
 
   if (isLoading || !doc) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   const d = doc.data
@@ -118,33 +120,33 @@ export default function PurchaseDetailPage() {
   const canEditDocument = d.status !== 'CANCELLED' && canWritePurchase
 
   const detailColumns: DataTableColumn<InvoiceDetail>[] = [
-    { key: 'sku', header: 'SKU', render: (row) => row.sku },
-    { key: 'name', header: 'Nama Item', render: (row) => row.name },
-    { key: 'quantity', header: 'Dipesan', className: 'text-right', render: (row) => row.quantity },
+    { key: 'sku', header: t('SKU'), render: (row) => row.sku },
+    { key: 'name', header: t('Nama Item'), render: (row) => row.name },
+    { key: 'quantity', header: t('Dipesan'), className: 'text-right', render: (row) => row.quantity },
     ...(showReceiveColumns
       ? ([
           {
             key: 'received',
-            header: 'Diterima',
+            header: t('Diterima'),
             className: 'text-right',
             render: (row: InvoiceDetail) => row.received_quantity ?? 0,
           },
           {
             key: 'closed',
-            header: 'Dibatalkan',
+            header: t('Dibatalkan'),
             className: 'text-right',
             render: (row: InvoiceDetail) => ((row.closed_quantity ?? 0) > 0 ? row.closed_quantity : '-'),
           },
         ] as DataTableColumn<InvoiceDetail>[])
       : []),
-    { key: 'unit_price', header: 'Harga Satuan', className: 'text-right', render: (row) => formatRupiah(row.unit_price) },
-    { key: 'amount', header: 'Jumlah', className: 'text-right', render: (row) => formatRupiah(row.amount) },
+    { key: 'unit_price', header: t('Harga Satuan'), className: 'text-right', render: (row) => formatRupiah(row.unit_price) },
+    { key: 'amount', header: t('Jumlah'), className: 'text-right', render: (row) => formatRupiah(row.amount) },
   ]
 
   return (
     <div>
       <Link to="/purchases" className="text-sm text-blue-600 hover:underline print:hidden">
-        &larr; Kembali ke daftar purchase
+        {t('← Kembali ke daftar purchase')}
       </Link>
 
       <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
@@ -157,19 +159,19 @@ export default function PurchaseDetailPage() {
           <p className="mt-1 text-sm text-slate-500">
             {warehouse?.data.code} — {warehouse?.data.name}
             {contact && <> &middot; {contact.data.name}</>} &middot; {formatDate(d.invoice_date)}
-            {d.due_date && <> &middot; Jatuh tempo {formatDate(d.due_date)}</>}
+            {d.due_date && <> {t('· Jatuh tempo')} {formatDate(d.due_date)}</>}
           </p>
           {d.supplier_invoice_number && (
-            <p className="mt-1 text-sm text-slate-500">No. invoice supplier: {d.supplier_invoice_number}</p>
+            <p className="mt-1 text-sm text-slate-500">{t('No. invoice supplier:')} {d.supplier_invoice_number}</p>
           )}
           {(d.receipts ?? []).length > 0 && (
             <p className="mt-1 text-sm">
-              Penerimaan stok:{' '}
+              {t('Penerimaan stok:')}{' '}
               {(d.receipts ?? []).map((r, i) => (
                 <span key={r.id}>
                   {i > 0 && ', '}
                   <Link to={`/inbounds/${r.inventory_transaction_id}`} className="text-blue-600 hover:underline">
-                    Inbound #{r.inventory_transaction_id}
+                    {t('Inbound #')}{r.inventory_transaction_id}
                   </Link>
                 </span>
               ))}
@@ -184,14 +186,14 @@ export default function PurchaseDetailPage() {
             rel="noopener noreferrer"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Cetak PDF
+            {t('Cetak PDF')}
           </Link>
           {isDraft && paid === 0 && canWritePurchase && (
             <Link
               to={`/purchases/${d.id}/edit`}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Edit
+              {t('Edit')}
             </Link>
           )}
           {isDraft && paid === 0 && canWritePurchase && (
@@ -200,7 +202,7 @@ export default function PurchaseDetailPage() {
               onClick={() => setActiveDialog('delete')}
               className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Hapus
+              {t('Hapus')}
             </button>
           )}
           {(isDraft || awaiting) && canWritePurchase && (
@@ -209,7 +211,7 @@ export default function PurchaseDetailPage() {
               onClick={() => setCancelModalOpen(true)}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batalkan
+              {t('Batalkan')}
             </button>
           )}
           {isDraft && canWritePurchase && (
@@ -217,10 +219,10 @@ export default function PurchaseDetailPage() {
               type="button"
               onClick={() => setActiveDialog('submit')}
               disabled={!isFullyPaid}
-              title={isFullyPaid ? undefined : 'Lunasi pembayaran dulu sebelum diajukan ke gudang'}
+              title={isFullyPaid ? undefined : t('Lunasi pembayaran dulu sebelum diajukan ke gudang')}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              Ajukan ke Gudang
+              {t('Ajukan ke Gudang')}
             </button>
           )}
           {canReceive && (
@@ -229,7 +231,7 @@ export default function PurchaseDetailPage() {
               onClick={() => setReceiveModalOpen(true)}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Terima Barang
+              {t('Terima Barang')}
             </button>
           )}
         </div>
@@ -237,33 +239,32 @@ export default function PurchaseDetailPage() {
 
       {isDraft && !isFullyPaid && (
         <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 print:hidden">
-          Langkah berikutnya: catat pembayaran ke supplier sampai lunas, lalu ajukan ke gudang tujuan. Stok baru
-          bertambah setelah admin gudang tujuan menyetujui penerimaan barang.
+          {t('Langkah berikutnya: catat pembayaran ke supplier sampai lunas, lalu ajukan ke gudang tujuan. Stok baru bertambah setelah admin gudang tujuan menyetujui penerimaan barang.')}
         </div>
       )}
       {isDraft && isFullyPaid && (
         <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 print:hidden">
-          Pembayaran sudah lunas. Ajukan ke gudang tujuan agar admin gudang dapat menyetujui penerimaan barang.
+          {t('Pembayaran sudah lunas. Ajukan ke gudang tujuan agar admin gudang dapat menyetujui penerimaan barang.')}
         </div>
       )}
       {awaiting && (
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 print:hidden">
           {d.receipt_status === 'PARTIALLY_RECEIVED'
-            ? 'Sebagian barang sudah diterima. Sisanya menunggu pengganti dari supplier — terima lagi bila sudah datang, atau batalkan sisanya (dana dikembalikan).'
-            : 'Menunggu persetujuan penerimaan barang oleh admin gudang tujuan.'}
-          {isOwnPurchase && ' Anda yang membuat pembelian ini, jadi persetujuannya harus dari admin lain.'}
+            ? t('Sebagian barang sudah diterima. Sisanya menunggu pengganti dari supplier — terima lagi bila sudah datang, atau batalkan sisanya (dana dikembalikan).')
+            : t('Menunggu persetujuan penerimaan barang oleh admin gudang tujuan.')}
+          {isOwnPurchase && t(' Anda yang membuat pembelian ini, jadi persetujuannya harus dari admin lain.')}
         </div>
       )}
       {d.cancel_reason && (
         <p className="mt-4 text-sm text-slate-600">
-          Alasan pembatalan / catatan penutupan: <strong>{d.cancel_reason}</strong>
+          {t('Alasan pembatalan / catatan penutupan:')} <strong>{d.cancel_reason}</strong>
         </p>
       )}
 
       {refundDue > 0 && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 print:hidden">
           <span>
-            Supplier perlu mengembalikan dana <strong>{formatRupiah(refundDue)}</strong>.
+            {t('Supplier perlu mengembalikan dana')} <strong>{formatRupiah(refundDue)}</strong>.
           </span>
           {canRefundPurchase() && (
             <button
@@ -271,28 +272,28 @@ export default function PurchaseDetailPage() {
               onClick={() => setRefundModalOpen(true)}
               className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
             >
-              Catat Pengembalian Dana
+              {t('Catat Pengembalian Dana')}
             </button>
           )}
         </div>
       )}
 
-      {d.notes && <p className="mt-4 text-sm text-slate-600">Catatan: {d.notes}</p>}
+      {d.notes && <p className="mt-4 text-sm text-slate-600">{t('Catatan:')} {d.notes}</p>}
 
-      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">Detail Item</h2>
+      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
       <DataTable columns={detailColumns} data={detailRows} getRowKey={(row) => row.id} />
 
       <div className="ml-auto mt-4 max-w-xs space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">Subtotal</span>
+          <span className="text-slate-500">{t('Subtotal')}</span>
           <span>{formatRupiah(d.subtotal)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">Tax</span>
+          <span className="text-slate-500">{t('Tax')}</span>
           <span>{formatRupiah(d.tax)}</span>
         </div>
         <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold">
-          <span>Total</span>
+          <span>{t('Total')}</span>
           <span>{formatRupiah(d.total_amount)}</span>
         </div>
       </div>
@@ -301,58 +302,58 @@ export default function PurchaseDetailPage() {
 
       <div className="mt-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">Pembayaran</h2>
+          <h2 className="text-sm font-semibold text-slate-700">{t('Pembayaran')}</h2>
           {d.status !== 'CANCELLED' && remainingBalance > 0 && canRecordPayment && (
             <button
               type="button"
               onClick={() => setPaymentModalOpen(true)}
               className="text-sm font-medium text-blue-600 hover:underline print:hidden"
             >
-              + Catat Pembayaran
+              {t('+ Catat Pembayaran')}
             </button>
           )}
         </div>
         <DataTable
           columns={[
-            { key: 'payment_number', header: 'No. Pembayaran', render: (row) => row.payment_number },
-            { key: 'payment_date', header: 'Tanggal', render: (row) => formatDate(row.payment_date) },
+            { key: 'payment_number', header: t('No. Pembayaran'), render: (row) => row.payment_number },
+            { key: 'payment_date', header: t('Tanggal'), render: (row) => formatDate(row.payment_date) },
             {
               key: 'amount',
-              header: 'Uang Dikeluarkan',
+              header: t('Uang Dikeluarkan'),
               className: 'text-right',
               render: (row) => formatRupiah(row.amount),
             },
-            { key: 'payment_method', header: 'Metode', render: (row) => paymentMethodLabel(row.payment_method) },
-            { key: 'notes', header: 'Catatan', render: (row) => row.notes ?? '-' },
+            { key: 'payment_method', header: t('Metode'), render: (row) => paymentMethodLabel(row.payment_method) },
+            { key: 'notes', header: t('Catatan'), render: (row) => row.notes ?? '-' },
           ]}
           data={payments?.data ?? []}
           getRowKey={(row) => row.id}
-          emptyMessage="Belum ada pembayaran."
+          emptyMessage={t('Belum ada pembayaran.')}
         />
         <p className="mt-2 text-sm text-slate-500">
-          Sisa tagihan: <strong>{formatRupiah(remainingBalance)}</strong>
+          {t('Sisa tagihan:')} <strong>{formatRupiah(remainingBalance)}</strong>
         </p>
       </div>
 
       {(d.refunds ?? []).length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-slate-700">Pengembalian Dana dari Supplier</h2>
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">{t('Pengembalian Dana dari Supplier')}</h2>
           <DataTable
             columns={[
-              { key: 'refund_number', header: 'No. Pengembalian', render: (row: PurchaseRefund) => row.refund_number },
-              { key: 'refund_date', header: 'Tanggal', render: (row: PurchaseRefund) => formatDate(row.refund_date) },
+              { key: 'refund_number', header: t('No. Pengembalian'), render: (row: PurchaseRefund) => row.refund_number },
+              { key: 'refund_date', header: t('Tanggal'), render: (row: PurchaseRefund) => formatDate(row.refund_date) },
               {
                 key: 'amount',
-                header: 'Uang Diterima Kembali',
+                header: t('Uang Diterima Kembali'),
                 className: 'text-right',
                 render: (row: PurchaseRefund) => formatRupiah(row.amount),
               },
               {
                 key: 'refund_method',
-                header: 'Metode',
+                header: t('Metode'),
                 render: (row: PurchaseRefund) => paymentMethodLabel(row.refund_method),
               },
-              { key: 'notes', header: 'Catatan', render: (row: PurchaseRefund) => row.notes ?? '-' },
+              { key: 'notes', header: t('Catatan'), render: (row: PurchaseRefund) => row.notes ?? '-' },
             ]}
             data={d.refunds ?? []}
             getRowKey={(row) => row.id}
@@ -361,33 +362,33 @@ export default function PurchaseDetailPage() {
       )}
 
       <div className="mt-4 text-xs text-slate-400">
-        Dibuat: {formatTimestamp(d.created_at)}
-        {d.created_by != null && <> oleh User #{d.created_by}</>}
-        {d.submitted_at && <> &middot; Diajukan: {formatTimestamp(d.submitted_at)}</>}
+        {t('Dibuat:')} {formatTimestamp(d.created_at)}
+        {d.created_by != null && <> {t('oleh User #')}{d.created_by}</>}
+        {d.submitted_at && <> {t('· Diajukan:')} {formatTimestamp(d.submitted_at)}</>}
         {d.completed_at && (
           <>
             {' '}
-            &middot; Selesai: {formatTimestamp(d.completed_at)}
-            {d.completed_by != null && <> oleh User #{d.completed_by}</>}
+            {t('· Selesai:')} {formatTimestamp(d.completed_at)}
+            {d.completed_by != null && <> {t('oleh User #')}{d.completed_by}</>}
           </>
         )}
-        {d.cancelled_at && <> &middot; Dibatalkan: {formatTimestamp(d.cancelled_at)}</>}
+        {d.cancelled_at && <> {t('· Dibatalkan:')} {formatTimestamp(d.cancelled_at)}</>}
       </div>
 
       <ConfirmDialog
         open={activeDialog === 'submit'}
-        title="Ajukan ke Gudang"
-        description="Pembelian ini akan diajukan ke admin gudang tujuan untuk disetujui penerimaannya. Setelah diajukan, pembelian tidak bisa diedit lagi. Lanjutkan?"
-        confirmLabel="Ajukan"
+        title={t('Ajukan ke Gudang')}
+        description={t('Pembelian ini akan diajukan ke admin gudang tujuan untuk disetujui penerimaannya. Setelah diajukan, pembelian tidak bisa diedit lagi. Lanjutkan?')}
+        confirmLabel={t('Ajukan')}
         loading={submitMutation.isPending}
         onConfirm={() => submitMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'delete'}
-        title="Hapus Purchase"
-        description="Dokumen ini akan dihapus permanen. Lanjutkan?"
-        confirmLabel="Hapus"
+        title={t('Hapus Purchase')}
+        description={t('Dokumen ini akan dihapus permanen. Lanjutkan?')}
+        confirmLabel={t('Hapus')}
         danger
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}

@@ -19,8 +19,10 @@ import {
   getDashboardSummary,
 } from '../../api/dashboard'
 import { listLowStock, listOutOfStock } from '../../api/stocks'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function DashboardPage() {
+  const { t } = useI18n()
   const { canViewHpp } = usePermissions()
   const hasHppAccess = canViewHpp()
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
@@ -82,33 +84,33 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-slate-900">Dashboard</h1>
+      <h1 className="mb-6 text-xl font-semibold text-slate-900">{t('Dashboard')}</h1>
 
       <div className="mb-6 max-w-xs">
         <WarehouseSelect
-          label="Warehouse"
-          placeholder="Semua warehouse (agregasi total)"
+          label={t('Warehouse')}
+          placeholder={t('Semua warehouse (agregasi total)')}
           value={warehouseId}
           onChange={setWarehouseId}
         />
       </div>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">Stok Saat Ini</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">{t('Stok Saat Ini')}</h2>
         {stockQuery.isError ? (
           <ErrorState error={stockQuery.error} />
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <StatCard label="Total Item" value={stock ? formatNumber(stock.total_items) : '...'} />
-            <StatCard label="Total Qty" value={stock ? formatNumber(stock.total_quantity) : '...'} />
-            <StatCard label="Total Nilai" value={stock ? formatRupiah(stock.total_value) : '...'} />
+            <StatCard label={t('Total Item')} value={stock ? formatNumber(stock.total_items) : '...'} />
+            <StatCard label={t('Total Qty')} value={stock ? formatNumber(stock.total_quantity) : '...'} />
+            <StatCard label={t('Total Nilai')} value={stock ? formatRupiah(stock.total_value) : '...'} />
             <StatCard
-              label="Low Stock"
+              label={t('Low Stock')}
               value={stock ? formatNumber(stock.low_stock_count) : '...'}
               tone={stock && stock.low_stock_count > 0 ? 'warn' : 'default'}
             />
             <StatCard
-              label="Out of Stock"
+              label={t('Out of Stock')}
               value={stock ? formatNumber(stock.out_of_stock_count) : '...'}
               tone={stock && stock.out_of_stock_count > 0 ? 'warn' : 'default'}
             />
@@ -118,7 +120,7 @@ export default function DashboardPage() {
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">Ringkasan Harian</h2>
+          <h2 className="text-sm font-semibold text-slate-700">{t('Ringkasan Harian')}</h2>
           <div className="w-44">
             <TextField label="" type="date" value={summaryDate} onChange={(e) => setSummaryDate(e.target.value)} />
           </div>
@@ -127,17 +129,17 @@ export default function DashboardPage() {
           <ErrorState error={summaryQuery.error} />
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard label="Jumlah Sales" value={summary ? formatNumber(summary.sales.count) : '...'} />
-            <StatCard label="Total Sales" value={summary ? formatRupiah(summary.sales.total_amount) : '...'} />
-            <StatCard label="Jumlah Purchase" value={summary ? formatNumber(summary.purchases.count) : '...'} />
-            <StatCard label="Total Purchase" value={summary ? formatRupiah(summary.purchases.total_amount) : '...'} />
+            <StatCard label={t('Jumlah Sales')} value={summary ? formatNumber(summary.sales.count) : '...'} />
+            <StatCard label={t('Total Sales')} value={summary ? formatRupiah(summary.sales.total_amount) : '...'} />
+            <StatCard label={t('Jumlah Purchase')} value={summary ? formatNumber(summary.purchases.count) : '...'} />
+            <StatCard label={t('Total Purchase')} value={summary ? formatRupiah(summary.purchases.total_amount) : '...'} />
           </div>
         )}
       </section>
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">Performa Rentang Tanggal</h2>
+          <h2 className="text-sm font-semibold text-slate-700">{t('Performa Rentang Tanggal')}</h2>
           <div className="flex gap-3">
             <div className="w-40">
               <TextField label="" type="date" value={rangeFrom} onChange={(e) => setRangeFrom(e.target.value)} />
@@ -151,16 +153,16 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <p className="mb-3 text-xs text-slate-500">
-              Sales vs Purchases ({sales ? formatNumber(sales.count) : '...'} sales, {purchases ? formatNumber(purchases.count) : '...'}{' '}
-              purchase)
+              {t('Sales vs Purchases (')}{sales ? formatNumber(sales.count) : '...'} {t('sales,')} {purchases ? formatNumber(purchases.count) : '...'}{' '}
+              {t('purchase)')}
             </p>
             {salesQuery.isError || purchasesQuery.isError ? (
               <ErrorState error={salesQuery.error ?? purchasesQuery.error} />
             ) : (
               <SimpleBarChart
                 bars={[
-                  { label: 'Sales', value: sales ? parseMoney(sales.total_amount) : 0, colorClass: 'bg-blue-500' },
-                  { label: 'Purchases', value: purchases ? parseMoney(purchases.total_amount) : 0, colorClass: 'bg-amber-500' },
+                  { label: t('Sales'), value: sales ? parseMoney(sales.total_amount) : 0, colorClass: 'bg-blue-500' },
+                  { label: t('Purchases'), value: purchases ? parseMoney(purchases.total_amount) : 0, colorClass: 'bg-amber-500' },
                 ]}
               />
             )}
@@ -174,14 +176,14 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <>
-                  <StatCard label="Revenue" value={profit ? formatRupiah(profit.revenue) : '...'} />
-                  <StatCard label="COGS" value={profit ? formatRupiah(profit.cogs) : '...'} />
+                  <StatCard label={t('Revenue')} value={profit ? formatRupiah(profit.revenue) : '...'} />
+                  <StatCard label={t('COGS')} value={profit ? formatRupiah(profit.cogs) : '...'} />
                   <StatCard
-                    label="Gross Profit"
+                    label={t('Gross Profit')}
                     value={profit ? formatRupiah(profit.gross_profit) : '...'}
                     tone="good"
                   />
-                  <StatCard label="Gross Margin" value={profit ? `${profit.gross_margin_pct}%` : '...'} tone="good" />
+                  <StatCard label={t('Gross Margin')} value={profit ? `${profit.gross_margin_pct}%` : '...'} tone="good" />
                 </>
               )}
             </div>
@@ -190,7 +192,7 @@ export default function DashboardPage() {
 
         <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
           <p className="mb-3 text-xs text-slate-500">
-            Tren Penjualan Harian ({salesTrend ? formatNumber(salesTrend.length) : '...'} hari ada transaksi)
+            {t('Tren Penjualan Harian (')}{salesTrend ? formatNumber(salesTrend.length) : '...'} {t('hari ada transaksi)')}
           </p>
           {salesTrendQuery.isError ? (
             <ErrorState error={salesTrendQuery.error} />
@@ -208,9 +210,9 @@ export default function DashboardPage() {
       <section className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Perlu Restock (Low Stock)</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Perlu Restock (Low Stock)')}</h2>
             <Link to="/stocks" className="text-sm text-blue-600 hover:underline">
-              Lihat semua
+              {t('Lihat semua')}
             </Link>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white">
@@ -228,16 +230,16 @@ export default function DashboardPage() {
                 ))}
               </ul>
             ) : (
-              <p className="px-4 py-3 text-sm text-slate-400">Tidak ada item low stock.</p>
+              <p className="px-4 py-3 text-sm text-slate-400">{t('Tidak ada item low stock.')}</p>
             )}
           </div>
         </div>
 
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Habis Stok (Out of Stock)</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Habis Stok (Out of Stock)')}</h2>
             <Link to="/stocks" className="text-sm text-blue-600 hover:underline">
-              Lihat semua
+              {t('Lihat semua')}
             </Link>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white">
@@ -253,7 +255,7 @@ export default function DashboardPage() {
                 ))}
               </ul>
             ) : (
-              <p className="px-4 py-3 text-sm text-slate-400">Tidak ada item yang habis.</p>
+              <p className="px-4 py-3 text-sm text-slate-400">{t('Tidak ada item yang habis.')}</p>
             )}
           </div>
         </div>

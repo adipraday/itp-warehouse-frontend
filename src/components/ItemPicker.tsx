@@ -5,6 +5,8 @@ import { getItem, searchItems } from '../api/items'
 import { usePermissions } from '../auth/permissions'
 import { ItemFormModal } from '../features/items/ItemFormModal'
 import type { Item } from '../types/item'
+import { useI18n } from '../i18n/useI18n'
+import { translate } from '../i18n/i18n'
 
 interface ItemPickerProps {
   label?: string
@@ -26,7 +28,8 @@ interface ItemPickerProps {
  * Search-select item (SKU/nama) yang resolve ke item_id. Dipakai di filter
  * report (Fase 3) dan bisa dipakai lagi untuk baris detail transaksi (Fase 4+).
  */
-export function ItemPicker({ label = 'Item', value, onChange, allowCreate = false }: ItemPickerProps) {
+export function ItemPicker({ label = translate('Item'), value, onChange, allowCreate = false }: ItemPickerProps) {
+  const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -96,7 +99,7 @@ export function ItemPicker({ label = 'Item', value, onChange, allowCreate = fals
               type="button"
               onClick={clearSelection}
               className="text-slate-400 hover:text-slate-600"
-              aria-label="Hapus pilihan item"
+              aria-label={t('Hapus pilihan item')}
             >
               &times;
             </button>
@@ -110,7 +113,7 @@ export function ItemPicker({ label = 'Item', value, onChange, allowCreate = fals
               setOpen(true)
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Cari SKU / nama item..."
+            placeholder={t('Cari SKU / nama item...')}
             className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         )}
@@ -137,7 +140,7 @@ export function ItemPicker({ label = 'Item', value, onChange, allowCreate = fals
                 onClick={() => setCreateOpen(true)}
                 className="block w-full px-3 py-2 text-left text-sm font-medium text-blue-600 hover:bg-blue-50"
               >
-                {query.trim() ? `+ Tambah "${query.trim()}" sebagai item baru` : '+ Tambah item baru'}
+                {query.trim() ? t('+ Tambah "{v1}" sebagai item baru', { v1: query.trim() }) : t('+ Tambah item baru')}
               </button>
             </li>
           )}

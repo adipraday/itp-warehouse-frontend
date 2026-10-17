@@ -12,33 +12,36 @@ import { listWarehouses } from '../../api/warehouses'
 import { usePermissions } from '../../auth/permissions'
 import { DeleteItemDialog } from './DeleteItemDialog'
 import type { ItemCostHistoryEntry, ItemStock } from '../../types/item'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 type Tab = 'stocks' | 'cost'
 
 const stockColumns: DataTableColumn<ItemStock>[] = [
-  { key: 'warehouse_code', header: 'Kode Gudang', render: (row) => row.warehouse_code },
-  { key: 'warehouse_name', header: 'Nama Gudang', render: (row) => row.warehouse_name },
-  { key: 'quantity', header: 'Qty', className: 'text-right', render: (row) => formatNumber(row.quantity) },
+  { key: 'warehouse_code', header: tk('Kode Gudang'), render: (row) => row.warehouse_code },
+  { key: 'warehouse_name', header: tk('Nama Gudang'), render: (row) => row.warehouse_name },
+  { key: 'quantity', header: tk('Qty'), className: 'text-right', render: (row) => formatNumber(row.quantity) },
 ]
 
 const costHistoryColumns: DataTableColumn<ItemCostHistoryEntry>[] = [
-  { key: 'created_at', header: 'Tanggal', render: (row) => formatTimestamp(row.created_at) },
+  { key: 'created_at', header: tk('Tanggal'), render: (row) => formatTimestamp(row.created_at) },
   {
     key: 'quantity_received',
-    header: 'Qty Masuk',
+    header: tk('Qty Masuk'),
     className: 'text-right',
     render: (row) => formatNumber(row.quantity_received),
   },
   {
     key: 'quantity_remaining',
-    header: 'Sisa',
+    header: tk('Sisa'),
     className: 'text-right',
     render: (row) => formatNumber(row.quantity_remaining),
   },
-  { key: 'unit_cost', header: 'Unit Cost', className: 'text-right', render: (row) => formatRupiah(row.unit_cost) },
+  { key: 'unit_cost', header: tk('Unit Cost'), className: 'text-right', render: (row) => formatRupiah(row.unit_cost) },
 ]
 
 export default function ItemDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const itemId = Number(id)
   const navigate = useNavigate()
@@ -80,7 +83,7 @@ export default function ItemDetailPage() {
   return (
     <div>
       <Link to="/items" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar item
+        {t('← Kembali ke daftar item')}
       </Link>
 
       <h1 className="mt-2 text-xl font-semibold text-slate-900">
@@ -88,8 +91,7 @@ export default function ItemDetailPage() {
       </h1>
       {item?.data.deleted_at && (
         <p role="status" className="mt-3 rounded-md border border-slate-300 bg-slate-100 p-3 text-sm text-slate-700">
-          Item ini sudah dihapus pada {formatTimestamp(item.data.deleted_at)}. Riwayatnya tetap tersimpan, tetapi item
-          tidak bisa dipakai di dokumen baru.
+          {t('Item ini sudah dihapus pada')} {formatTimestamp(item.data.deleted_at)}{t('. Riwayatnya tetap tersimpan, tetapi item tidak bisa dipakai di dokumen baru.')}
         </p>
       )}
       {item?.data && !item.data.deleted_at && canWrite('items') && (
@@ -98,23 +100,23 @@ export default function ItemDetailPage() {
           onClick={() => setDeleteOpen(true)}
           className="mt-3 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
         >
-          Hapus Item
+          {t('Hapus Item')}
         </button>
       )}
       {item?.data && (
         <p className="mt-1 text-sm text-slate-500">
-          Satuan: {item.data.unit} &middot; Min. stok: {item.data.min_stock} &middot; Harga jual:{' '}
+          {t('Satuan:')} {item.data.unit} {t('· Min. stok:')} {item.data.min_stock} {t('· Harga jual:')}{' '}
           {formatRupiah(item.data.selling_price)}
-          {item.data.barcode && <> &middot; Barcode: {item.data.barcode}</>}
+          {item.data.barcode && <> {t('· Barcode:')} {item.data.barcode}</>}
         </p>
       )}
 
       <div className="mt-6 flex gap-1 border-b border-slate-200">
         <TabButton active={tab === 'stocks'} onClick={() => setTab('stocks')}>
-          Stok Lintas Gudang
+          {t('Stok Lintas Gudang')}
         </TabButton>
         <TabButton active={tab === 'cost'} onClick={() => setTab('cost')}>
-          Cost / HPP
+          {t('Cost / HPP')}
         </TabButton>
       </div>
 
@@ -125,7 +127,7 @@ export default function ItemDetailPage() {
             data={stocks?.data ?? []}
             getRowKey={(row) => row.warehouse_id}
             loading={stocksLoading}
-            emptyMessage="Item ini belum punya stok di gudang manapun."
+            emptyMessage={t('Item ini belum punya stok di gudang manapun.')}
           />
           {stocks?.meta && <Pagination meta={stocks.meta} onPageChange={setStocksPage} />}
         </div>
@@ -135,7 +137,7 @@ export default function ItemDetailPage() {
         <div className="mt-4">
           <div className="max-w-xs">
             <SelectField
-              label="Pilih Warehouse"
+              label={t('Pilih Warehouse')}
               required
               value={warehouseId ?? ''}
               onChange={(e) => {
@@ -143,7 +145,7 @@ export default function ItemDetailPage() {
                 setHistoryPage(1)
               }}
             >
-              <option value="">-- pilih warehouse --</option>
+              <option value="">{t('-- pilih warehouse --')}</option>
               {warehouses?.data.map((w) => (
                 <option key={w.id} value={w.id}>
                   {w.code} — {w.name}
@@ -153,26 +155,26 @@ export default function ItemDetailPage() {
           </div>
 
           {warehouseId === null && (
-            <p className="mt-4 text-sm text-slate-400">Pilih warehouse dulu untuk lihat data cost/HPP.</p>
+            <p className="mt-4 text-sm text-slate-400">{t('Pilih warehouse dulu untuk lihat data cost/HPP.')}</p>
           )}
 
           {warehouseId !== null && cost && (
             <div className="mt-4 grid grid-cols-3 gap-4">
-              <SummaryCard label="Qty Tersisa" value={formatNumber(cost.data.quantity_remaining)} />
-              <SummaryCard label="Total Nilai" value={formatRupiah(cost.data.total_value)} />
-              <SummaryCard label="Rata-rata Unit Cost" value={formatRupiah(cost.data.average_unit_cost)} />
+              <SummaryCard label={t('Qty Tersisa')} value={formatNumber(cost.data.quantity_remaining)} />
+              <SummaryCard label={t('Total Nilai')} value={formatRupiah(cost.data.total_value)} />
+              <SummaryCard label={t('Rata-rata Unit Cost')} value={formatRupiah(cost.data.average_unit_cost)} />
             </div>
           )}
 
           {warehouseId !== null && (
             <div className="mt-6">
-              <h2 className="mb-3 text-sm font-semibold text-slate-700">Riwayat Cost Layer</h2>
+              <h2 className="mb-3 text-sm font-semibold text-slate-700">{t('Riwayat Cost Layer')}</h2>
               <DataTable
                 columns={costHistoryColumns}
                 data={costHistory?.data ?? []}
                 getRowKey={(row) => row.id}
                 loading={historyLoading}
-                emptyMessage="Belum ada riwayat cost layer di warehouse ini."
+                emptyMessage={t('Belum ada riwayat cost layer di warehouse ini.')}
               />
               {costHistory?.meta && <Pagination meta={costHistory.meta} onPageChange={setHistoryPage} />}
             </div>

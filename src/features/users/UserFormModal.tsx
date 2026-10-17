@@ -9,6 +9,7 @@ import { createUser, updateUser } from '../../api/users'
 import { listAssignableRoles } from '../../api/roles'
 import { useAuth } from '../../auth/useAuth'
 import type { AuthUser } from '../../auth/authApi'
+import { useI18n } from '../../i18n/useI18n'
 
 interface UserFormModalProps {
   open: boolean
@@ -19,6 +20,7 @@ interface UserFormModalProps {
 const EMPTY_FORM = { name: '', email: '', role: '', bu_id: '' as number | '', status: 'ACTIVE' }
 
 export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
+  const { t } = useI18n()
   const { user: sessionUser } = useAuth()
   const [form, setForm] = useState(EMPTY_FORM)
   const [activation, setActivation] = useState<{ token?: string } | null>(null)
@@ -72,9 +74,9 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
         // set_password_token cuma ada kalau MAIL_EXPOSE_TOKENS=true di backend (dev-only).
         const token = (result as AuthUser & { set_password_token?: string }).set_password_token
         setActivation({ token })
-        toast.show('User berhasil dibuat. Link aktivasi telah dikirim ke email.', 'success')
+        toast.show(t('User berhasil dibuat. Link aktivasi telah dikirim ke email.'), 'success')
       } else {
-        toast.show('User berhasil diupdate.', 'success')
+        toast.show(t('User berhasil diupdate.'), 'success')
         onClose()
       }
     },
@@ -87,14 +89,14 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={user ? 'Edit User' : 'Tambah User'}>
+    <Modal open={open} onClose={onClose} title={user ? t('Edit User') : t('Tambah User')}>
       {activation ? (
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">Link aktivasi telah dikirim ke email user baru.</p>
+          <p className="text-sm text-slate-600">{t('Link aktivasi telah dikirim ke email user baru.')}</p>
           {activation.token && (
             <div className="rounded-md bg-slate-50 p-3">
               <p className="text-xs text-slate-500">
-                Token set-password (cuma tampil di mode development):
+                {t('Token set-password (cuma tampil di mode development):')}
               </p>
               <code className="mt-1 block break-all text-xs text-slate-700">{activation.token}</code>
             </div>
@@ -105,34 +107,34 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
               onClick={onClose}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Selesai
+              {t('Selesai')}
             </button>
           </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <TextField
-            label="Nama"
+            label={t('Nama')}
             required
             maxLength={150}
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           />
           <TextField
-            label="Email"
+            label={t('Email')}
             type="email"
             required
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
           />
           <SelectField
-            label="Role"
+            label={t('Role')}
             required
             value={form.role}
             onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
           >
             <option value="" disabled>
-              Pilih role...
+              {t('Pilih role...')}
             </option>
             {roles?.map((r) => (
               <option key={r.name} value={r.name} title={r.description}>
@@ -143,31 +145,30 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
 
           {showBuField && (
             <TextField
-              label="Business Unit ID"
+              label={t('Business Unit ID')}
               type="number"
               required
               value={form.bu_id}
               onChange={(e) => setForm((f) => ({ ...f, bu_id: e.target.value === '' ? '' : Number(e.target.value) }))}
-              placeholder="Masukkan ID Business Unit"
+              placeholder={t('Masukkan ID Business Unit')}
             />
           )}
 
           {user && (
             <SelectField
-              label="Status"
+              label={t('Status')}
               required
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
             >
-              <option value="ACTIVE">Aktif</option>
-              <option value="SUSPENDED">Nonaktif</option>
+              <option value="ACTIVE">{t('Aktif')}</option>
+              <option value="SUSPENDED">{t('Nonaktif')}</option>
             </SelectField>
           )}
 
           {user && (
             <p className="text-xs text-amber-600">
-              Mengubah role, status, atau Business Unit akan mengeluarkan user ini dari semua perangkat
-              yang sedang login.
+              {t('Mengubah role, status, atau Business Unit akan mengeluarkan user ini dari semua perangkat yang sedang login.')}
             </p>
           )}
 
@@ -177,14 +178,14 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
               onClick={onClose}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batal
+              {t('Batal')}
             </button>
             <button
               type="submit"
               disabled={mutation.isPending}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+              {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
             </button>
           </div>
         </form>

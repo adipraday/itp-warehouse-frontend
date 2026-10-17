@@ -6,6 +6,7 @@ import { TextField, TextareaField } from '../../components/FormField'
 import { useToast } from '../../hooks/useToast'
 import { getErrorMessage } from '../../api/errors'
 import { addCashSessionExpense } from '../../api/cashSessions'
+import { useI18n } from '../../i18n/useI18n'
 
 interface CashSessionExpenseModalProps {
   open: boolean
@@ -20,6 +21,7 @@ interface CashSessionExpenseModalProps {
  * sebagai audit trail (backend juga menolaknya kalau kosong).
  */
 export function CashSessionExpenseModal({ open, onClose, sessionId }: CashSessionExpenseModalProps) {
+  const { t } = useI18n()
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const queryClient = useQueryClient()
@@ -36,7 +38,7 @@ export function CashSessionExpenseModal({ open, onClose, sessionId }: CashSessio
     mutationFn: () => addCashSessionExpense(sessionId, { amount: Number(amount) || 0, description: description.trim() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cash-sessions', 'current'] })
-      toast.show('Pengeluaran dicatat.', 'success')
+      toast.show(t('Pengeluaran dicatat.'), 'success')
       onClose()
     },
     onError: (err) => {
@@ -48,21 +50,21 @@ export function CashSessionExpenseModal({ open, onClose, sessionId }: CashSessio
     e.preventDefault()
     const amountNum = Number(amount) || 0
     if (amountNum <= 0) {
-      toast.show('Jumlah pengeluaran harus lebih dari 0.', 'error')
+      toast.show(t('Jumlah pengeluaran harus lebih dari 0.'), 'error')
       return
     }
     if (!description.trim()) {
-      toast.show('Alasan pengeluaran wajib diisi.', 'error')
+      toast.show(t('Alasan pengeluaran wajib diisi.'), 'error')
       return
     }
     mutation.mutate()
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Catat Pengeluaran (Kas Keluar)">
+    <Modal open={open} onClose={onClose} title={t('Catat Pengeluaran (Kas Keluar)')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label="Jumlah"
+          label={t('Jumlah')}
           type="number"
           min={0}
           required
@@ -70,9 +72,9 @@ export function CashSessionExpenseModal({ open, onClose, sessionId }: CashSessio
           onChange={(e) => setAmount(e.target.value)}
         />
         <TextareaField
-          label="Alasan"
+          label={t('Alasan')}
           required
-          placeholder="mis. Beli galon air"
+          placeholder={t('mis. Beli galon air')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
@@ -82,14 +84,14 @@ export function CashSessionExpenseModal({ open, onClose, sessionId }: CashSessio
             onClick={onClose}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Catat'}
+            {mutation.isPending ? t('Menyimpan...') : t('Catat')}
           </button>
         </div>
       </form>

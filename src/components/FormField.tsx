@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import { useI18n } from '../i18n/useI18n'
 
 interface FieldWrapperProps {
   label: string
@@ -8,14 +9,16 @@ interface FieldWrapperProps {
 }
 
 function FieldWrapper({ label, error, required, children }: FieldWrapperProps) {
+  // Label/pesan bisa datang dari konstanta di tingkat modul, jadi diterjemahkan saat ditampilkan.
+  const { t } = useI18n()
   return (
     <label className="block">
       <span className="text-sm font-medium text-slate-700">
-        {label}
+        {t(label)}
         {required && <span className="text-red-500"> *</span>}
       </span>
       <div className="mt-1">{children}</div>
-      {error && <span className="mt-1 block text-xs text-red-600">{error}</span>}
+      {error && <span className="mt-1 block text-xs text-red-600">{t(error)}</span>}
     </label>
   )
 }

@@ -1,5 +1,6 @@
 import { formatTimestamp } from '../utils/date'
 import type { AppNotification } from '../types/notification'
+import { useI18n } from '../i18n/useI18n'
 
 export function NotificationItem({
   notification,
@@ -8,6 +9,7 @@ export function NotificationItem({
   notification: AppNotification
   onOpen: (n: AppNotification) => void
 }) {
+  const { t } = useI18n()
   const unread = !notification.is_read
   return (
     <button
@@ -17,7 +19,7 @@ export function NotificationItem({
     >
       <span
         className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${unread ? 'bg-blue-600' : 'bg-transparent'}`}
-        aria-label={unread ? 'Belum dibaca' : undefined}
+        aria-label={unread ? t('Belum dibaca') : undefined}
       />
       <span className="min-w-0 flex-1">
         <span className={`block text-sm ${unread ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>

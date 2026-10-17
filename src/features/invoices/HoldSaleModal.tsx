@@ -6,6 +6,7 @@ import { TextField } from '../../components/FormField'
 import { useToast } from '../../hooks/useToast'
 import { getErrorMessage } from '../../api/errors'
 import { holdSale } from '../../api/invoices'
+import { useI18n } from '../../i18n/useI18n'
 
 interface HoldSaleModalProps {
   open: boolean
@@ -20,6 +21,7 @@ interface HoldSaleModalProps {
  * `held_at`/`hold_label` — bukan transisi status baru.
  */
 export function HoldSaleModal({ open, onClose, saleId }: HoldSaleModalProps) {
+  const { t } = useI18n()
   const [holdLabel, setHoldLabel] = useState('')
   const queryClient = useQueryClient()
   const toast = useToast()
@@ -33,7 +35,7 @@ export function HoldSaleModal({ open, onClose, saleId }: HoldSaleModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales', saleId] })
       queryClient.invalidateQueries({ queryKey: ['sales'] })
-      toast.show('Transaksi ditahan.', 'success')
+      toast.show(t('Transaksi ditahan.'), 'success')
       onClose()
     },
     onError: (err) => {
@@ -47,15 +49,14 @@ export function HoldSaleModal({ open, onClose, saleId }: HoldSaleModalProps) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Tahan Transaksi">
+    <Modal open={open} onClose={onClose} title={t('Tahan Transaksi')}>
       <p className="mb-4 text-sm text-slate-500">
-        Cart transaksi ini akan ditahan (tetap DRAFT) — bisa dilanjutkan kapan saja lewat tombol
-        "Lanjutkan".
+        {t('Cart transaksi ini akan ditahan (tetap DRAFT) — bisa dilanjutkan kapan saja lewat tombol "Lanjutkan".')}
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label="Label (opsional)"
-          placeholder="mis. Meja 5, atau nama pelanggan"
+          label={t('Label (opsional)')}
+          placeholder={t('mis. Meja 5, atau nama pelanggan')}
           maxLength={100}
           value={holdLabel}
           onChange={(e) => setHoldLabel(e.target.value)}
@@ -66,14 +67,14 @@ export function HoldSaleModal({ open, onClose, saleId }: HoldSaleModalProps) {
             onClick={onClose}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Tahan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Tahan')}
           </button>
         </div>
       </form>

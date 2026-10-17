@@ -29,6 +29,8 @@ import type { InvoiceDetail } from '../../types/invoice'
 import { PaymentFormModal } from '../payments/PaymentFormModal'
 import { HoldSaleModal } from './HoldSaleModal'
 import { SalesReceiptModal } from './SalesReceiptModal'
+import { useI18n } from '../../i18n/useI18n'
+import { translate } from '../../i18n/i18n'
 
 interface InvoiceDetailPageProps {
   kind: InvoiceKind
@@ -38,6 +40,7 @@ interface InvoiceDetailPageProps {
 type ActiveDialog = 'complete' | 'cancel' | 'delete' | null
 
 export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProps) {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const invoiceId = Number(id)
   const navigate = useNavigate()
@@ -53,7 +56,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
   const canRecordPayment = canWrite('payments')
   const basePath = kind === 'sales' ? '/sales' : '/purchases'
   const linkedTransactionPath = kind === 'sales' ? '/outbounds' : '/inbounds'
-  const linkedTransactionLabel = kind === 'sales' ? 'Outbound' : 'Inbound'
+  const linkedTransactionLabel = kind === 'sales' ? translate('Outbound') : translate('Inbound')
 
   const { data: doc, isLoading } = useQuery({
     queryKey: [kind, invoiceId],
@@ -84,20 +87,20 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
   const remainingBalance = doc ? parseMoney(doc.data.total_amount) - totalPaid : 0
 
   const detailColumns: DataTableColumn<InvoiceDetail>[] = [
-    { key: 'sku', header: 'SKU', render: (row) => row.sku },
-    { key: 'name', header: 'Nama Item', render: (row) => row.name },
-    { key: 'quantity', header: 'Qty', className: 'text-right', render: (row) => row.quantity },
-    { key: 'unit_price', header: 'Unit Price', className: 'text-right', render: (row) => formatRupiah(row.unit_price) },
-    { key: 'amount', header: 'Amount', className: 'text-right', render: (row) => formatRupiah(row.amount) },
+    { key: 'sku', header: t('SKU'), render: (row) => row.sku },
+    { key: 'name', header: t('Nama Item'), render: (row) => row.name },
+    { key: 'quantity', header: t('Qty'), className: 'text-right', render: (row) => row.quantity },
+    { key: 'unit_price', header: t('Unit Price'), className: 'text-right', render: (row) => formatRupiah(row.unit_price) },
+    { key: 'amount', header: t('Amount'), className: 'text-right', render: (row) => formatRupiah(row.amount) },
     ...(kind === 'sales'
       ? ([
           {
             key: 'unit_cost',
-            header: 'Unit Cost (HPP)',
+            header: t('Unit Cost (HPP)'),
             className: 'text-right',
             render: (row: InvoiceDetail) =>
               doc?.data.status === 'DRAFT' ? (
-                <span className="text-slate-400">akan terisi setelah Complete</span>
+                <span className="text-slate-400">{t('akan terisi setelah Complete')}</span>
               ) : (
                 formatRupiah(row.unit_cost)
               ),
@@ -120,7 +123,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
     onSuccess: () => {
       reset()
       invalidateAfterStockChange()
-      toast.show(`${title} berhasil diselesaikan.`, 'success')
+      toast.show(t('{title} berhasil diselesaikan.', { title }), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -133,7 +136,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
     mutationFn: () => cancelInvoiceByKind(kind, invoiceId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [kind] })
-      toast.show(`${title} dibatalkan.`, 'success')
+      toast.show(t('{title} dibatalkan.', { title }), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -150,7 +153,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [kind, invoiceId] })
       queryClient.invalidateQueries({ queryKey: [kind] })
-      toast.show('Transaksi dilanjutkan.', 'success')
+      toast.show(t('Transaksi dilanjutkan.'), 'success')
     },
     onError: (err) => {
       toast.show(getErrorMessage(err), 'error')
@@ -162,7 +165,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: [kind, invoiceId] })
       queryClient.invalidateQueries({ queryKey: [kind] })
-      toast.show(`${title} dihapus.`, 'success')
+      toast.show(t('{title} dihapus.', { title }), 'success')
       navigate(basePath)
     },
     onError: (err) => {
@@ -172,7 +175,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
   })
 
   if (isLoading || !doc) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   const d = doc.data
@@ -182,7 +185,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
   return (
     <div>
       <Link to={basePath} className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar {title.toLowerCase()}
+        {t('← Kembali ke daftar {title}', { title: title.toLowerCase() })}
       </Link>
 
       <div className="mt-2 flex items-center justify-between">
@@ -197,16 +200,16 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
             {warehouse?.data.code} — {warehouse?.data.name}
             {contact && <> &middot; {contact.data.name}</>}
             {' '}&middot; {formatDate(d.invoice_date)}
-            {d.due_date && <> &middot; Jatuh tempo {formatDate(d.due_date)}</>}
+            {d.due_date && <> {t('· Jatuh tempo')} {formatDate(d.due_date)}</>}
           </p>
           {isHeld && (
             <p className="mt-1 text-sm text-amber-600">
-              Ditahan{d.hold_label && <> — {d.hold_label}</>}
+              {t('Ditahan')}{d.hold_label && <> — {d.hold_label}</>}
             </p>
           )}
           {d.inventory_transaction_id && (
             <p className="mt-1 text-sm">
-              Transaksi terkait:{' '}
+              {t('Transaksi terkait:')}{' '}
               <Link
                 to={`${linkedTransactionPath}/${d.inventory_transaction_id}`}
                 className="text-blue-600 hover:underline"
@@ -224,7 +227,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
             rel="noopener noreferrer"
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Cetak PDF
+            {t('Cetak PDF')}
           </Link>
           {/* Cetak struk (§19) SALES-only, cuma buat sale COMPLETED — backend nolak 409
               INVALID_STATUS kalau masih DRAFT. */}
@@ -234,7 +237,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
               onClick={() => setReceiptModalOpen(true)}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Cetak Struk
+              {t('Cetak Struk')}
             </button>
           )}
           {can('edit') && canWriteResource && (
@@ -242,7 +245,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
               to={`${basePath}/${d.id}/edit`}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Edit
+              {t('Edit')}
             </Link>
           )}
           {can('delete') && canWriteResource && (
@@ -251,7 +254,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
               onClick={() => setActiveDialog('delete')}
               className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Hapus
+              {t('Hapus')}
             </button>
           )}
           {can('cancel') && canWriteResource && (
@@ -260,7 +263,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
               onClick={() => setActiveDialog('cancel')}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batalkan
+              {t('Batalkan')}
             </button>
           )}
           {/* Hold/resume (§22) SALES-only, DRAFT-only — sale-nya sendiri tidak berubah status. */}
@@ -270,7 +273,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
               onClick={() => setHoldModalOpen(true)}
               className="rounded-md border border-amber-300 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50"
             >
-              Tahan
+              {t('Tahan')}
             </button>
           )}
           {kind === 'sales' && d.status === 'DRAFT' && canWriteResource && isHeld && (
@@ -280,7 +283,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
               disabled={resumeMutation.isPending}
               className="rounded-md border border-amber-300 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
             >
-              {resumeMutation.isPending ? 'Memproses...' : 'Lanjutkan'}
+              {resumeMutation.isPending ? t('Memproses...') : t('Lanjutkan')}
             </button>
           )}
           {can('complete') && canWriteResource && (
@@ -289,7 +292,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
               onClick={() => setActiveDialog('complete')}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Complete
+              {t('Complete')}
             </button>
           )}
         </div>
@@ -297,32 +300,32 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
 
       {d.reversal_of_invoice_id && (
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          Dokumen reversal dari invoice #{d.reversal_of_invoice_id}. Alasan: {d.reversal_reason}
+          {t('Dokumen reversal dari invoice #')}{d.reversal_of_invoice_id}{t('. Alasan:')} {d.reversal_reason}
         </div>
       )}
 
-      {d.notes && <p className="mt-4 text-sm text-slate-600">Catatan: {d.notes}</p>}
+      {d.notes && <p className="mt-4 text-sm text-slate-600">{t('Catatan:')} {d.notes}</p>}
 
-      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">Detail Item</h2>
+      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
       <DataTable columns={detailColumns} data={d.details ?? []} getRowKey={(row) => row.id} />
 
       <div className="ml-auto mt-4 max-w-xs space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">Subtotal</span>
+          <span className="text-slate-500">{t('Subtotal')}</span>
           <span>{formatRupiah(d.subtotal)}</span>
         </div>
         {parseMoney(d.discount_amount) > 0 && (
           <div className="flex justify-between text-red-600">
-            <span>Diskon</span>
+            <span>{t('Diskon')}</span>
             <span>-{formatRupiah(d.discount_amount)}</span>
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-slate-500">Tax</span>
+          <span className="text-slate-500">{t('Tax')}</span>
           <span>{formatRupiah(d.tax)}</span>
         </div>
         <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold">
-          <span>Total</span>
+          <span>{t('Total')}</span>
           <span>{formatRupiah(d.total_amount)}</span>
         </div>
       </div>
@@ -330,79 +333,79 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
       {d.status === 'COMPLETED' && (
         <div className="mt-8">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Pembayaran</h2>
+            <h2 className="text-sm font-semibold text-slate-700">{t('Pembayaran')}</h2>
             {d.payment_status !== 'PAID' && canRecordPayment && (
               <button
                 type="button"
                 onClick={() => setPaymentModalOpen(true)}
                 className="text-sm font-medium text-blue-600 hover:underline"
               >
-                + Catat Pembayaran
+                {t('+ Catat Pembayaran')}
               </button>
             )}
           </div>
           <DataTable
             columns={[
-              { key: 'payment_number', header: 'No. Pembayaran', render: (row) => row.payment_number },
-              { key: 'payment_date', header: 'Tanggal', render: (row) => formatDate(row.payment_date) },
+              { key: 'payment_number', header: t('No. Pembayaran'), render: (row) => row.payment_number },
+              { key: 'payment_date', header: t('Tanggal'), render: (row) => formatDate(row.payment_date) },
               {
                 key: 'amount',
-                header: kind === 'purchase' ? 'Uang Dikeluarkan' : 'Jumlah',
+                header: kind === 'purchase' ? t('Uang Dikeluarkan') : t('Jumlah'),
                 className: 'text-right',
                 render: (row) => formatRupiah(row.amount),
               },
-              { key: 'payment_method', header: 'Metode', render: (row) => paymentMethodLabel(row.payment_method) },
+              { key: 'payment_method', header: t('Metode'), render: (row) => paymentMethodLabel(row.payment_method) },
               // Kembalian cuma ada di penjualan tunai — bayar ke supplier tidak pernah ada kembalian.
               ...(kind === 'sales'
                 ? [
                     {
                       key: 'change_amount',
-                      header: 'Kembalian',
+                      header: t('Kembalian'),
                       className: 'text-right',
                       render: (row: Payment) =>
                         parseMoney(row.change_amount) > 0 ? formatRupiah(row.change_amount) : '-',
                     },
                   ]
                 : []),
-              { key: 'notes', header: 'Catatan', render: (row) => row.notes ?? '-' },
+              { key: 'notes', header: t('Catatan'), render: (row) => row.notes ?? '-' },
             ]}
             data={payments?.data ?? []}
             getRowKey={(row) => row.id}
-            emptyMessage="Belum ada pembayaran."
+            emptyMessage={t('Belum ada pembayaran.')}
           />
           <p className="mt-2 text-sm text-slate-500">
-            Sisa tagihan: <strong>{formatRupiah(remainingBalance)}</strong>
+            {t('Sisa tagihan:')} <strong>{formatRupiah(remainingBalance)}</strong>
           </p>
         </div>
       )}
 
       <div className="mt-4 text-xs text-slate-400">
-        Dibuat: {formatTimestamp(d.created_at)}
-        {d.created_by != null && <> oleh User #{d.created_by}</>}
+        {t('Dibuat:')} {formatTimestamp(d.created_at)}
+        {d.created_by != null && <> {t('oleh User #')}{d.created_by}</>}
         {d.completed_at && (
           <>
             {' '}
-            &middot; Selesai: {formatTimestamp(d.completed_at)}
-            {d.completed_by != null && <> oleh User #{d.completed_by}</>}
+            {t('· Selesai:')} {formatTimestamp(d.completed_at)}
+            {d.completed_by != null && <> {t('oleh User #')}{d.completed_by}</>}
           </>
         )}
-        {d.cancelled_at && <> &middot; Dibatalkan: {formatTimestamp(d.cancelled_at)}</>}
+        {d.cancelled_at && <> {t('· Dibatalkan:')} {formatTimestamp(d.cancelled_at)}</>}
       </div>
 
       <ConfirmDialog
         open={activeDialog === 'complete'}
-        title={`Complete ${title}`}
-        description={`Aksi ini akan membuat & menyelesaikan transaksi ${linkedTransactionLabel} terkait, mengubah stok secara permanen, dan tidak bisa dibatalkan. Lanjutkan?`}
-        confirmLabel="Complete"
+        title={t('Complete {title}', { title })}
+        description={t('Aksi ini akan membuat & menyelesaikan transaksi {linkedTransactionLabel} terkait, mengubah stok secara permanen, dan tidak bisa dibatalkan. Lanjutkan?', { linkedTransactionLabel })}
+        confirmLabel={t('Complete')}
         loading={completeMutation.isPending}
         onConfirm={() => completeMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'cancel'}
-        title={`Batalkan ${title}`}
-        description="Dokumen DRAFT ini akan dibatalkan. Lanjutkan?"
-        confirmLabel="Batalkan"
+        title={t('Batalkan {title}', { title })}
+        description={t('Dokumen DRAFT ini akan dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Batalkan')}
         danger
         loading={cancelMutation.isPending}
         onConfirm={() => cancelMutation.mutate()}
@@ -410,9 +413,9 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
       />
       <ConfirmDialog
         open={activeDialog === 'delete'}
-        title={`Hapus ${title}`}
-        description="Dokumen ini akan dihapus permanen. Lanjutkan?"
-        confirmLabel="Hapus"
+        title={t('Hapus {title}', { title })}
+        description={t('Dokumen ini akan dihapus permanen. Lanjutkan?')}
+        confirmLabel={t('Hapus')}
         danger
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}

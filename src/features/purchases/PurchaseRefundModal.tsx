@@ -9,6 +9,7 @@ import { todayISO } from '../../utils/date'
 import { formatRupiah } from '../../utils/money'
 import { recordPurchaseRefund } from '../../api/purchases'
 import { PAYMENT_METHODS } from '../../types/payment'
+import { useI18n } from '../../i18n/useI18n'
 
 interface PurchaseRefundModalProps {
   open: boolean
@@ -20,6 +21,7 @@ interface PurchaseRefundModalProps {
 // Mencatat uang yang benar-benar kembali dari supplier. Jumlahnya tidak boleh melebihi sisa
 // pengembalian yang masih terutang (backend juga menolak 409 AMOUNT_EXCEEDS_REFUND_DUE).
 export function PurchaseRefundModal({ open, onClose, purchaseId, refundDue }: PurchaseRefundModalProps) {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const toast = useToast()
   const [amount, setAmount] = useState('')
@@ -49,7 +51,7 @@ export function PurchaseRefundModal({ open, onClose, purchaseId, refundDue }: Pu
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchase'] })
-      toast.show('Pengembalian dana dicatat.', 'success')
+      toast.show(t('Pengembalian dana dicatat.'), 'success')
       onClose()
     },
     onError: (err) => toast.show(getErrorMessage(err), 'error'),
@@ -61,13 +63,13 @@ export function PurchaseRefundModal({ open, onClose, purchaseId, refundDue }: Pu
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Catat Pengembalian Dana">
+    <Modal open={open} onClose={onClose} title={t('Catat Pengembalian Dana')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-sm text-slate-600">
-          Sisa yang harus dikembalikan supplier: <strong>{formatRupiah(refundDue)}</strong>
+          {t('Sisa yang harus dikembalikan supplier:')} <strong>{formatRupiah(refundDue)}</strong>
         </p>
         <TextField
-          label="Jumlah diterima kembali (Rp)"
+          label={t('Jumlah diterima kembali (Rp)')}
           type="number"
           min={1}
           max={refundDue}
@@ -75,15 +77,15 @@ export function PurchaseRefundModal({ open, onClose, purchaseId, refundDue }: Pu
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
         />
-        <SelectField label="Metode" value={method} onChange={(e) => setMethod(e.target.value)}>
+        <SelectField label={t('Metode')} value={method} onChange={(e) => setMethod(e.target.value)}>
           {PAYMENT_METHODS.map((m) => (
             <option key={m.value} value={m.value}>
-              {m.label}
+              {t(m.label)}
             </option>
           ))}
         </SelectField>
-        <TextField label="Tanggal" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
-        <TextareaField label="Catatan (opsional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextField label={t('Tanggal')} type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
+        <TextareaField label={t('Catatan (opsional)')} value={notes} onChange={(e) => setNotes(e.target.value)} />
         <div className="flex justify-end gap-3">
           <button
             type="button"
@@ -91,14 +93,14 @@ export function PurchaseRefundModal({ open, onClose, purchaseId, refundDue }: Pu
             disabled={mutation.isPending}
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            Batal
+            {t('Batal')}
           </button>
           <button
             type="submit"
             disabled={!valid || mutation.isPending}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            {mutation.isPending ? t('Menyimpan...') : t('Simpan')}
           </button>
         </div>
       </form>

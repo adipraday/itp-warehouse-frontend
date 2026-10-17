@@ -22,24 +22,27 @@ import {
   submitStockOpname,
 } from '../../api/stockOpnames'
 import type { StockOpnameDetail } from '../../types/stockOpname'
+import { useI18n } from '../../i18n/useI18n'
+import { tk } from '../../i18n/i18n'
 
 const detailColumns: DataTableColumn<StockOpnameDetail>[] = [
   { key: 'sku', header: 'SKU', render: (row) => row.sku },
-  { key: 'name', header: 'Nama Item', render: (row) => row.name },
-  { key: 'system_qty', header: 'Qty Sistem', className: 'text-right', render: (row) => formatNumber(row.system_qty) },
+  { key: 'name', header: tk('Nama Item'), render: (row) => row.name },
+  { key: 'system_qty', header: tk('Qty Sistem'), className: 'text-right', render: (row) => formatNumber(row.system_qty) },
   {
     key: 'physical_qty',
-    header: 'Qty Fisik',
+    header: tk('Qty Fisik'),
     className: 'text-right',
     render: (row) => formatNumber(row.physical_qty),
   },
-  { key: 'difference', header: 'Selisih', render: (row) => <DifferenceBadge value={row.difference} /> },
-  { key: 'notes', header: 'Catatan', render: (row) => row.notes ?? '-' },
+  { key: 'difference', header: tk('Selisih'), render: (row) => <DifferenceBadge value={row.difference} /> },
+  { key: 'notes', header: tk('Catatan'), render: (row) => row.notes ?? '-' },
 ]
 
 type ActiveDialog = 'submit' | 'approve' | 'cancel' | 'delete' | null
 
 export default function StockOpnameDetailPage() {
+  const { t } = useI18n()
   const { id } = useParams<{ id: string }>()
   const opnameId = Number(id)
   const navigate = useNavigate()
@@ -77,7 +80,7 @@ export default function StockOpnameDetailPage() {
     mutationFn: () => submitStockOpname(opnameId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock-opnames'] })
-      toast.show('Stock opname disubmit.', 'success')
+      toast.show(t('Stock opname disubmit.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -91,7 +94,7 @@ export default function StockOpnameDetailPage() {
     onSuccess: () => {
       reset()
       invalidateAfterStockChange()
-      toast.show('Stock opname disetujui, selisih sudah diposting ke ledger.', 'success')
+      toast.show(t('Stock opname disetujui, selisih sudah diposting ke ledger.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -104,7 +107,7 @@ export default function StockOpnameDetailPage() {
     mutationFn: () => cancelStockOpname(opnameId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock-opnames'] })
-      toast.show('Stock opname dibatalkan.', 'success')
+      toast.show(t('Stock opname dibatalkan.'), 'success')
       setActiveDialog(null)
     },
     onError: (err) => {
@@ -118,7 +121,7 @@ export default function StockOpnameDetailPage() {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: ['stock-opnames', opnameId] })
       queryClient.invalidateQueries({ queryKey: ['stock-opnames'] })
-      toast.show('Stock opname dihapus.', 'success')
+      toast.show(t('Stock opname dihapus.'), 'success')
       navigate('/stock-opnames')
     },
     onError: (err) => {
@@ -128,7 +131,7 @@ export default function StockOpnameDetailPage() {
   })
 
   if (isLoading || !doc) {
-    return <p className="text-sm text-slate-400">Memuat data...</p>
+    return <p className="text-sm text-slate-400">{t('Memuat data...')}</p>
   }
 
   const d = doc.data
@@ -136,7 +139,7 @@ export default function StockOpnameDetailPage() {
   return (
     <div>
       <Link to="/stock-opnames" className="text-sm text-blue-600 hover:underline">
-        &larr; Kembali ke daftar stock opname
+        {t('← Kembali ke daftar stock opname')}
       </Link>
 
       <div className="mt-2 flex items-center justify-between">
@@ -156,7 +159,7 @@ export default function StockOpnameDetailPage() {
               to={`/stock-opnames/${d.id}/edit`}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Edit
+              {t('Edit')}
             </Link>
           )}
           {can('delete') && canWriteResource && (
@@ -165,7 +168,7 @@ export default function StockOpnameDetailPage() {
               onClick={() => setActiveDialog('delete')}
               className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Hapus
+              {t('Hapus')}
             </button>
           )}
           {can('cancel') && canWriteResource && (
@@ -174,7 +177,7 @@ export default function StockOpnameDetailPage() {
               onClick={() => setActiveDialog('cancel')}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batalkan
+              {t('Batalkan')}
             </button>
           )}
           {can('submit') && canSubmitResource && (
@@ -183,7 +186,7 @@ export default function StockOpnameDetailPage() {
               onClick={() => setActiveDialog('submit')}
               className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
             >
-              Submit
+              {t('Submit')}
             </button>
           )}
           {can('approve') && canApproveResource && (
@@ -192,7 +195,7 @@ export default function StockOpnameDetailPage() {
               onClick={() => setActiveDialog('approve')}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Approve
+              {t('Approve')}
             </button>
           )}
         </div>
@@ -200,52 +203,52 @@ export default function StockOpnameDetailPage() {
 
       {d.reversal_of_stock_opname_id && (
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          Dokumen reversal dari opname #{d.reversal_of_stock_opname_id}. Alasan: {d.reversal_reason}
+          {t('Dokumen reversal dari opname #')}{d.reversal_of_stock_opname_id}{t('. Alasan:')} {d.reversal_reason}
         </div>
       )}
 
-      {d.notes && <p className="mt-4 text-sm text-slate-600">Catatan: {d.notes}</p>}
+      {d.notes && <p className="mt-4 text-sm text-slate-600">{t('Catatan:')} {d.notes}</p>}
 
-      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">Detail Item</h2>
+      <h2 className="mt-6 mb-3 text-sm font-semibold text-slate-700">{t('Detail Item')}</h2>
       <DataTable columns={detailColumns} data={d.details ?? []} getRowKey={(row) => row.id} />
 
       <div className="mt-4 text-xs text-slate-400">
-        Dibuat: {formatTimestamp(d.created_at)}
-        {d.created_by != null && <> oleh User #{d.created_by}</>}
-        {d.submitted_at && <> &middot; Disubmit: {formatTimestamp(d.submitted_at)}</>}
+        {t('Dibuat:')} {formatTimestamp(d.created_at)}
+        {d.created_by != null && <> {t('oleh User #')}{d.created_by}</>}
+        {d.submitted_at && <> {t('· Disubmit:')} {formatTimestamp(d.submitted_at)}</>}
         {d.approved_at && (
           <>
             {' '}
-            &middot; Disetujui: {formatTimestamp(d.approved_at)}
-            {d.approved_by != null && <> oleh User #{d.approved_by}</>}
+            {t('· Disetujui:')} {formatTimestamp(d.approved_at)}
+            {d.approved_by != null && <> {t('oleh User #')}{d.approved_by}</>}
           </>
         )}
-        {d.cancelled_at && <> &middot; Dibatalkan: {formatTimestamp(d.cancelled_at)}</>}
+        {d.cancelled_at && <> {t('· Dibatalkan:')} {formatTimestamp(d.cancelled_at)}</>}
       </div>
 
       <ConfirmDialog
         open={activeDialog === 'submit'}
-        title="Submit Stock Opname"
-        description="Dokumen akan berpindah status ke SUBMITTED, siap direview untuk approval. Lanjutkan?"
-        confirmLabel="Submit"
+        title={t('Submit Stock Opname')}
+        description={t('Dokumen akan berpindah status ke SUBMITTED, siap direview untuk approval. Lanjutkan?')}
+        confirmLabel={t('Submit')}
         loading={submitMutation.isPending}
         onConfirm={() => submitMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'approve'}
-        title="Approve Stock Opname"
-        description="Selisih akan langsung diposting sebagai ADJUSTMENT ke ledger stok secara permanen dan tidak bisa dibatalkan. Lanjutkan?"
-        confirmLabel="Approve"
+        title={t('Approve Stock Opname')}
+        description={t('Selisih akan langsung diposting sebagai ADJUSTMENT ke ledger stok secara permanen dan tidak bisa dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Approve')}
         loading={approveMutation.isPending}
         onConfirm={() => approveMutation.mutate()}
         onCancel={() => setActiveDialog(null)}
       />
       <ConfirmDialog
         open={activeDialog === 'cancel'}
-        title="Batalkan Stock Opname"
-        description="Dokumen ini akan dibatalkan. Lanjutkan?"
-        confirmLabel="Batalkan"
+        title={t('Batalkan Stock Opname')}
+        description={t('Dokumen ini akan dibatalkan. Lanjutkan?')}
+        confirmLabel={t('Batalkan')}
         danger
         loading={cancelMutation.isPending}
         onConfirm={() => cancelMutation.mutate()}
@@ -253,9 +256,9 @@ export default function StockOpnameDetailPage() {
       />
       <ConfirmDialog
         open={activeDialog === 'delete'}
-        title="Hapus Stock Opname"
-        description="Dokumen ini akan dihapus permanen. Lanjutkan?"
-        confirmLabel="Hapus"
+        title={t('Hapus Stock Opname')}
+        description={t('Dokumen ini akan dihapus permanen. Lanjutkan?')}
+        confirmLabel={t('Hapus')}
         danger
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}

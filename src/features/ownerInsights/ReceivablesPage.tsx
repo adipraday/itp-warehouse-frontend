@@ -16,6 +16,8 @@ import { formatDate, todayISO } from '../../utils/date'
 import { downloadXlsx, reportFileName } from '../../utils/exportXlsx'
 import { agingSheets } from './exportSheets'
 import type { AgingBucket, AgingContact, AgingInvoice, AgingSide } from '../../types/dashboard'
+import { useI18n } from '../../i18n/useI18n'
+import { tk, translate } from '../../i18n/i18n'
 
 interface SideInfo {
   title: string
@@ -28,19 +30,19 @@ interface SideInfo {
 
 const SIDES: Record<AgingSide, SideInfo> = {
   receivable: {
-    title: 'Piutang',
-    counterparty: 'Pelanggan',
-    unknownCounterparty: 'Pelanggan tanpa nama',
-    totalLabel: 'Total piutang',
-    emptyMessage: 'Tidak ada piutang. Semua penjualan sudah lunas.',
+    title: tk('Piutang'),
+    counterparty: tk('Pelanggan'),
+    unknownCounterparty: tk('Pelanggan tanpa nama'),
+    totalLabel: tk('Total piutang'),
+    emptyMessage: tk('Tidak ada piutang. Semua penjualan sudah lunas.'),
     invoicePath: (id) => `/sales/${id}`,
   },
   payable: {
-    title: 'Hutang',
-    counterparty: 'Pemasok',
-    unknownCounterparty: 'Pemasok tanpa nama',
-    totalLabel: 'Total hutang',
-    emptyMessage: 'Tidak ada hutang. Semua pembelian sudah dibayar.',
+    title: tk('Hutang'),
+    counterparty: tk('Pemasok'),
+    unknownCounterparty: tk('Pemasok tanpa nama'),
+    totalLabel: tk('Total hutang'),
+    emptyMessage: tk('Tidak ada hutang. Semua pembelian sudah dibayar.'),
     invoicePath: (id) => `/purchases/${id}`,
   },
 }
@@ -55,13 +57,14 @@ const BUCKET_COLOR: Record<AgingBucket['key'], string> = {
 }
 
 function daysText(days: number): string {
-  if (days <= 0) return days === 0 ? 'Jatuh tempo hari ini' : `Jatuh tempo ${Math.abs(days)} hari lagi`
-  return `Terlambat ${formatNumber(days)} hari`
+  if (days <= 0) return days === 0 ? translate('Jatuh tempo hari ini') : translate('Jatuh tempo {v1} hari lagi', { v1: Math.abs(days) })
+  return translate('Terlambat {v1} hari', { v1: formatNumber(days) })
 }
 
 // Piutang & Hutang — umur saldo yang belum lunas (aging), pihak dengan saldo terbesar, dan invoice
 // tertua. Owner hanya memantau; pelunasan dicatat di halaman invoice oleh yang berwenang.
 export default function ReceivablesPage() {
+  const { t } = useI18n()
   const [side, setSide] = useState<AgingSide>('receivable')
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
   const info = SIDES[side]
@@ -83,13 +86,13 @@ export default function ReceivablesPage() {
     {
       key: 'name',
       header: info.counterparty,
-      render: (row) => row.contact_name ?? <span className="text-slate-400">{info.unknownCounterparty}</span>,
+      render: (row) => row.contact_name ?? <span className="text-slate-400">{t(info.unknownCounterparty)}</span>,
     },
-    { key: 'count', header: 'Invoice', className: 'text-right', render: (row) => formatNumber(row.count) },
-    { key: 'amount', header: 'Saldo', className: 'text-right', render: (row) => formatRupiah(row.amount) },
+    { key: 'count', header: t('Invoice'), className: 'text-right', render: (row) => formatNumber(row.count) },
+    { key: 'amount', header: t('Saldo'), className: 'text-right', render: (row) => formatRupiah(row.amount) },
     {
       key: 'oldest',
-      header: 'Tertua',
+      header: t('Tertua'),
       render: (row) => (
         <span className={row.oldest_days_overdue > 0 ? 'text-slate-700' : 'text-slate-400'}>
           {daysText(row.oldest_days_overdue)}
@@ -101,7 +104,7 @@ export default function ReceivablesPage() {
   const invoiceColumns: DataTableColumn<AgingInvoice>[] = [
     {
       key: 'invoice',
-      header: 'Invoice',
+      header: t('Invoice'),
       render: (row) => (
         <div>
           <Link to={info.invoicePath(row.invoice_id)} className="font-medium text-blue-600 hover:underline">
@@ -114,26 +117,26 @@ export default function ReceivablesPage() {
     {
       key: 'contact',
       header: info.counterparty,
-      render: (row) => row.contact_name ?? <span className="text-slate-400">{info.unknownCounterparty}</span>,
+      render: (row) => row.contact_name ?? <span className="text-slate-400">{t(info.unknownCounterparty)}</span>,
     },
-    { key: 'warehouse', header: 'Cabang', render: (row) => warehouseName(row.warehouse_id) },
+    { key: 'warehouse', header: t('Cabang'), render: (row) => warehouseName(row.warehouse_id) },
     {
       key: 'due',
-      header: 'Jatuh tempo',
+      header: t('Jatuh tempo'),
       render: (row) => (
         <div>
           <p className={row.days_overdue >= 31 ? 'font-medium text-red-600' : 'text-slate-700'}>{daysText(row.days_overdue)}</p>
           <p className="text-xs text-slate-400">
-            {row.due_date ? formatDate(row.due_date) : 'Tanpa jatuh tempo, dihitung dari tanggal invoice'}
+            {row.due_date ? formatDate(row.due_date) : t('Tanpa jatuh tempo, dihitung dari tanggal invoice')}
           </p>
         </div>
       ),
     },
-    { key: 'total', header: 'Total', className: 'text-right', render: (row) => formatRupiah(row.total_amount) },
-    { key: 'paid', header: 'Terbayar', className: 'text-right', render: (row) => formatRupiah(row.paid_amount) },
+    { key: 'total', header: t('Total'), className: 'text-right', render: (row) => formatRupiah(row.total_amount) },
+    { key: 'paid', header: t('Terbayar'), className: 'text-right', render: (row) => formatRupiah(row.paid_amount) },
     {
       key: 'outstanding',
-      header: 'Sisa',
+      header: t('Sisa'),
       className: 'text-right',
       render: (row) => <span className="font-medium">{formatRupiah(row.outstanding)}</span>,
     },
@@ -151,26 +154,26 @@ export default function ReceivablesPage() {
       agingSheets(
         full.data,
         { warehouseName, userName: (id) => `User #${id}` },
-        { title: info.title, counterparty: info.counterparty },
+        { title: translate(info.title), counterparty: translate(info.counterparty) },
       ),
     )
   }
 
   return (
     <div>
-      <ReportPrintHeader title="Piutang & Hutang" subtitle={`${info.title} per ${formatDate(aging?.as_of ?? todayISO())}`} />
+      <ReportPrintHeader title={t('Piutang & Hutang')} subtitle={t('{title} per {v2}', { title: t(info.title), v2: formatDate(aging?.as_of ?? todayISO()) })} />
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3 print:hidden">
         <div>
-          <h1 className="mb-1 text-xl font-semibold text-slate-900">Piutang &amp; Hutang</h1>
+          <h1 className="mb-1 text-xl font-semibold text-slate-900">{t('Piutang & Hutang')}</h1>
           <p className="text-sm text-slate-500">
-            Saldo invoice yang belum lunas, dikelompokkan menurut umurnya.
+            {t('Saldo invoice yang belum lunas, dikelompokkan menurut umurnya.')}
           </p>
         </div>
         <ReportActions onExcel={exportExcel} disabled={!aging} />
       </div>
 
       <FilterBar>
-        <div role="tablist" aria-label="Piutang atau hutang" className="flex gap-2 pb-0.5">
+        <div role="tablist" aria-label={t('Piutang atau hutang')} className="flex gap-2 pb-0.5">
           {(Object.keys(SIDES) as AgingSide[]).map((key) => (
             <button
               key={key}
@@ -189,7 +192,7 @@ export default function ReceivablesPage() {
           ))}
         </div>
         <div className="w-56">
-          <WarehouseSelect label="Cabang" placeholder="Semua cabang" value={warehouseId} onChange={setWarehouseId} />
+          <WarehouseSelect label={t('Cabang')} placeholder={t('Semua cabang')} value={warehouseId} onChange={setWarehouseId} />
         </div>
       </FilterBar>
 
@@ -203,20 +206,20 @@ export default function ReceivablesPage() {
             <StatCard
               label={info.totalLabel}
               value={aging ? formatRupiah(aging.total_outstanding) : '...'}
-              hint={aging ? `${formatNumber(aging.invoice_count)} invoice belum lunas` : undefined}
+              hint={aging ? t('{v1} invoice belum lunas', { v1: formatNumber(aging.invoice_count) }) : undefined}
             />
             <StatCard
-              label="Sudah lewat jatuh tempo"
+              label={t('Sudah lewat jatuh tempo')}
               value={aging ? formatRupiah(aging.overdue_total) : '...'}
-              hint={aging ? `${formatNumber(aging.overdue_count)} invoice, ${overdueShare}% dari total` : undefined}
+              hint={aging ? t('{v1} invoice, {overdueShare}% dari total', { v1: formatNumber(aging.overdue_count), overdueShare }) : undefined}
               tone={aging && aging.overdue_count > 0 ? 'warn' : 'default'}
             />
             <StatCard
-              label="Belum jatuh tempo"
+              label={t('Belum jatuh tempo')}
               value={aging ? formatRupiah(aging.buckets.find((b) => b.key === 'current')?.amount ?? 0) : '...'}
             />
             <StatCard
-              label="Terlama"
+              label={t('Terlama')}
               value={aging && aging.items[0] ? daysText(aging.items[0].days_overdue) : aging ? '—' : '...'}
               hint={aging?.items[0]?.invoice_number}
             />
@@ -224,15 +227,15 @@ export default function ReceivablesPage() {
 
           {aging && aging.invoice_count === 0 ? (
             <p className="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-              {info.emptyMessage}
+              {t(info.emptyMessage)}
             </p>
           ) : (
             <>
               <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
-                <p className="mb-3 text-xs text-slate-500">Umur saldo menurut jatuh tempo</p>
+                <p className="mb-3 text-xs text-slate-500">{t('Umur saldo menurut jatuh tempo')}</p>
                 <SimpleBarChart
                   bars={(aging?.buckets ?? []).map((bucket) => ({
-                    label: `${bucket.label} (${formatNumber(bucket.count)} invoice)`,
+                    label: t('{label} ({v2} invoice)', { label: t(bucket.label), v2: formatNumber(bucket.count) }),
                     value: parseMoney(bucket.amount),
                     colorClass: BUCKET_COLOR[bucket.key],
                   }))}
@@ -240,7 +243,7 @@ export default function ReceivablesPage() {
               </div>
 
               <section className="mt-6">
-                <h2 className="mb-2 text-sm font-semibold text-slate-700">{info.counterparty} dengan saldo terbesar</h2>
+                <h2 className="mb-2 text-sm font-semibold text-slate-700">{t(info.counterparty)} {t('dengan saldo terbesar')}</h2>
                 <DataTable
                   columns={contactColumns}
                   data={aging?.by_contact ?? []}
@@ -251,12 +254,12 @@ export default function ReceivablesPage() {
 
               {(aging?.by_warehouse.length ?? 0) > 1 && (
                 <section className="mt-6">
-                  <h2 className="mb-2 text-sm font-semibold text-slate-700">Per cabang</h2>
+                  <h2 className="mb-2 text-sm font-semibold text-slate-700">{t('Per cabang')}</h2>
                   <DataTable
                     columns={[
-                      { key: 'warehouse', header: 'Cabang', render: (row) => warehouseName(row.warehouse_id) },
-                      { key: 'count', header: 'Invoice', className: 'text-right', render: (row) => formatNumber(row.count) },
-                      { key: 'amount', header: 'Saldo', className: 'text-right', render: (row) => formatRupiah(row.amount) },
+                      { key: 'warehouse', header: t('Cabang'), render: (row) => warehouseName(row.warehouse_id) },
+                      { key: 'count', header: t('Invoice'), className: 'text-right', render: (row) => formatNumber(row.count) },
+                      { key: 'amount', header: t('Saldo'), className: 'text-right', render: (row) => formatRupiah(row.amount) },
                     ]}
                     data={aging?.by_warehouse ?? []}
                     getRowKey={(row) => row.warehouse_id}
@@ -265,10 +268,10 @@ export default function ReceivablesPage() {
               )}
 
               <section className="mt-6">
-                <h2 className="mb-2 text-sm font-semibold text-slate-700">Invoice terlama</h2>
+                <h2 className="mb-2 text-sm font-semibold text-slate-700">{t('Invoice terlama')}</h2>
                 {aging?.truncated && (
                   <p className="mb-2 text-xs text-slate-500">
-                    Menampilkan {formatNumber(aging.items.length)} invoice tertua dari {formatNumber(aging.invoice_count)}.
+                    {t('Menampilkan')} {formatNumber(aging.items.length)} {t('invoice tertua dari')} {formatNumber(aging.invoice_count)}.
                   </p>
                 )}
                 <DataTable

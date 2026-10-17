@@ -11,8 +11,10 @@ import { listUsers } from '../../api/users'
 import { STAFF_ROLES } from '../../auth/permissions'
 import type { Role } from '../../auth/permissions'
 import type { WarehouseAssignment } from '../../types/warehouseAssignment'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function WarehouseAssignmentsPage() {
+  const { t } = useI18n()
   const [warehouseId, setWarehouseId] = useState<number | null>(null)
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('')
   const [removing, setRemoving] = useState<WarehouseAssignment | null>(null)
@@ -46,7 +48,7 @@ export default function WarehouseAssignmentsPage() {
     mutationFn: () => createAssignment({ user_id: Number(selectedUserId), warehouse_id: warehouseId as number }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-warehouse-assignments', warehouseId] })
-      toast.show('Staff berhasil di-assign.', 'success')
+      toast.show(t('Staff berhasil di-assign.'), 'success')
       setSelectedUserId('')
     },
     onError: (err) => toast.show(getErrorMessage(err), 'error'),
@@ -56,7 +58,7 @@ export default function WarehouseAssignmentsPage() {
     mutationFn: (id: number) => deleteAssignment(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-warehouse-assignments', warehouseId] })
-      toast.show('Assignment berhasil dicabut.', 'success')
+      toast.show(t('Assignment berhasil dicabut.'), 'success')
       setRemoving(null)
     },
     onError: (err) => {
@@ -67,30 +69,28 @@ export default function WarehouseAssignmentsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-slate-900">Assign Staff ke Warehouse</h1>
+      <h1 className="text-xl font-semibold text-slate-900">{t('Assign Staff ke Warehouse')}</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Batasi admin-warehouse/staff-gudang/kasir-sales/purchasing/finance ke warehouse tertentu —
-        berguna kalau BU Anda punya lebih dari satu warehouse (mis. Gudang Pusat + Cabang) dan tiap
-        warehouse punya staff (atau kepala cabang) sendiri.
+        {t('Batasi admin-warehouse/staff-gudang/kasir-sales/purchasing/finance ke warehouse tertentu — berguna kalau BU Anda punya lebih dari satu warehouse (mis. Gudang Pusat + Cabang) dan tiap warehouse punya staff (atau kepala cabang) sendiri.')}
       </p>
 
       <div className="mt-6 max-w-sm">
-        <WarehouseSelect value={warehouseId} onChange={setWarehouseId} placeholder="-- pilih warehouse --" />
+        <WarehouseSelect value={warehouseId} onChange={setWarehouseId} placeholder={t('-- pilih warehouse --')} />
       </div>
 
       {warehouseId === null ? (
-        <p className="mt-8 text-sm text-slate-400">Pilih warehouse dulu buat lihat/kelola staff-nya.</p>
+        <p className="mt-8 text-sm text-slate-400">{t('Pilih warehouse dulu buat lihat/kelola staff-nya.')}</p>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <h2 className="mb-3 text-sm font-semibold text-slate-700">Staff Ter-assign</h2>
+            <h2 className="mb-3 text-sm font-semibold text-slate-700">{t('Staff Ter-assign')}</h2>
             {isError ? (
               <ErrorState error={error} />
             ) : isLoading ? (
-              <p className="text-sm text-slate-400">Memuat...</p>
+              <p className="text-sm text-slate-400">{t('Memuat...')}</p>
             ) : (assignments?.data ?? []).length === 0 ? (
               <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-400">
-                Belum ada staff ter-assign ke warehouse ini.
+                {t('Belum ada staff ter-assign ke warehouse ini.')}
               </p>
             ) : (
               <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
@@ -102,7 +102,7 @@ export default function WarehouseAssignmentsPage() {
                       onClick={() => setRemoving(a)}
                       className="text-sm font-medium text-red-600 hover:underline"
                     >
-                      Cabut
+                      {t('Cabut')}
                     </button>
                   </li>
                 ))}
@@ -111,14 +111,14 @@ export default function WarehouseAssignmentsPage() {
           </div>
 
           <div>
-            <h2 className="mb-3 text-sm font-semibold text-slate-700">+ Assign Staff Baru</h2>
+            <h2 className="mb-3 text-sm font-semibold text-slate-700">{t('+ Assign Staff Baru')}</h2>
             <div className="rounded-lg border border-slate-200 bg-white p-4">
               <SelectField
-                label="Pilih staff"
+                label={t('Pilih staff')}
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : '')}
               >
-                <option value="">-- pilih staff --</option>
+                <option value="">{t('-- pilih staff --')}</option>
                 {eligibleUsers.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name} — {u.email} ({u.role})
@@ -127,7 +127,7 @@ export default function WarehouseAssignmentsPage() {
               </SelectField>
               {eligibleUsers.length === 0 && (
                 <p className="mt-2 text-xs text-slate-400">
-                  Semua staff BU ini sudah ter-assign ke warehouse ini, atau belum ada staff sama sekali.
+                  {t('Semua staff BU ini sudah ter-assign ke warehouse ini, atau belum ada staff sama sekali.')}
                 </p>
               )}
               <button
@@ -136,7 +136,7 @@ export default function WarehouseAssignmentsPage() {
                 disabled={selectedUserId === '' || assignMutation.isPending}
                 className="mt-4 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {assignMutation.isPending ? 'Menyimpan...' : 'Assign'}
+                {assignMutation.isPending ? t('Menyimpan...') : t('Assign')}
               </button>
             </div>
           </div>
@@ -145,11 +145,11 @@ export default function WarehouseAssignmentsPage() {
 
       <ConfirmDialog
         open={!!removing}
-        title="Cabut Assignment"
+        title={t('Cabut Assignment')}
         description={
-          removing ? `Yakin mau cabut akses "${userLabel(removing.user_id)}" dari warehouse ini?` : ''
+          removing ? t('Yakin mau cabut akses "{v1}" dari warehouse ini?', { v1: userLabel(removing.user_id) }) : ''
         }
-        confirmLabel="Cabut"
+        confirmLabel={t('Cabut')}
         danger
         loading={removeMutation.isPending}
         onConfirm={() => removing && removeMutation.mutate(removing.id)}
