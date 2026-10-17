@@ -134,35 +134,35 @@ export default function App() {
                 <Route path="/activity-logs" element={<ActivityLogListPage />} />
               </Route>
 
-              <Route path="/inbounds" element={<InventoryTransactionListPage kind="inbound" title={t('Inbound')} />} />
+              <Route path="/inbounds" element={<InventoryTransactionListPage kind="inbound" title={t('Barang Masuk')} />} />
               <Route
                 path="/inbounds/new"
-                element={<InventoryTransactionFormPage kind="inbound" title={t('Inbound')} />}
+                element={<InventoryTransactionFormPage kind="inbound" title={t('Barang Masuk')} />}
               />
               <Route
                 path="/inbounds/:id"
-                element={<InventoryTransactionDetailPage kind="inbound" title={t('Inbound')} />}
+                element={<InventoryTransactionDetailPage kind="inbound" title={t('Barang Masuk')} />}
               />
               <Route
                 path="/inbounds/:id/edit"
-                element={<InventoryTransactionFormPage kind="inbound" title={t('Inbound')} />}
+                element={<InventoryTransactionFormPage kind="inbound" title={t('Barang Masuk')} />}
               />
 
               <Route
                 path="/outbounds"
-                element={<InventoryTransactionListPage kind="outbound" title={t('Outbound')} />}
+                element={<InventoryTransactionListPage kind="outbound" title={t('Barang Keluar')} />}
               />
               <Route
                 path="/outbounds/new"
-                element={<InventoryTransactionFormPage kind="outbound" title={t('Outbound')} />}
+                element={<InventoryTransactionFormPage kind="outbound" title={t('Barang Keluar')} />}
               />
               <Route
                 path="/outbounds/:id"
-                element={<InventoryTransactionDetailPage kind="outbound" title={t('Outbound')} />}
+                element={<InventoryTransactionDetailPage kind="outbound" title={t('Barang Keluar')} />}
               />
               <Route
                 path="/outbounds/:id/edit"
-                element={<InventoryTransactionFormPage kind="outbound" title={t('Outbound')} />}
+                element={<InventoryTransactionFormPage kind="outbound" title={t('Barang Keluar')} />}
               />
 
               <Route path="/stock-transfers" element={<StockTransferListPage />} />

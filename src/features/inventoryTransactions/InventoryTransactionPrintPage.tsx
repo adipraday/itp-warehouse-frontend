@@ -23,7 +23,7 @@ export default function InventoryTransactionPrintPage({ kind }: InventoryTransac
   const listQueryKey = kind === 'inbound' ? 'inbounds' : 'outbounds'
   const contactLabel = kind === 'inbound' ? translate('Diterima dari (Supplier)') : translate('Dikirim ke (Customer)')
   const docLabel = kind === 'inbound' ? translate('Surat Jalan — Barang Masuk') : translate('Surat Jalan — Barang Keluar')
-  const directionLabel = kind === 'inbound' ? 'MASUK' : 'KELUAR'
+  const directionLabel = kind === 'inbound' ? translate('MASUK') : translate('KELUAR')
 
   const { data: doc, isLoading, isError, error } = useQuery({
     queryKey: [listQueryKey, transactionId],

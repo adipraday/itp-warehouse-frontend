@@ -188,7 +188,7 @@ export default function ReturnDetailPage() {
           )}
           {d.replacement_inventory_transaction_id && (
             <p className="mt-1 text-sm">
-              {t('Outbound pengganti:')}{' '}
+              {t('Barang keluar pengganti:')}{' '}
               <Link to={`/outbounds/${d.replacement_inventory_transaction_id}`} className="text-blue-600 hover:underline">
                 #{d.replacement_inventory_transaction_id}
               </Link>
@@ -290,7 +290,7 @@ export default function ReturnDetailPage() {
       <ConfirmDialog
         open={activeDialog === 'complete'}
         title={t('Complete Retur')}
-        description={t('Aksi ini akan mengubah stok secara permanen sesuai kondisi & aksi tiap item (termasuk membuat outbound pengganti kalau ada baris REPLACE), dan tidak bisa dibatalkan. Lanjutkan?')}
+        description={t('Aksi ini akan mengubah stok secara permanen sesuai kondisi & aksi tiap item (termasuk membuat barang keluar pengganti kalau ada baris REPLACE), dan tidak bisa dibatalkan. Lanjutkan?')}
         confirmLabel={t('Complete')}
         loading={completeMutation.isPending}
         onConfirm={() => completeMutation.mutate()}

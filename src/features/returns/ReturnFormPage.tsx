@@ -290,7 +290,7 @@ export default function ReturnFormPage() {
 
         <div>
           <span className="text-sm font-medium text-slate-700">
-            {t('Dokumen Asal (')}{type === 'RETURN_CUSTOMER' ? t('Sales invoice yang sudah COMPLETED') : t('Inbound yang sudah COMPLETED')})
+            {t('Dokumen Asal (')}{type === 'RETURN_CUSTOMER' ? t('Sales invoice yang sudah COMPLETED') : t('Barang masuk yang sudah COMPLETED')})
           </span>
           {isEdit ? (
             <p className="mt-1 text-sm text-slate-900">

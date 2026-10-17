@@ -56,7 +56,7 @@ export default function InvoiceDetailPage({ kind, title }: InvoiceDetailPageProp
   const canRecordPayment = canWrite('payments')
   const basePath = kind === 'sales' ? '/sales' : '/purchases'
   const linkedTransactionPath = kind === 'sales' ? '/outbounds' : '/inbounds'
-  const linkedTransactionLabel = kind === 'sales' ? translate('Outbound') : translate('Inbound')
+  const linkedTransactionLabel = kind === 'sales' ? translate('Barang Keluar') : translate('Barang Masuk')
 
   const { data: doc, isLoading } = useQuery({
     queryKey: [kind, invoiceId],

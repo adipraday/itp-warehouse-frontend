@@ -84,8 +84,8 @@ function buildNavGroups(
     {
       label: translate('Transaksi Inventory'),
       items: [
-        { to: '/inbounds', label: translate('Inbound') },
-        { to: '/outbounds', label: translate('Outbound') },
+        { to: '/inbounds', label: translate('Barang Masuk') },
+        { to: '/outbounds', label: translate('Barang Keluar') },
         { to: '/stock-transfers', label: translate('Transfers') },
         { to: '/stock-opnames', label: translate('Opname') },
       ],

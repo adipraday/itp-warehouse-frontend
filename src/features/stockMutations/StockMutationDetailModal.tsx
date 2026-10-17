@@ -35,8 +35,8 @@ function sourceLink(m: StockMutation): { to: string; label: string } {
   switch (m.source_type) {
     case 'INVENTORY_TRANSACTION':
       return m.direction === 'IN'
-        ? { to: `/inbounds/${m.source_id}`, label: translate('Inbound #{source_id}', { source_id: m.source_id }) }
-        : { to: `/outbounds/${m.source_id}`, label: translate('Outbound #{source_id}', { source_id: m.source_id }) }
+        ? { to: `/inbounds/${m.source_id}`, label: translate('Barang masuk #{source_id}', { source_id: m.source_id }) }
+        : { to: `/outbounds/${m.source_id}`, label: translate('Barang keluar #{source_id}', { source_id: m.source_id }) }
     case 'RETURN':
       return { to: `/returns/${m.source_id}`, label: translate('Retur #{source_id}', { source_id: m.source_id }) }
     case 'STOCK_OPNAME':

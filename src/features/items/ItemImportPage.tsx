@@ -113,7 +113,7 @@ export default function ItemImportPage() {
       <div className="rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-700">{t('Import Item + Stok Awal')}</h2>
         <p className="mt-1 text-sm text-slate-500">
-          {t('Upload file CSV/.xlsx buat bikin atau update banyak item sekaligus — opsional langsung isi stok awal per warehouse (otomatis jadi dokumen Inbound COMPLETED, bukan angka yang muncul tanpa jejak). Maks 5000 baris, 10MB.')}
+          {t('Upload file CSV/.xlsx buat bikin atau update banyak item sekaligus — opsional langsung isi stok awal per warehouse (otomatis jadi dokumen Barang Masuk COMPLETED, bukan angka yang muncul tanpa jejak). Maks 5000 baris, 10MB.')}
         </p>
 
         <div className="mt-3 flex gap-2">
@@ -175,7 +175,7 @@ export default function ItemImportPage() {
             </ul>
             {importResult.inbound_ids.length > 0 && (
               <p className="mt-2">
-                {t('Dokumen inbound yang otomatis dibuat:')}{' '}
+                {t('Dokumen barang masuk yang otomatis dibuat:')}{' '}
                 {importResult.inbound_ids.map((id, i) => (
                   <span key={id}>
                     {i > 0 && ', '}

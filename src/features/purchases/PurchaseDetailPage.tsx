@@ -171,7 +171,7 @@ export default function PurchaseDetailPage() {
                 <span key={r.id}>
                   {i > 0 && ', '}
                   <Link to={`/inbounds/${r.inventory_transaction_id}`} className="text-blue-600 hover:underline">
-                    {t('Inbound #')}{r.inventory_transaction_id}
+                    {t('Barang Masuk #')}{r.inventory_transaction_id}
                   </Link>
                 </span>
               ))}
