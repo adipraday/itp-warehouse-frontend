@@ -252,13 +252,8 @@ export default function InventoryTransactionFormPage({ kind, title }: InventoryT
             value={warehouseId}
             onChange={setWarehouseId}
           />
-          {/* Barang keluar dikirim ke pelanggan, jadi daftarnya hanya customer (termasuk kontak bertipe 'both'); supplier tidak ditampilkan. */}
-          <ContactSelect
-            label={kind === 'outbound' ? t('Customer (opsional)') : t('Kontak (opsional)')}
-            type={kind === 'outbound' ? 'customer' : undefined}
-            value={contactId}
-            onChange={setContactId}
-          />
+          {/* Barang masuk dan barang keluar sama-sama hanya menampilkan customer (termasuk kontak bertipe 'both'); supplier tidak ditampilkan. */}
+          <ContactSelect label={t('Customer (opsional)')} type="customer" value={contactId} onChange={setContactId} />
           <TextField
             label={t('Tanggal Transaksi')}
             type="date"
